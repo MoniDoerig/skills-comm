@@ -172,7 +172,7 @@
       "quantitative-swi": "quantitative_gt/quantitative-swi (ClearSWI swi.nii + mip.nii)",
       "spinal-cord-segmentation": "spinal_gt/spinal-cord-segmentation (SCT: t1w_seg.nii.gz)",
       "clinical-brain-extraction": "clinical_gt/clinical-brain-extraction (HD-BET: sub-01_desc-brain_T1w_bet.nii.gz) - MOVED from structural (was misfiled)",
-      "structural-brain-extraction": "ds002790 SHIPPED fMRIPrep mask (sub-0004_desc-brain_mask.nii.gz) - NOT on zjqey, referenced from dataset"
+      "structural-brain-extraction": "ground_truth/structural_gt/structural-brain-extraction (STAPLE consensus: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader code in benchmark/graders/structural-brain-extraction/)"
     },
     "xcpd_walkthrough_ds004450": {
       "id": "ds004450",
@@ -285,11 +285,23 @@
             "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space."
           },
           "solution": {
-            "ground_truth": "derivatives/fmriprep/sub-0004/anat/sub-0004_desc-brain_mask.nii.gz (NATIVE T1w space - no MNI resampling needed since the task is native-space skull-stripping). Dice.",
-            "ground_truth_location": "dataset-shipped: ds002790 derivatives/fmriprep/sub-0004/anat/sub-0004_desc-brain_mask.nii.gz",
-            "metric": "dice",
+            "ground_truth": "STAPLE consensus of a panel of accepted tools (ANTs, HD-BET, FSL BET, AFNI, SynthStrip), split into core/margin/background zones and calibrated once on this subject; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz, hosted on OSF and fetched into the grader pack reference/ at grade time.",
+            "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction/ (consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w)",
+            "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input image; Brain mask is binary (values 0 and 1 only); Brain mask is anatomically plausible: skull/dura removed, brain retained; No processing errors; logs captured",
-            "output_validation": "Dice between agent brain mask (or implied mask from skull-stripped output) and the native fmriprep brain_mask.",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "grader": {
+              "kind": "consensus-calibrated",
+              "description": "Scores the mask against a STAPLE consensus of a panel of accepted tools, split into core (must keep) / margin (free, not scored) / background (must exclude); all thresholds (tolerance tau, per-metric envelope, gate caps) are calibrated by leave-one-tool-out. See PROVENANCE.md for the calibration procedure.",
+              "pack": "benchmark/graders/structural-brain-extraction/",
+              "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction/reference/consensus_zones.nii.gz",
+              "entry": "score_brain_mask.py",
+              "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction/",
+              "dependencies": ["numpy", "scipy", "nibabel"],
+              "returns": "JSON: verdict in {indistinguishable, acceptable, marginal, unacceptable, invalid}, quality 0-100, gate_failures[], metrics{}",
+              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "provenance": "benchmark/graders/structural-brain-extraction/PROVENANCE.md"
+            },
             "tool_mode": "agnostic",
             "tool_suggestions": [
               "fsl",
@@ -299,7 +311,7 @@
               "afni"
             ],
             "tool_note": "Context: healthy. Tool names from the reference tool comparison.md. All tools verified registry",
-            "notes": "[note] Native-space mask IS available in fmriprep derivatives, so no MNI-space requirement and no need to generate GT.",
+            "notes": "[note] Native-space task, no MNI resampling. Grading is consensus-calibrated on this subject (n=1); adding a subject means calibrating a new grader pack.",
             "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds002790.git && cd ds002790 && datalad get sub-0004/anat/",
             "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename \u2014 tool-determined; e.g. *_bet.nii.gz, *BrainExtractionBrain.nii.gz, or caller-named via -o); A binary brain mask (NIfTI, any filename \u2014 tool-determined; e.g. *_bet_mask.nii.gz, *BrainExtractionMask.nii.gz, *_mask.nii.gz, or caller-named via -m)"
           }

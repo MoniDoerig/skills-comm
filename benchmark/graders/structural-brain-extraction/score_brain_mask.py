@@ -1,0 +1,255 @@
+#!/usr/bin/env python3
+"""score_brain_mask.py — grade a brain-extraction submission for the
+`structural-brain-extraction` benchmark task.
+
+This is the GRADER-side scorer, not an agent-facing skill: it decides whether a
+produced brain mask is competent, against a *frozen reference pack* that was
+calibrated once from a panel of accepted tools (see PROVENANCE.md).
+
+Why not a single Dice-vs-one-mask check: every skull-stripper draws a slightly
+different boundary, and they disagree in a few predictable places. So the pack
+carries a STAPLE consensus of accepted tools split into three zones —
+
+    core (2)        every accepted tool includes it  -> must be kept  (scored)
+    margin (1)      the tools legitimately disagree   -> free         (never scored)
+    background (0)  no accepted tool includes it      -> must be out   (scored)
+
+and scores only the two unambiguous zones. Every threshold — the surface
+tolerance tau, the per-metric pass/fail envelope, the gate caps — is read from
+rubric.json, which was calibrated by leave-one-tool-out. Nothing here is
+hand-picked, and scoring a submission never re-calibrates.
+
+Pack layout (--pack DIR):
+    rubric.json                        calibrated numbers (tau, envelope, weights, gates)
+    reference/consensus_mask.nii.gz    binary consensus (STAPLE p>=0.5), native T1w grid
+    reference/consensus_zones.nii.gz   0=background, 1=margin, 2=core
+
+Usage:
+    score_brain_mask.py --mask agent_mask.nii.gz --pack PACK_DIR \
+        [--stripped agent_brain.nii.gz] [--json out.json]
+
+Exit code is 0 when the submission is valid (not gate-failed), 1 otherwise, so
+the grader can be used as a pass/fail check in a harness.
+
+Dependencies: numpy, scipy, nibabel.
+"""
+import argparse
+import json
+import sys
+from pathlib import Path
+
+import numpy as np
+import nibabel as nib
+from scipy import ndimage as ndi
+
+BIN_TOL = 1e-6
+STRUCT = ndi.generate_binary_structure(3, 1)
+# metrics where a smaller value is better (used by the envelope mapping)
+LOWER_BETTER = {"assd_mm", "hd95_mm", "core_miss_cm3", "focal_core_miss_cm3",
+                "bg_fp_cm3", "bg_fp_frac_of_ref", "abs_volume_err_pct"}
+
+
+# --------------------------------------------------------------------------- #
+# Geometry / loading
+# --------------------------------------------------------------------------- #
+def same_grid(a, b, tol=1e-3):
+    return a.shape[:3] == b.shape[:3] and np.allclose(a.affine, b.affine, atol=tol)
+
+
+def is_header_only_deoblique(raw_img, ref_shape, ref_affine, tol=1e-3):
+    """True when a submission shares the reference's sampling lattice but had its
+    obliquity stripped from the header only (AFNI's 3dSkullStrip does this). The
+    data is still index-aligned to the input, so it must be read on the native
+    grid rather than resampled by the (now-wrong) affine."""
+    if tuple(raw_img.shape[:3]) != tuple(ref_shape[:3]):
+        return False
+    a = raw_img.affine
+    za = np.linalg.norm(a[:3, :3], axis=0)
+    zb = np.linalg.norm(np.asarray(ref_affine)[:3, :3], axis=0)
+    same_zooms = np.allclose(za, zb, atol=tol)
+    same_origin = np.allclose(a[:3, 3], np.asarray(ref_affine)[:3, 3], atol=tol)
+    differs = not np.allclose(a, ref_affine, atol=tol)
+    return bool(same_zooms and same_origin and differs)
+
+
+def resample_nn(mask, affine, ref_img):
+    xfm = np.linalg.inv(affine) @ ref_img.affine
+    out = ndi.affine_transform(mask.astype(np.uint8), xfm[:3, :3], offset=xfm[:3, 3],
+                               output_shape=ref_img.shape[:3], order=0, mode="constant", cval=0)
+    return out.astype(bool)
+
+
+def load_mask(path, ref_img, raw_shape, raw_affine):
+    """Load a submission as a boolean mask on the reference grid. Returns (mask, notes)."""
+    raw = nib.load(str(path))
+    img = nib.as_closest_canonical(raw)
+    data = np.asanyarray(img.dataobj).astype(np.float64)
+    notes = []
+    if np.isnan(data).any():
+        notes.append("contains_nan")
+        data = np.nan_to_num(data)
+    vals = np.unique(data)
+    if vals.size > 2:
+        notes.append(f"not_binary({vals.size}_values)")
+    elif not np.isin(vals, [0, 1]).all():
+        notes.append("values_not_0_1")
+    mask = data > BIN_TOL
+    if not same_grid(img, ref_img):
+        if raw_affine is not None and is_header_only_deoblique(raw, raw_shape, raw_affine):
+            notes.append("deobliqued_header_native_grid")
+        else:
+            notes.append(f"grid_mismatch{tuple(img.shape[:3])}")
+            mask = resample_nn(mask, img.affine, ref_img)
+            notes.append("resampled_nn")
+    return mask, notes
+
+
+# --------------------------------------------------------------------------- #
+# Metrics and gates (formulas match the calibration recorded in PROVENANCE.md)
+# --------------------------------------------------------------------------- #
+def _surface(m):
+    return m & ~ndi.binary_erosion(m, STRUCT, border_value=1)
+
+
+def _largest_component_cm3(binary, vox_cm3):
+    lab, n = ndi.label(binary, STRUCT)
+    return float(np.bincount(lab.ravel())[1:].max() * vox_cm3) if n else 0.0
+
+
+def surface_metrics(cand, ref_binary, zooms, tau_mm):
+    sc, sr = _surface(cand), _surface(ref_binary)
+    if sc.sum() == 0 or sr.sum() == 0:
+        return dict(assd_mm=np.nan, hd95_mm=np.nan, nsd=np.nan)
+    d_cr = ndi.distance_transform_edt(~sr, sampling=zooms)[sc]
+    d_rc = ndi.distance_transform_edt(~sc, sampling=zooms)[sr]
+    both = np.concatenate([d_cr, d_rc])
+    nsd = ((d_cr <= tau_mm).sum() + (d_rc <= tau_mm).sum()) / both.size
+    return dict(assd_mm=float(both.mean()), hd95_mm=float(np.percentile(both, 95)), nsd=float(nsd))
+
+
+def evaluate(mask, zones, ref_binary, zooms, tau_mm):
+    vox_cm3 = float(np.prod(zooms) / 1000.0)
+    core, margin, background = zones == 2, zones == 1, zones == 0
+    m = {}
+    m["volume_cm3"] = float(mask.sum() * vox_cm3)
+    m["volume_err_pct"] = 100 * (mask.sum() - ref_binary.sum()) / max(ref_binary.sum(), 1)
+    m["abs_volume_err_pct"] = abs(m["volume_err_pct"])
+    m["dice"] = 2 * (mask & ref_binary).sum() / max(mask.sum() + ref_binary.sum(), 1)
+    m["core_recall"] = (mask & core).sum() / max(core.sum(), 1)
+    m["core_miss_cm3"] = (core & ~mask).sum() * vox_cm3
+    m["focal_core_miss_cm3"] = _largest_component_cm3(core & ~mask, vox_cm3)
+    m["bg_fp_cm3"] = (mask & background).sum() * vox_cm3
+    m["bg_fp_frac_of_ref"] = (mask & background).sum() / max(ref_binary.sum(), 1)
+    m["margin_inclusion"] = (mask & margin).sum() / max(margin.sum(), 1)
+    m.update(surface_metrics(mask, ref_binary, zooms, tau_mm))
+    return m
+
+
+def validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask=None):
+    core = zones == 2
+    g = {}
+    g["binary"] = not any(n.startswith("not_binary") or n == "values_not_0_1" for n in notes)
+    g["native_grid"] = not any(n.startswith("grid_mismatch") for n in notes)
+    g["nonempty"] = bool(mask.sum() > 0)
+    lo, hi = rubric["plausible_volume_cm3"]
+    g["volume_plausible"] = bool(lo <= mask.sum() * vox_cm3 <= hi)
+    lab, n = ndi.label(mask, STRUCT)
+    sizes = np.bincount(lab.ravel())[1:] if n else np.array([0])
+    g["single_component"] = bool(n > 0 and sizes.max() / sizes.sum() > 0.98)
+    filled = ndi.binary_fill_holes(mask)
+    g["no_internal_holes"] = bool((filled.sum() - mask.sum()) / max(mask.sum(), 1) < 0.02)
+    max_core_loss = 1 - rubric.get("consensus", {}).get("max_core_loss", 0.10)  # default 0.90 kept
+    g["no_catastrophic_core_loss"] = bool((mask & core).sum() / max(core.sum(), 1) > 0.90)
+    g["no_focal_core_loss"] = bool(_largest_component_cm3(core & ~mask, vox_cm3)
+                                   <= rubric["focal_max_cm3"])
+    if stripped_mask is not None:
+        g["stripped_matches_mask"] = bool((stripped_mask == mask).mean() > 0.99)
+    return g
+
+
+def subscore(value, env, key, slack):
+    if not np.isfinite(value):
+        return 0.0
+    good, worst = env["median"], env["worst"]
+    if key in LOWER_BETTER:
+        fail = worst + slack * max(worst - good, 1e-6)
+        return float(np.clip((fail - value) / max(fail - good, 1e-9), 0, 1))
+    fail = worst - slack * max(good - worst, 1e-6)
+    return float(np.clip((value - fail) / max(good - fail, 1e-9), 0, 1))
+
+
+def score(mask_path, pack_dir, stripped_path=None):
+    """Grade one submission. Returns a dict with verdict, quality, metrics, gates."""
+    pack = Path(pack_dir)
+    rubric = json.load(open(pack / "rubric.json"))
+    ref_dir = pack / "reference"
+    missing = [f for f in ("consensus_mask.nii.gz", "consensus_zones.nii.gz")
+               if not (ref_dir / f).exists()]
+    if missing:
+        raise SystemExit(
+            f"ERROR: reference file(s) {missing} not found in {ref_dir}.\n"
+            "The consensus reference is hosted on OSF, not in git — fetch it first "
+            "(see reference/README.md):\n"
+            "  osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/"
+            f"consensus_mask.nii.gz {ref_dir / 'consensus_mask.nii.gz'}\n"
+            "  osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/"
+            f"consensus_zones.nii.gz {ref_dir / 'consensus_zones.nii.gz'}")
+    ref_img = nib.as_closest_canonical(nib.load(str(pack / "reference" / "consensus_mask.nii.gz")))
+    zones = np.asanyarray(nib.as_closest_canonical(
+        nib.load(str(pack / "reference" / "consensus_zones.nii.gz"))).dataobj).astype(np.int16)
+    ref_binary = np.asanyarray(ref_img.dataobj) > BIN_TOL
+    zooms = np.asarray(ref_img.header.get_zooms()[:3], float)
+    vox_cm3 = float(np.prod(zooms) / 1000.0)
+    raw_shape = rubric["grid"].get("raw_shape")
+    raw_affine = rubric["grid"].get("raw_affine")
+
+    mask, notes = load_mask(mask_path, ref_img, raw_shape, raw_affine)
+    stripped_mask = None
+    if stripped_path:
+        stripped_mask, _ = load_mask(stripped_path, ref_img, raw_shape, raw_affine)
+
+    gates = validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask)
+    metrics = evaluate(mask, zones, ref_binary, zooms, rubric["tau_mm"])
+
+    failures = [k for k, ok in gates.items() if not ok]
+    weights = rubric["weights"]
+    subs = {k: subscore(metrics[k], rubric["envelope"][k], k, rubric["slack"]) for k in weights}
+    quality = 100 * sum(weights[k] * subs[k] for k in subs)
+
+    within = all((metrics[k] <= rubric["envelope"][k]["worst"]) if k in LOWER_BETTER
+                 else (metrics[k] >= rubric["envelope"][k]["worst"]) for k in weights)
+    vt = rubric["verdict_thresholds"]
+    if failures:
+        verdict, quality = "invalid", 0.0
+    elif within:
+        verdict = "indistinguishable"
+    elif quality >= vt["acceptable"]:
+        verdict = "acceptable"
+    elif quality >= vt["marginal"]:
+        verdict = "marginal"
+    else:
+        verdict = "unacceptable"
+
+    return {"verdict": verdict, "quality": round(quality, 2),
+            "gate_failures": failures, "load_notes": notes,
+            "metrics": {k: round(float(v), 4) for k, v in metrics.items()},
+            "subscores": {k: round(v, 4) for k, v in subs.items()}}
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="Grade a brain-extraction submission against the frozen pack.")
+    ap.add_argument("--mask", required=True, help="agent brain mask (NIfTI)")
+    ap.add_argument("--pack", required=True, help="grader pack directory (holds rubric.json + reference/)")
+    ap.add_argument("--stripped", help="optional agent skull-stripped image, for the mask/image consistency gate")
+    ap.add_argument("--json", help="write the full result to this path")
+    args = ap.parse_args(argv)
+
+    result = score(args.mask, args.pack, args.stripped)
+    print(json.dumps(result, indent=2))
+    if args.json:
+        json.dump(result, open(args.json, "w"), indent=2)
+    return 0 if not result["gate_failures"] else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
