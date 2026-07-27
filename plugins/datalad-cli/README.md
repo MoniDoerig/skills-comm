@@ -86,6 +86,10 @@ The hook exits silently (no error, no commit) when:
 git log --oneline --grep="\[datalad run\]"
 ```
 
+## Contributors
+
+- Brent McPherson
+
 ## Structure
 
 ```

@@ -26,7 +26,7 @@ human-facing [CONTRIBUTING.md](CONTRIBUTING.md) and the git rules in
 
 - Frontmatter `name` matches the directory; `description` is the trigger — enumerate the
   phrases and intents that should activate the skill (mirror the style of existing skills
-  like `plugins/bcmcpher/brain-extraction/SKILL.md`).
+  like `plugins/brain-extraction/brain-extraction/SKILL.md`).
 - Body is a terse, numbered, imperative procedure with an explicit **Constraints** section
   for hard rules.
 - Honor the target environment (Neurodesk + Lmod + SLURM): discover tools with
