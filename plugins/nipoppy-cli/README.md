@@ -35,3 +35,7 @@ organizing DICOMs, running BIDS conversion, executing fMRIPrep/MRIQC, or extract
 | `references/curation-commands.md` | `track-curation` and `reorg` — options, DICOM checks, curation status schema |
 | `references/bids-commands.md` | `bidsify` — dcm2bids, HeuDiConv, BIDScoin options and Boutiques context |
 | `references/pipeline-commands.md` | `run`, `track`, `extract` — options, bagel schema, IDP extraction |
+
+## Contributors
+
+- Brent McPherson

@@ -23,7 +23,8 @@ productive.
   (`plugins/datalad-cli`, `plugins/nipoppy-cli`). The manifest's `skills` array lists each
   skill by relative path; `datalad-cli` also wires a `Stop` hook via `hooks/hooks.json`.
 - **Bare skill collection**: `SKILL.md` directories with no manifest
-  (`plugins/bcmcpher`, `plugins/kodibaga`).
+  (`plugins/brain-extraction`, `plugins/combat-harmonization`, `plugins/fc-matrix-generation`,
+  `plugins/job-monitor`, `plugins/registration`).
 
 **A skill is progressive disclosure.** Three layers, loaded only as far as needed:
 
@@ -34,7 +35,7 @@ productive.
    section of hard rules. This is loaded when the skill activates.
 3. `references/*.md` — long material (tool flag tables, QC criteria, tool comparisons)
    loaded on demand from within the procedure. Keeping the body lean and pushing detail
-   here is the central design pattern; see `plugins/bcmcpher/brain-extraction/` (a short
+   here is the central design pattern; see `plugins/brain-extraction/brain-extraction/` (a short
    `SKILL.md` that pulls per-tool detail from `references/{fsl-bet,ants-brain-extraction,
    synthstrip,...}.md`).
 
@@ -87,5 +88,5 @@ that is a skill *step*, not a repo command.
   `references/`.
 - Adding a contribution: it goes under `plugins/<name>/` and requires a prior, acknowledged
   issue plus manual-run test evidence in the PR — see [CONTRIBUTING.md](CONTRIBUTING.md).
-- The repo is **Apache-2.0** (`LICENSE`). Note the existing `plugin.json` manifests declare
-  `"license": "MIT"` — flag this inconsistency rather than propagating it to new manifests.
+- The repo is **Apache-2.0** (`LICENSE`). Plugin manifests should not declare a `license`
+  field; the repository `LICENSE` applies to all contributions.

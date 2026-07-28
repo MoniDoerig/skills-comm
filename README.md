@@ -31,8 +31,11 @@ is either a full **Claude Code plugin** (with a `.claude-plugin/plugin.json` man
 |---|---|
 | [`plugins/datalad-cli`](plugins/datalad-cli) | DataLad / git-annex provenance and YODA-compliant analysis datasets |
 | [`plugins/nipoppy-cli`](plugins/nipoppy-cli) | The `nipoppy` dataset-management lifecycle (curation → BIDS → process → extract) |
-| [`plugins/bcmcpher`](plugins/bcmcpher) | Brain extraction (skull stripping) and its quality control |
-| [`plugins/kodibaga`](plugins/kodibaga) | SLURM/PBS/LSF job monitoring and harmonization workflows |
+| [`plugins/brain-extraction`](plugins/brain-extraction) | Brain extraction (skull stripping) and its quality control |
+| [`plugins/combat-harmonization`](plugins/combat-harmonization) | ComBat-family harmonization strategy, execution, and QC |
+| [`plugins/fc-matrix-generation`](plugins/fc-matrix-generation) | Functional connectivity matrix generation from resting-state fMRI |
+| [`plugins/job-monitor`](plugins/job-monitor) | SLURM/PBS/LSF job monitoring and fast failure detection |
+| [`plugins/registration`](plugins/registration) | Image registration and registration QC |
 
 [`skill-iterations/`](skill-iterations/) is a **teaching example**: the same
 brain-extraction skill captured at six successive stages of refinement, showing how a raw

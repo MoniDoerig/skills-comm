@@ -28,7 +28,8 @@ A contribution is one directory under [`plugins/`](plugins/). Two forms are acce
   its skills, plus a `README.md`. Installable via `claude plugin install`. See
   `plugins/datalad-cli/` and `plugins/nipoppy-cli/` as models.
 - **Bare skill collection** — one or more `SKILL.md` directories without a manifest. Fine
-  for a first or small contribution. See `plugins/bcmcpher/` and `plugins/kodibaga/`.
+  for a first or small contribution. See `plugins/brain-extraction/`, `plugins/job-monitor/`,
+  or `plugins/registration/` as models.
 
 Pick a clear, lowercase, hyphenated directory name (the tool or domain, e.g.
 `qsiprep-cli`). Don't collide with an existing directory.

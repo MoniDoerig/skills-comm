@@ -3,7 +3,6 @@
   "description": "Route data processing and file changes through DataLad for provenance tracking (datalad create, run, save). Follows YODA principles for reproducible local analysis projects.",
   "version": "0.1.0",
   "author": { "name": "bcmcpher" },
-  "license": "MIT",
   "keywords": ["datalad", "provenance", "reproducibility", "yoda", "data-management"],
   "skills": [
     "./skills/datalad-init",
