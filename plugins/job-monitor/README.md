@@ -8,4 +8,4 @@ Track compute jobs from submission through completion with fast failure detectio
 
 ## Contributors
 
-- kodibaga (original contribution; names to be updated)
+- Alisha Kodibagkar

@@ -8,4 +8,4 @@ Generate functional connectivity matrices from resting-state fMRI.
 
 ## Contributors
 
-- kodibaga (original contribution; names to be updated)
+- Alisha Kodibagkar

@@ -10,4 +10,4 @@ Plan, execute, and quality-check ComBat-family harmonization of multi-site neuro
 
 ## Contributors
 
-- kodibaga (original contribution; names to be updated)
+- Alisha Kodibagkar
