@@ -173,7 +173,8 @@
       "spinal-cord-segmentation": "spinal_gt/spinal-cord-segmentation (SCT: t1w_seg.nii.gz)",
       "clinical-brain-extraction": "clinical_gt/clinical-brain-extraction (HD-BET: sub-01_desc-brain_T1w_bet.nii.gz) - MOVED from structural (was misfiled)",
       "structural-brain-extraction": "ground_truth/structural_gt/structural-brain-extraction (STAPLE consensus: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader code in benchmark/graders/structural-brain-extraction/)",
-      "structural-brain-extraction-motion": "ground_truth/structural_gt/structural-brain-extraction-motion (STAPLE consensus HD_BET+AFNI+SynthStrip: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-motion/)"
+      "structural-brain-extraction-motion": "ground_truth/structural_gt/structural-brain-extraction-motion (STAPLE consensus HD_BET+AFNI+SynthStrip: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-motion/)",
+      "structural-brain-extraction-pediatric": "ground_truth/structural_gt/structural-brain-extraction-pediatric (STAPLE consensus HD_BET+AFNI+SynthStrip+BET_R: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-pediatric/)"
     },
     "xcpd_walkthrough_ds004450": {
       "id": "ds004450",
@@ -360,6 +361,50 @@
             "tool_note": "Context: healthy adult, HIGH head-motion scan (MR-ART acq-headmotion2, quality score 3/3 = worst tier). Deep-learning tools (HD-BET, SynthStrip) tend to be more motion-robust; intensity/deformable tools may leak into non-brain or cut. Tool names are non-binding suggestions.",
             "notes": "[note] Second, harder subject on the MOTION axis (companion to structural-brain-extraction, the healthy-adult baseline). acq-standard (clean) is available as a control. Consensus recalibrated on the motion scan (n=1); before freezing, re-run the reference-set coherence check and drop any tool that is a clear outlier on this scan.",
             "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004173.git && cd ds004173 && datalad get sub-000103/anat/",
+            "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename — tool-determined); A binary brain mask (NIfTI, any filename — tool-determined)."
+          }
+        },
+        "structural-brain-extraction-pediatric": {
+          "title": "Brain extraction in a young child (skull stripping)",
+          "description": "Skull-strip the T1w of sub-pixar017 (~3.6 yo) of OpenNeuro dataset ds000228, producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "prompt": {
+            "goal": "Skull-strip the T1-weighted image of sub-pixar017, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "dataset": {
+              "source": "openneuro",
+              "id": "ds000228",
+              "version_pin": "1.1.1",
+              "subjects": [
+                "sub-pixar017"
+              ]
+            },
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space."
+          },
+          "solution": {
+            "ground_truth": "STAPLE consensus of a panel of accepted tools (HD-BET, AFNI, SynthStrip, FSL BET -R) run on the child T1w, split into core/margin/background zones and calibrated once; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz, hosted on OSF and fetched into the grader pack reference/ at grade time.",
+            "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction-pediatric/ (consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w)",
+            "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
+            "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input; Brain mask is binary (0 and 1 only); Brain (incl. cerebellum and brainstem) retained and skull/dura/neck removed; No processing errors; logs captured",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "grader": {
+              "kind": "consensus-calibrated",
+              "description": "Scores the mask against a STAPLE consensus of accepted tools run on the child T1w, split into core (must keep) / margin (free, not scored) / background (must exclude); thresholds (tolerance tau, per-metric envelope, gate caps) calibrated by leave-one-tool-out. See PROVENANCE.md.",
+              "pack": "benchmark/graders/structural-brain-extraction-pediatric/",
+              "scorer": "benchmark/graders/structural-brain-extraction/score_brain_mask.py",
+              "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-pediatric/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction-pediatric/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-pediatric/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction-pediatric/reference/consensus_zones.nii.gz",
+              "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction-pediatric/",
+              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "provenance": "benchmark/graders/structural-brain-extraction-pediatric/PROVENANCE.md"
+            },
+            "tool_mode": "agnostic",
+            "tool_suggestions": [
+              "synthstrip",
+              "hdbet",
+              "fsl",
+              "afni"
+            ],
+            "tool_note": "Context: young child (~3.6 yo). Deep-learning tools (SynthStrip, HD-BET) and FSL BET with -R handle the pediatric brain well; ANTs is a poor fit (the adult OASIS template does not match a 3.6-yo brain) and was excluded from the reference panel. Tool names are non-binding suggestions.",
+            "notes": "[note] Third subject, PEDIATRIC axis (companion to the healthy-adult baseline and the motion subject). Full-FOV clean scan (an earlier candidate, sub-pixar009, was rejected for field-of-view truncation cutting through the brain). All four panel tools were coherent (pairwise Dice ~0.96, no outlier); tau ~4.5 mm.",
+            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds000228.git && cd ds000228 && datalad get sub-pixar017/anat/",
             "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename — tool-determined); A binary brain mask (NIfTI, any filename — tool-determined)."
           }
         },
