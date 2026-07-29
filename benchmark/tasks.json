@@ -172,7 +172,8 @@
       "quantitative-swi": "quantitative_gt/quantitative-swi (ClearSWI swi.nii + mip.nii)",
       "spinal-cord-segmentation": "spinal_gt/spinal-cord-segmentation (SCT: t1w_seg.nii.gz)",
       "clinical-brain-extraction": "clinical_gt/clinical-brain-extraction (HD-BET: sub-01_desc-brain_T1w_bet.nii.gz) - MOVED from structural (was misfiled)",
-      "structural-brain-extraction": "ground_truth/structural_gt/structural-brain-extraction (STAPLE consensus: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader code in benchmark/graders/structural-brain-extraction/)"
+      "structural-brain-extraction": "ground_truth/structural_gt/structural-brain-extraction (STAPLE consensus: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader code in benchmark/graders/structural-brain-extraction/)",
+      "structural-brain-extraction-motion": "ground_truth/structural_gt/structural-brain-extraction-motion (STAPLE consensus HD_BET+AFNI+SynthStrip: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-motion/)"
     },
     "xcpd_walkthrough_ds004450": {
       "id": "ds004450",
@@ -314,6 +315,52 @@
             "notes": "[note] Native-space task, no MNI resampling. Grading is consensus-calibrated on this subject (n=1); adding a subject means calibrating a new grader pack.",
             "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds002790.git && cd ds002790 && datalad get sub-0004/anat/",
             "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename \u2014 tool-determined; e.g. *_bet.nii.gz, *BrainExtractionBrain.nii.gz, or caller-named via -o); A binary brain mask (NIfTI, any filename \u2014 tool-determined; e.g. *_bet_mask.nii.gz, *BrainExtractionMask.nii.gz, *_mask.nii.gz, or caller-named via -m)"
+          }
+        },
+        "structural-brain-extraction-motion": {
+          "title": "Brain extraction under head motion (skull stripping)",
+          "description": "Skull-strip the high-motion T1w of sub-000103 of MR-ART (OpenNeuro ds004173), producing a brain-extracted image and a binary brain mask in native T1w space, despite motion artefacts.",
+          "prompt": {
+            "goal": "Skull-strip the motion-corrupted T1-weighted image (acq-headmotion2) of sub-000103, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "dataset": {
+              "source": "openneuro",
+              "id": "ds004173",
+              "version_pin": "1.0.2",
+              "subjects": [
+                "sub-000103"
+              ],
+              "acquisition": "acq-headmotion2"
+            },
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space."
+          },
+          "solution": {
+            "ground_truth": "STAPLE consensus of a panel of accepted tools (ANTs, HD-BET, FSL BET, AFNI, SynthStrip) run on the same high-motion scan, split into core/margin/background zones and calibrated once; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz, hosted on OSF and fetched into the grader pack reference/ at grade time.",
+            "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction-motion/ (consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w)",
+            "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
+            "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input; Brain mask is binary (0 and 1 only); Brain retained and skull/dura/neck removed despite the motion artefacts; No processing errors; logs captured",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "grader": {
+              "kind": "consensus-calibrated",
+              "description": "Scores the mask against a STAPLE consensus of accepted tools run on the motion scan, split into core (must keep) / margin (free, not scored) / background (must exclude); thresholds (tolerance tau, per-metric envelope, gate caps) calibrated by leave-one-tool-out. See PROVENANCE.md.",
+              "pack": "benchmark/graders/structural-brain-extraction-motion/",
+              "scorer": "benchmark/graders/structural-brain-extraction/score_brain_mask.py",
+              "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-motion/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction-motion/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-motion/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction-motion/reference/consensus_zones.nii.gz",
+              "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction-motion/",
+              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "provenance": "benchmark/graders/structural-brain-extraction-motion/PROVENANCE.md"
+            },
+            "tool_mode": "agnostic",
+            "tool_suggestions": [
+              "hdbet",
+              "synthstrip",
+              "ants",
+              "fsl",
+              "afni"
+            ],
+            "tool_note": "Context: healthy adult, HIGH head-motion scan (MR-ART acq-headmotion2, quality score 3/3 = worst tier). Deep-learning tools (HD-BET, SynthStrip) tend to be more motion-robust; intensity/deformable tools may leak into non-brain or cut. Tool names are non-binding suggestions.",
+            "notes": "[note] Second, harder subject on the MOTION axis (companion to structural-brain-extraction, the healthy-adult baseline). acq-standard (clean) is available as a control. Consensus recalibrated on the motion scan (n=1); before freezing, re-run the reference-set coherence check and drop any tool that is a clear outlier on this scan.",
+            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004173.git && cd ds004173 && datalad get sub-000103/anat/",
+            "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename — tool-determined); A binary brain mask (NIfTI, any filename — tool-determined)."
           }
         },
         "structural-cortical-morphometry": {
