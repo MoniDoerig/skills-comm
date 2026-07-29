@@ -136,5 +136,6 @@
       "fetch_into": "reference/ before grading \u2014 see reference/README.md"
     },
     "note": "Frozen once from a panel of accepted tools; see PROVENANCE.md. Scoring a submission never re-calibrates. Data on OSF, code on GitHub."
-  }
+  },
+  "focal_bg_max_cm3": 40.0
 }

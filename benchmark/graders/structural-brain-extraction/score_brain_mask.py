@@ -46,7 +46,7 @@ BIN_TOL = 1e-6
 STRUCT = ndi.generate_binary_structure(3, 1)
 # metrics where a smaller value is better (used by the envelope mapping)
 LOWER_BETTER = {"assd_mm", "hd95_mm", "core_miss_cm3", "focal_core_miss_cm3",
-                "bg_fp_cm3", "bg_fp_frac_of_ref", "abs_volume_err_pct"}
+                "focal_bg_incl_cm3", "bg_fp_cm3", "bg_fp_frac_of_ref", "abs_volume_err_pct"}
 
 
 # --------------------------------------------------------------------------- #
@@ -139,6 +139,7 @@ def evaluate(mask, zones, ref_binary, zooms, tau_mm):
     m["core_miss_cm3"] = (core & ~mask).sum() * vox_cm3
     m["focal_core_miss_cm3"] = _largest_component_cm3(core & ~mask, vox_cm3)
     m["bg_fp_cm3"] = (mask & background).sum() * vox_cm3
+    m["focal_bg_incl_cm3"] = _largest_component_cm3(mask & background, vox_cm3)
     m["bg_fp_frac_of_ref"] = (mask & background).sum() / max(ref_binary.sum(), 1)
     m["margin_inclusion"] = (mask & margin).sum() / max(margin.sum(), 1)
     m.update(surface_metrics(mask, ref_binary, zooms, tau_mm))
@@ -162,6 +163,8 @@ def validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask=None):
     g["no_catastrophic_core_loss"] = bool((mask & core).sum() / max(core.sum(), 1) > 0.90)
     g["no_focal_core_loss"] = bool(_largest_component_cm3(core & ~mask, vox_cm3)
                                    <= rubric["focal_max_cm3"])
+    g["no_focal_bg_inclusion"] = bool(_largest_component_cm3(mask & (zones == 0), vox_cm3)
+                                      <= rubric.get("focal_bg_max_cm3", 40.0))
     if stripped_mask is not None:
         g["stripped_matches_mask"] = bool((stripped_mask == mask).mean() > 0.99)
     return g
