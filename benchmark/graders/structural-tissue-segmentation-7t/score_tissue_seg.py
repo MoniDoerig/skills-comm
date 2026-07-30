@@ -59,6 +59,16 @@ def per_class_metrics(seg, consensus, agreement, zooms, tau):
     return out
 
 
+def resample_labels_nn(seg, affine, ref_img):
+    """Nearest-neighbour resample an integer label map onto the reference grid (order=0
+    preserves labels). Used when a submission is not in native space, so it can still be
+    scored — the native_grid gate records that it was off-grid."""
+    xfm = np.linalg.inv(affine) @ ref_img.affine
+    out = ndi.affine_transform(seg.astype(np.int16), xfm[:3, :3], offset=xfm[:3, 3],
+                               output_shape=ref_img.shape[:3], order=0, mode="constant", cval=0)
+    return out.astype(np.int16)
+
+
 def load_seg(path, ref_img):
     raw = nib.load(str(path))
     img = nib.as_closest_canonical(raw)
@@ -69,6 +79,8 @@ def load_seg(path, ref_img):
     seg = np.rint(np.asarray(data, float)).astype(np.int16)
     if not same_grid(img, ref_img):
         notes.append(f"grid_mismatch{tuple(img.shape[:3])}")
+        seg = resample_labels_nn(seg, img.affine, ref_img)
+        notes.append("resampled_nn")
     return seg, notes
 
 
