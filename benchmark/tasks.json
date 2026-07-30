@@ -174,7 +174,9 @@
       "clinical-brain-extraction": "clinical_gt/clinical-brain-extraction (HD-BET: sub-01_desc-brain_T1w_bet.nii.gz) - MOVED from structural (was misfiled)",
       "structural-brain-extraction": "ground_truth/structural_gt/structural-brain-extraction (STAPLE consensus: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader code in benchmark/graders/structural-brain-extraction/)",
       "structural-brain-extraction-motion": "ground_truth/structural_gt/structural-brain-extraction-motion (STAPLE consensus HD_BET+AFNI+SynthStrip: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-motion/)",
-      "structural-brain-extraction-pediatric": "ground_truth/structural_gt/structural-brain-extraction-pediatric (STAPLE consensus HD_BET+AFNI+SynthStrip+BET_R: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-pediatric/)"
+      "structural-brain-extraction-pediatric": "ground_truth/structural_gt/structural-brain-extraction-pediatric (STAPLE consensus HD_BET+AFNI+SynthStrip+BET_R: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-pediatric/)",
+      "structural-brain-extraction-7t": "ground_truth/structural_gt/structural-brain-extraction-7t (STAPLE consensus HD_BET+AFNI+SynthStrip on 7T MP2RAGE UNI: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-7t/)",
+      "structural-brain-extraction-7t-nodura": "ground_truth/structural_gt/structural-brain-extraction-7t-nodura (as -7t plus dura_envelope.nii.gz for the no_dura_inclusion gate; grader in benchmark/graders/structural-brain-extraction-7t-nodura/)"
     },
     "xcpd_walkthrough_ds004450": {
       "id": "ds004450",
@@ -299,7 +301,11 @@
               "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction/reference/consensus_zones.nii.gz",
               "entry": "score_brain_mask.py",
               "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction/",
-              "dependencies": ["numpy", "scipy", "nibabel"],
+              "dependencies": [
+                "numpy",
+                "scipy",
+                "nibabel"
+              ],
               "returns": "JSON: verdict in {indistinguishable, acceptable, marginal, unacceptable, invalid}, quality 0-100, gate_failures[], metrics{}",
               "pass_criterion": "verdict != invalid (script exit code 0)",
               "provenance": "benchmark/graders/structural-brain-extraction/PROVENANCE.md"
@@ -361,7 +367,7 @@
             "tool_note": "Context: healthy adult, HIGH head-motion scan (MR-ART acq-headmotion2, quality score 3/3 = worst tier). Deep-learning tools (HD-BET, SynthStrip) tend to be more motion-robust; intensity/deformable tools may leak into non-brain or cut. Tool names are non-binding suggestions.",
             "notes": "[note] Second, harder subject on the MOTION axis (companion to structural-brain-extraction, the healthy-adult baseline). acq-standard (clean) is available as a control. Consensus recalibrated on the motion scan (n=1); before freezing, re-run the reference-set coherence check and drop any tool that is a clear outlier on this scan.",
             "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004173.git && cd ds004173 && datalad get sub-000103/anat/",
-            "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename — tool-determined); A binary brain mask (NIfTI, any filename — tool-determined)."
+            "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename \u2014 tool-determined); A binary brain mask (NIfTI, any filename \u2014 tool-determined)."
           }
         },
         "structural-brain-extraction-pediatric": {
@@ -405,7 +411,7 @@
             "tool_note": "Context: young child (~3.6 yo). Deep-learning tools (SynthStrip, HD-BET) and FSL BET with -R handle the pediatric brain well; ANTs is a poor fit (the adult OASIS template does not match a 3.6-yo brain) and was excluded from the reference panel. Tool names are non-binding suggestions.",
             "notes": "[note] Third subject, PEDIATRIC axis (companion to the healthy-adult baseline and the motion subject). Full-FOV clean scan (an earlier candidate, sub-pixar009, was rejected for field-of-view truncation cutting through the brain). All four panel tools were coherent (pairwise Dice ~0.96, no outlier); tau ~4.5 mm.",
             "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds000228.git && cd ds000228 && datalad get sub-pixar017/anat/",
-            "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename — tool-determined); A binary brain mask (NIfTI, any filename — tool-determined)."
+            "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename \u2014 tool-determined); A binary brain mask (NIfTI, any filename \u2014 tool-determined)."
           }
         },
         "structural-cortical-morphometry": {
@@ -713,6 +719,91 @@
             "tool_note": "Context: healthy. CAT12 and SPM12 run as standalone compiled builds on the free MATLAB Compiler Runtime (MCR) - no MATLAB license needed. FSL-VBM is the FSL-native path. All three are open-source-testable",
             "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds002790.git && cd ds002790 && datalad get sub-0010/anat/",
             "expected_files_detail": "Modulated normalised grey-matter maps in template space (NIfTI, any filename; e.g. mwp1*.nii from CAT12 or similar); QC report (any format); ROI volume table (CSV or TSV, any filename)"
+          }
+        },
+        "structural-brain-extraction-7t": {
+          "title": "Brain extraction at 7 Tesla (MP2RAGE skull stripping)",
+          "description": "Skull-strip the 7T MP2RAGE UNI image of sub-025 of CEREBRUM-7T (OpenNeuro ds003642), producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "prompt": {
+            "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of sub-025, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "dataset": {
+              "source": "openneuro",
+              "id": "ds003642",
+              "version_pin": "1.1.0",
+              "subjects": [
+                "sub-025"
+              ]
+            },
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space."
+          },
+          "solution": {
+            "ground_truth": "STAPLE consensus of a curated panel (HD-BET, AFNI, SynthStrip) run on the 7T MP2RAGE UNI, split into core/margin/background zones and calibrated once; native T1w space. FSL BET -R was dropped from the panel (catastrophic under-extraction at 7T) and kept as a scored candidate. consensus_mask.nii.gz + consensus_zones.nii.gz on OSF, fetched into the grader pack reference/ at grade time.",
+            "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction-7t/ (consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w)",
+            "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
+            "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input; Brain mask is binary (0 and 1 only); Brain (incl. cerebellum and brainstem) retained and skull/dura/neck removed; No processing errors; logs captured",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "grader": {
+              "kind": "consensus-calibrated",
+              "description": "Scores the mask against a STAPLE consensus of accepted tools run on the 7T MP2RAGE UNI, split into core (must keep) / margin (free, not scored) / background (must exclude); thresholds calibrated by leave-one-tool-out. See PROVENANCE.md.",
+              "pack": "benchmark/graders/structural-brain-extraction-7t/",
+              "scorer": "benchmark/graders/structural-brain-extraction/score_brain_mask.py",
+              "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction-7t/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction-7t/reference/consensus_zones.nii.gz",
+              "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction-7t/",
+              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "provenance": "benchmark/graders/structural-brain-extraction-7t/PROVENANCE.md"
+            },
+            "tool_mode": "agnostic",
+            "tool_suggestions": [
+              "synthstrip",
+              "hdbet"
+            ],
+            "tool_note": "Context: 7T MP2RAGE. The UNI has a salt-and-pepper background and a high-field contrast/bias that defeat intensity-based extraction \u2014 FSL BET under-extracts catastrophically (~half a brain) whether or not the background is cleaned. Contrast-robust deep-learning tools (SynthStrip, HD-BET) handle the raw UNI; denoising the UNI via the INV2 image also works. Tool names are non-binding suggestions.",
+            "notes": "[note] Fourth subject, FIELD-STRENGTH / SEQUENCE axis (companion to the healthy-adult baseline, the motion subject, and the pediatric subject). Discriminates on tool choice for a high-field sequence: the common `bet` default is the wrong call. tau ~13.4 mm (wide, driven by SynthStrip's thick 7T CSF rim) \u2014 the discriminating power is in the validity gates, not the quality envelope.",
+            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds003642.git && cd ds003642 && datalad get sub-025/ses-003/anat/",
+            "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename \u2014 tool-determined); A binary brain mask (NIfTI, any filename \u2014 tool-determined)."
+          }
+        },
+        "structural-brain-extraction-7t-nodura": {
+          "title": "Brain extraction at 7T with explicit dura removal (skull stripping)",
+          "description": "Skull-strip the 7T MP2RAGE UNI image of sub-025 of CEREBRUM-7T (OpenNeuro ds003642) AND remove the dura, producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "prompt": {
+            "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of sub-025 AND remove the dura, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "dataset": {
+              "source": "openneuro",
+              "id": "ds003642",
+              "version_pin": "1.1.0",
+              "subjects": [
+                "sub-025"
+              ]
+            },
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space."
+          },
+          "solution": {
+            "ground_truth": "Same subject and consensus as structural-brain-extraction-7t, plus a dura-out pial envelope (union of the four CEREBRUM-7T tissue segmentations, sulci-filled). The grader adds a one-sided over-inclusion gate: a mask extending past the envelope into the dura fails. consensus_mask.nii.gz + consensus_zones.nii.gz + dura_envelope.nii.gz on OSF.",
+            "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction-7t-nodura/ (consensus_mask.nii.gz + consensus_zones.nii.gz + dura_envelope.nii.gz, native T1w)",
+            "metric": "consensus-calibrated + no_dura_inclusion gate: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
+            "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry matches the input; Brain mask is binary; Brain (incl. cerebellum and brainstem) retained; the DURA is removed (mask does not extend past the pial envelope, over-inclusion <= 30 cm3); No processing errors; logs captured",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0). A dura-retaining mask fails the no_dura_inclusion gate.",
+            "grader": {
+              "kind": "consensus-calibrated",
+              "description": "Scores the mask against the structural-brain-extraction-7t consensus AND a no_dura_inclusion gate: over-inclusion beyond a dura-out pial envelope > dura_max_cm3 (30) -> invalid. See PROVENANCE.md.",
+              "pack": "benchmark/graders/structural-brain-extraction-7t-nodura/",
+              "scorer": "benchmark/graders/structural-brain-extraction/score_brain_mask.py",
+              "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t-nodura/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction-7t-nodura/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t-nodura/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction-7t-nodura/reference/consensus_zones.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t-nodura/dura_envelope.nii.gz benchmark/graders/structural-brain-extraction-7t-nodura/reference/dura_envelope.nii.gz",
+              "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction-7t-nodura/",
+              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "provenance": "benchmark/graders/structural-brain-extraction-7t-nodura/PROVENANCE.md"
+            },
+            "tool_mode": "agnostic",
+            "tool_suggestions": [
+              "synthstrip",
+              "hdbet",
+              "afni"
+            ],
+            "tool_note": "Context: 7T MP2RAGE with an EXPLICIT no-dura requirement. This tests instruction-following: a tissue-tight tool (HD-BET, AFNI) that strips the dura passes; a CSF/dura-inclusive tool (SynthStrip) produces the same mask that passes the standard task but fails here. Tool names are non-binding suggestions.",
+            "notes": "[note] Variant of structural-brain-extraction-7t on the same subject: the prompt adds 'remove the dura'. Making dura a STATED requirement is what makes it fair to fail a dura-retaining mask (otherwise the CSF/dura rim is an unstated convention). Dura is a thin whole-surface shell, not a focal blob, so it needs a dedicated over-inclusion gate against a dura-out envelope, not the existing focal_bg gate.",
+            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds003642.git && cd ds003642 && datalad get sub-025/ses-003/anat/",
+            "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename \u2014 tool-determined); A binary brain mask (NIfTI, any filename \u2014 tool-determined)."
           }
         }
       }

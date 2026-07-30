@@ -146,7 +146,7 @@ def evaluate(mask, zones, ref_binary, zooms, tau_mm):
     return m
 
 
-def validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask=None):
+def validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask=None, dura_envelope=None):
     core = zones == 2
     g = {}
     g["binary"] = not any(n.startswith("not_binary") or n == "values_not_0_1" for n in notes)
@@ -167,6 +167,12 @@ def validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask=None):
                                       <= rubric.get("focal_bg_max_cm3", 40.0))
     if stripped_mask is not None:
         g["stripped_matches_mask"] = bool((stripped_mask == mask).mean() > 0.99)
+    # Dura gate (activates only for packs that ship a dura envelope, e.g. the 7T "no-dura" task):
+    # a submission must not extend past the pial envelope into the dura/skull. One-sided — keeping
+    # LESS than the envelope is not penalised here (the core/focal gates guard against cutting brain).
+    if dura_envelope is not None:
+        over_env_cm3 = float((mask & ~dura_envelope).sum() * vox_cm3)
+        g["no_dura_inclusion"] = bool(over_env_cm3 <= rubric.get("dura_max_cm3", 30.0))
     return g
 
 
@@ -211,8 +217,20 @@ def score(mask_path, pack_dir, stripped_path=None):
     if stripped_path:
         stripped_mask, _ = load_mask(stripped_path, ref_img, raw_shape, raw_affine)
 
-    gates = validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask)
+    # Optional dura envelope (present only for the "no-dura" task); must share the reference grid.
+    dura_envelope = None
+    env_path = pack / "reference" / "dura_envelope.nii.gz"
+    if env_path.exists():
+        env_img = nib.as_closest_canonical(nib.load(str(env_path)))
+        if not same_grid(env_img, ref_img):
+            raise SystemExit(f"ERROR: dura_envelope grid {env_img.shape[:3]} does not match the "
+                             f"consensus reference grid {ref_img.shape[:3]}.")
+        dura_envelope = np.asanyarray(env_img.dataobj) > BIN_TOL
+
+    gates = validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask, dura_envelope)
     metrics = evaluate(mask, zones, ref_binary, zooms, rubric["tau_mm"])
+    if dura_envelope is not None:
+        metrics["dura_over_env_cm3"] = float((mask & ~dura_envelope).sum() * vox_cm3)
 
     failures = [k for k, ok in gates.items() if not ok]
     weights = rubric["weights"]
