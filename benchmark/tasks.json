@@ -176,7 +176,8 @@
       "structural-brain-extraction-motion": "ground_truth/structural_gt/structural-brain-extraction-motion (STAPLE consensus HD_BET+AFNI+SynthStrip: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-motion/)",
       "structural-brain-extraction-pediatric": "ground_truth/structural_gt/structural-brain-extraction-pediatric (STAPLE consensus HD_BET+AFNI+SynthStrip+BET_R: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-pediatric/)",
       "structural-brain-extraction-7t": "ground_truth/structural_gt/structural-brain-extraction-7t (STAPLE consensus HD_BET+AFNI+SynthStrip on 7T MP2RAGE UNI: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-7t/)",
-      "structural-brain-extraction-7t-nodura": "ground_truth/structural_gt/structural-brain-extraction-7t-nodura (as -7t plus dura_envelope.nii.gz for the no_dura_inclusion gate; grader in benchmark/graders/structural-brain-extraction-7t-nodura/)"
+      "structural-brain-extraction-7t-nodura": "ground_truth/structural_gt/structural-brain-extraction-7t-nodura (as -7t plus dura_envelope.nii.gz for the no_dura_inclusion gate; grader in benchmark/graders/structural-brain-extraction-7t-nodura/)",
+      "structural-tissue-segmentation-7t": "ground_truth/structural_gt/structural-tissue-segmentation-7t (majority-vote consensus CEREBRUM7T+FreeSurfer v6/v7 of the shipped 7T segmentations: consensus_seg.nii.gz + consensus_agreement.nii.gz, native T1w, 6-class; grader in benchmark/graders/structural-tissue-segmentation-7t/)"
     },
     "xcpd_walkthrough_ds004450": {
       "id": "ds004450",
@@ -804,6 +805,49 @@
             "notes": "[note] Variant of structural-brain-extraction-7t on the same subject: the prompt adds 'remove the dura'. Making dura a STATED requirement is what makes it fair to fail a dura-retaining mask (otherwise the CSF/dura rim is an unstated convention). Dura is a thin whole-surface shell, not a focal blob, so it needs a dedicated over-inclusion gate against a dura-out envelope, not the existing focal_bg gate.",
             "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds003642.git && cd ds003642 && datalad get sub-025/ses-003/anat/",
             "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename \u2014 tool-determined); A binary brain mask (NIfTI, any filename \u2014 tool-determined)."
+          }
+        },
+        "structural-tissue-segmentation-7t": {
+          "title": "Tissue parcellation at 7 Tesla (six structures)",
+          "description": "Parcellate the 7T MP2RAGE image of sub-025 (CEREBRUM-7T, OpenNeuro ds003642) into six brain structures (GM, basal ganglia, WM, ventricles/CSF, cerebellum, brainstem) in native T1w space.",
+          "prompt": {
+            "goal": "Parcellate the 7T MP2RAGE image of sub-025 into an integer label map of six structures \u2014 1=grey matter, 2=basal ganglia, 3=white matter, 4=ventricles/CSF, 5=cerebellum, 6=brainstem \u2014 in native T1w space.",
+            "dataset": {
+              "source": "openneuro",
+              "id": "ds003642",
+              "version_pin": "1.1.0",
+              "subjects": [
+                "sub-025"
+              ]
+            },
+            "required_output": "An integer label map (NIfTI) with labels 1..6 as specified, in native T1w space."
+          },
+          "solution": {
+            "ground_truth": "Majority-vote consensus of three whole-brain segmentations shipped with CEREBRUM-7T (CEREBRUM7T, FreeSurfer v6, FreeSurfer v7; nighres dropped as a label-scheme outlier), fused into a 6-class label map with a per-voxel agreement map (unanimous-core / majority-boundary zones), calibrated once by leave-one-tool-out. consensus_seg.nii.gz + consensus_agreement.nii.gz on OSF, fetched into the grader pack reference/ at grade time.",
+            "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-tissue-segmentation-7t/ (consensus_seg.nii.gz + consensus_agreement.nii.gz, native T1w)",
+            "metric": "consensus-calibrated per-class: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (mean of six per-class Dice/NSD/core-recall envelopes)",
+            "pass_criterion": "An integer label map with the six specified classes present; Geometry (dimensions, voxel size, affine) matches the input; Each class recovers the majority of its unanimous consensus core (no class collapse/confusion); No processing errors; logs captured",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "grader": {
+              "kind": "consensus-calibrated",
+              "description": "Multi-class scorer: per-class Dice/NSD/core-recall against a majority-vote consensus of accepted segmentations split into unanimous-core / majority-boundary zones; thresholds calibrated by leave-one-tool-out. See PROVENANCE.md.",
+              "pack": "benchmark/graders/structural-tissue-segmentation-7t/",
+              "scorer": "benchmark/graders/structural-tissue-segmentation-7t/score_tissue_seg.py",
+              "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-tissue-segmentation-7t/consensus_seg.nii.gz benchmark/graders/structural-tissue-segmentation-7t/reference/consensus_seg.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-tissue-segmentation-7t/consensus_agreement.nii.gz benchmark/graders/structural-tissue-segmentation-7t/reference/consensus_agreement.nii.gz",
+              "invoke": "python3 benchmark/graders/structural-tissue-segmentation-7t/score_tissue_seg.py --seg <AGENT_LABELMAP> --pack benchmark/graders/structural-tissue-segmentation-7t/",
+              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "provenance": "benchmark/graders/structural-tissue-segmentation-7t/PROVENANCE.md"
+            },
+            "tool_mode": "agnostic",
+            "tool_suggestions": [
+              "freesurfer",
+              "synthseg",
+              "cat12"
+            ],
+            "tool_note": "Context: 7T MP2RAGE, six-structure parcellation (not classic 3-class GM/WM/CSF). Whole-brain segmenters that produce these structures \u2014 FreeSurfer recon-all (aseg, remapped), SynthSeg, CAT12 \u2014 fit; a plain 3-class tissue tool (FAST/Atropos) does not cover basal ganglia / cerebellum / brainstem as separate labels. The output must use the exact label legend. Tool names are non-binding suggestions.",
+            "notes": "[note] Companion to the 7T brain-extraction tasks on the same subject; the multi-class analogue of the consensus-calibrated brain-extraction grader. Reference is built from the dataset's own shipped segmentations (no tools run). Panel = CEREBRUM7T + FreeSurfer v6/v7; nighres dropped (label-scheme outlier, WM Dice 0.09) and kept as an invalid candidate. Label legend: 1=GM 2=basal ganglia 3=WM 4=ventricles 5=cerebellum 6=brainstem, pinned by intensity.",
+            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds003642.git && cd ds003642 && datalad get sub-025/ses-003/anat/",
+            "expected_files_detail": "An integer label map (NIfTI, any filename) with labels 1..6 per the legend."
           }
         }
       }
