@@ -891,7 +891,7 @@
             ],
             "tool_note": "Context: chronic stroke. The lesion is a fluid-filled cavity, dark/CSF-like on T1 \u2014 intensity BET carves ~half of it out (retains 52%) and fails; HD-BET, SynthStrip and AFNI retain it (94-100%). Tool names are non-binding suggestions.",
             "notes": "[note] PATHOLOGY axis (companion to the healthy/motion/pediatric/7T brain-extraction subjects). Step 1 of a stroke pair; step 2 is clinical-stroke-lesion-segmentation (same subject). Open data (ARC ds004884). Lesion mask drawn in T2w space -> rigid-registered to T1w for the GT. New lesion_retained gate (min 0.85) added to the shared score_brain_mask.py (backward-compatible).",
-            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004884.git && cd ds004884 && datalad get sub-M2191/ses-681/anat/ derivatives/lesion_masks/sub-M2191/ses-681/anat/",
+            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004884.git && cd ds004884 && datalad get sub-M2191/ses-681/anat/",
             "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename); a binary brain mask (NIfTI, any filename)."
           }
         }
@@ -1835,7 +1835,7 @@
             ],
             "tool_note": "Context: chronic stroke lesion on T1. Lesion-segmentation tools (LST/LST-AI, SAMSEG, a trained nnU-Net) or manual delineation. Graded against a single expert tracing with fixed thresholds. Tool names are non-binding suggestions.",
             "notes": "[note] Step 2 of the stroke pair (step 1 = structural-brain-extraction-stroke, same subject). Departs from the consensus tasks: ground truth is a single EXPERT mask, thresholds FIXED from literature (no LOTO). Scorer = Dice + lesion-wise F1 + volume error. Companion clinical task to clinical-ms-lesion-segmentation.",
-            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004884.git && cd ds004884 && datalad get sub-M2191/ses-681/anat/ derivatives/lesion_masks/sub-M2191/ses-681/anat/",
+            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004884.git && cd ds004884 && datalad get sub-M2191/ses-681/anat/",
             "expected_files_detail": "A binary lesion mask (NIfTI, any filename; values {0,1}) in native T1w space."
           }
         }
