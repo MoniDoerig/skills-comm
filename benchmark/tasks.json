@@ -856,7 +856,7 @@
           "title": "Brain extraction of a lesioned (chronic-stroke) brain",
           "description": "Skull-strip the T1w of sub-M2191 (Aphasia Recovery Cohort, ds004884), a chronic-stroke subject whose brain contains an 82.8 cm3 infarct cavity; produce a brain-extracted image and a binary brain mask in native T1w space. The lesion is brain tissue (graded by the lesion_retained gate) but this is NOT disclosed to the agent.",
           "prompt": {
-            "goal": "Skull-strip the T1-weighted image of sub-M2191, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the T1-weighted image of sub-M2191 session ses-681, producing a brain-extracted image and a binary brain mask in the native T1w space.",
             "dataset": {
               "source": "openneuro",
               "id": "ds004884",
@@ -1800,7 +1800,7 @@
           "title": "Stroke lesion segmentation (T1)",
           "description": "Segment the chronic stroke lesion in the T1w of sub-M2191 (Aphasia Recovery Cohort, ds004884), producing a binary lesion mask in native T1w space, graded against an expert manual tracing.",
           "prompt": {
-            "goal": "Segment the chronic stroke lesion in the T1-weighted image of sub-M2191, producing a binary lesion mask in native T1w space.",
+            "goal": "Segment the chronic stroke lesion in the T1-weighted image of sub-M2191 session ses-681, producing a binary lesion mask in native T1w space.",
             "dataset": {
               "source": "openneuro",
               "id": "ds004884",
