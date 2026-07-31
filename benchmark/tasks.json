@@ -854,9 +854,9 @@
         },
         "structural-brain-extraction-stroke": {
           "title": "Brain extraction of a lesioned (chronic-stroke) brain",
-          "description": "Skull-strip the T1w of sub-M2191 (Aphasia Recovery Cohort, ds004884) \u2014 a brain with an 82.8 cm3 chronic-stroke lesion \u2014 producing a brain-extracted image and a binary brain mask in native T1w space, WITHOUT carving out the lesion.",
+          "description": "Skull-strip the T1w of sub-M2191 (Aphasia Recovery Cohort, ds004884), a chronic-stroke subject whose brain contains an 82.8 cm3 infarct cavity; produce a brain-extracted image and a binary brain mask in native T1w space. The lesion is brain tissue (graded by the lesion_retained gate) but this is NOT disclosed to the agent.",
           "prompt": {
-            "goal": "Skull-strip the T1-weighted image of sub-M2191, producing a brain-extracted image and a binary brain mask in native T1w space. The brain contains a chronic stroke lesion (a fluid-filled cavity that looks CSF-like on T1); it is brain tissue and must remain inside the mask.",
+            "goal": "Skull-strip the T1-weighted image of sub-M2191, producing a brain-extracted image and a binary brain mask in the native T1w space.",
             "dataset": {
               "source": "openneuro",
               "id": "ds004884",
