@@ -1,0 +1,72 @@
+{
+  "item": "lesionseg_ds004884_sub-M2191",
+  "prompt": "Segment the chronic stroke lesion in the T1-weighted image of sub-M2191 (ds004884/ARC, OpenNeuro), producing a binary lesion mask in native T1w space.",
+  "reference": "Expert manual lesion tracing (ARC), rigid-registered from native T2w into T1w space.",
+  "metric_thresholds": {
+    "dice": {
+      "full": 0.7,
+      "pass": 0.5
+    },
+    "lesion_f1": {
+      "full": 1.0,
+      "pass": 0.5
+    },
+    "abs_volume_err_pct": {
+      "full": 15.0,
+      "pass": 50.0
+    }
+  },
+  "weights": {
+    "dice": 0.5,
+    "lesion_f1": 0.3,
+    "abs_volume_err_pct": 0.2
+  },
+  "overlap_frac_for_match": 0.1,
+  "plausible_vol_cm3": [
+    0.5,
+    500.0
+  ],
+  "verdict_thresholds": {
+    "acceptable": 60,
+    "marginal": 30
+  },
+  "grid": {
+    "shape": [
+      192,
+      256,
+      256
+    ],
+    "zooms_mm": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "raw_affine": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        -95.5
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        -96.27999877929688
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        -127.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "threshold_basis": "FIXED (literature): chronic-stroke inter-rater Dice ~0.7 = full marks, 0.5 = pass. Single subject -> no LOTO envelope."
+}

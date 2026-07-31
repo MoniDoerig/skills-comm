@@ -177,7 +177,9 @@
       "structural-brain-extraction-pediatric": "ground_truth/structural_gt/structural-brain-extraction-pediatric (STAPLE consensus HD_BET+AFNI+SynthStrip+BET_R: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-pediatric/)",
       "structural-brain-extraction-7t": "ground_truth/structural_gt/structural-brain-extraction-7t (STAPLE consensus HD_BET+AFNI+SynthStrip on 7T MP2RAGE UNI: consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w; grader in benchmark/graders/structural-brain-extraction-7t/)",
       "structural-brain-extraction-7t-nodura": "ground_truth/structural_gt/structural-brain-extraction-7t-nodura (as -7t plus dura_envelope.nii.gz for the no_dura_inclusion gate; grader in benchmark/graders/structural-brain-extraction-7t-nodura/)",
-      "structural-tissue-segmentation-7t": "ground_truth/structural_gt/structural-tissue-segmentation-7t (majority-vote consensus CEREBRUM7T+FreeSurfer v6/v7 of the shipped 7T segmentations: consensus_seg.nii.gz + consensus_agreement.nii.gz, native T1w, 6-class; grader in benchmark/graders/structural-tissue-segmentation-7t/)"
+      "structural-tissue-segmentation-7t": "ground_truth/structural_gt/structural-tissue-segmentation-7t (majority-vote consensus CEREBRUM7T+FreeSurfer v6/v7 of the shipped 7T segmentations: consensus_seg.nii.gz + consensus_agreement.nii.gz, native T1w, 6-class; grader in benchmark/graders/structural-tissue-segmentation-7t/)",
+      "structural-brain-extraction-stroke": "ground_truth/structural_gt/structural-brain-extraction-stroke (STAPLE consensus HD_BET+AFNI+SynthStrip on lesioned T1w: consensus_mask + consensus_zones + lesion_mask for the lesion_retained gate, native T1w; grader in benchmark/graders/structural-brain-extraction-stroke/)",
+      "clinical-stroke-lesion-segmentation": "ground_truth/clinical_gt/clinical-stroke-lesion-segmentation (expert lesion mask, native T1w; scorer benchmark/graders/clinical-stroke-lesion-segmentation/score_lesion_seg.py)"
     },
     "xcpd_walkthrough_ds004450": {
       "id": "ds004450",
@@ -848,6 +850,49 @@
             "notes": "[note] Companion to the 7T brain-extraction tasks on the same subject; the multi-class analogue of the consensus-calibrated brain-extraction grader. Reference is built from the dataset's own shipped segmentations (no tools run). Panel = CEREBRUM7T + FreeSurfer v6/v7; nighres dropped (label-scheme outlier, WM Dice 0.09) and kept as an invalid candidate. Label legend: 1=GM 2=basal ganglia 3=WM 4=ventricles 5=cerebellum 6=brainstem, pinned by intensity.",
             "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds003642.git && cd ds003642 && datalad get sub-025/ses-003/anat/",
             "expected_files_detail": "An integer label map (NIfTI, any filename) with labels 1..6 per the legend."
+          }
+        },
+        "structural-brain-extraction-stroke": {
+          "title": "Brain extraction of a lesioned (chronic-stroke) brain",
+          "description": "Skull-strip the T1w of sub-M2191 (Aphasia Recovery Cohort, ds004884) \u2014 a brain with an 82.8 cm3 chronic-stroke lesion \u2014 producing a brain-extracted image and a binary brain mask in native T1w space, WITHOUT carving out the lesion.",
+          "prompt": {
+            "goal": "Skull-strip the T1-weighted image of sub-M2191, producing a brain-extracted image and a binary brain mask in native T1w space. The brain contains a chronic stroke lesion (a fluid-filled cavity that looks CSF-like on T1); it is brain tissue and must remain inside the mask.",
+            "dataset": {
+              "source": "openneuro",
+              "id": "ds004884",
+              "version_pin": "1.0.2",
+              "subjects": [
+                "sub-M2191"
+              ]
+            },
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space."
+          },
+          "solution": {
+            "ground_truth": "STAPLE consensus of the lesion-retaining tools (HD-BET, AFNI, SynthStrip) run on the lesioned T1w, split into core/margin/background zones; native T1w space. FSL BET dropped from the panel (retains only 52% of the lesion) and kept as a scored candidate. The expert lesion mask (registered T2w->T1w) is shipped for a lesion_retained gate. consensus_mask + consensus_zones + lesion_mask on OSF.",
+            "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction-stroke/ (consensus_mask.nii.gz + consensus_zones.nii.gz + lesion_mask.nii.gz, native T1w)",
+            "metric": "consensus-calibrated + lesion_retained gate: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
+            "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; geometry matches the input; mask is binary; brain (incl. the stroke lesion) retained and skull/dura removed; the mask contains >= 85% of the expert lesion (lesion_retained); No processing errors; logs captured",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0). A mask that carves out the lesion fails the lesion_retained gate.",
+            "grader": {
+              "kind": "consensus-calibrated",
+              "description": "Scores the mask against a STAPLE consensus of lesion-retaining tools split into core/margin/background, PLUS a lesion_retained gate (mask must contain >= lesion_retained_min of the expert lesion). See PROVENANCE.md.",
+              "pack": "benchmark/graders/structural-brain-extraction-stroke/",
+              "scorer": "benchmark/graders/structural-brain-extraction/score_brain_mask.py",
+              "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-stroke/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction-stroke/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-stroke/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction-stroke/reference/consensus_zones.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-stroke/lesion_mask.nii.gz benchmark/graders/structural-brain-extraction-stroke/reference/lesion_mask.nii.gz",
+              "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction-stroke/",
+              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "provenance": "benchmark/graders/structural-brain-extraction-stroke/PROVENANCE.md"
+            },
+            "tool_mode": "agnostic",
+            "tool_suggestions": [
+              "hdbet",
+              "synthstrip",
+              "afni"
+            ],
+            "tool_note": "Context: chronic stroke. The lesion is a fluid-filled cavity, dark/CSF-like on T1 \u2014 intensity BET carves ~half of it out (retains 52%) and fails; HD-BET, SynthStrip and AFNI retain it (94-100%). Tool names are non-binding suggestions.",
+            "notes": "[note] PATHOLOGY axis (companion to the healthy/motion/pediatric/7T brain-extraction subjects). Step 1 of a stroke pair; step 2 is clinical-stroke-lesion-segmentation (same subject). Open data (ARC ds004884). Lesion mask drawn in T2w space -> rigid-registered to T1w for the GT. New lesion_retained gate (min 0.85) added to the shared score_brain_mask.py (backward-compatible).",
+            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004884.git && cd ds004884 && datalad get sub-M2191/ses-681/anat/ derivatives/lesion_masks/sub-M2191/ses-681/anat/",
+            "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename); a binary brain mask (NIfTI, any filename)."
           }
         }
       }
@@ -1749,6 +1794,49 @@
             "notes": "[dataset_setup] ds004332 has 15+ T1w variants - use sub-01_acq-mpragepmcoff_rec-wore_run-01_T1w.nii as the reference input; the agent prompt must specify this exact acquisition to be unambiguous. [SCORING_LIMITATION] FIRST vs FreeSurfer aseg subcortical labels differ slightly in boundaries; use moderate Dice threshold, not exact match.",
             "dataset_fetch_reference": "datalad install ///openneuro/ds004332",
             "expected_files_detail": "A labelled subcortical segmentation volume (NIfTI, any filename; integer labels per nucleus); A per-structure volume table (CSV/TSV; e.g. thalamus, caudate, putamen, pallidum, hippocampus, amygdala, accumbens)"
+          }
+        },
+        "clinical-stroke-lesion-segmentation": {
+          "title": "Stroke lesion segmentation (T1)",
+          "description": "Segment the chronic stroke lesion in the T1w of sub-M2191 (Aphasia Recovery Cohort, ds004884), producing a binary lesion mask in native T1w space, graded against an expert manual tracing.",
+          "prompt": {
+            "goal": "Segment the chronic stroke lesion in the T1-weighted image of sub-M2191, producing a binary lesion mask in native T1w space.",
+            "dataset": {
+              "source": "openneuro",
+              "id": "ds004884",
+              "version_pin": "1.0.2",
+              "subjects": [
+                "sub-M2191"
+              ]
+            },
+            "required_output": "A binary lesion mask (NIfTI, {0,1}) in native T1w space."
+          },
+          "solution": {
+            "ground_truth": "Expert manual lesion tracing shipped with ARC (drawn in T2w space), rigid-registered into native T1w space. A genuine gold standard \u2014 NOT a tool consensus (automated lesion tools disagree too much). lesion_mask.nii.gz on OSF.",
+            "ground_truth_location": "OSF zjqey: ground_truth/clinical_gt/clinical-stroke-lesion-segmentation/ (lesion_mask.nii.gz, native T1w)",
+            "metric": "expert-mask: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from Dice + lesion-wise detection F1 + volume error (fixed literature thresholds)",
+            "pass_criterion": "A binary lesion mask {0,1} in native T1w space; nonempty and volume-plausible; Dice and lesion-wise overlap with the expert mask above the fixed pass lines; No processing errors; logs captured",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "grader": {
+              "kind": "expert-mask",
+              "description": "Grades a binary lesion mask against the expert tracing: Dice + lesion-wise detection F1 (connected components) + absolute volume error, with fixed literature thresholds (chronic-stroke inter-rater Dice ~0.7 = full marks). See PROVENANCE.md.",
+              "pack": "benchmark/graders/clinical-stroke-lesion-segmentation/",
+              "scorer": "benchmark/graders/clinical-stroke-lesion-segmentation/score_lesion_seg.py",
+              "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/clinical_gt/clinical-stroke-lesion-segmentation/lesion_mask.nii.gz benchmark/graders/clinical-stroke-lesion-segmentation/reference/lesion_mask.nii.gz",
+              "invoke": "python3 benchmark/graders/clinical-stroke-lesion-segmentation/score_lesion_seg.py --pred <AGENT_LESION_MASK> --pack benchmark/graders/clinical-stroke-lesion-segmentation/",
+              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "provenance": "benchmark/graders/clinical-stroke-lesion-segmentation/PROVENANCE.md"
+            },
+            "tool_mode": "agnostic",
+            "tool_suggestions": [
+              "lst",
+              "samseg",
+              "nnunet"
+            ],
+            "tool_note": "Context: chronic stroke lesion on T1. Lesion-segmentation tools (LST/LST-AI, SAMSEG, a trained nnU-Net) or manual delineation. Graded against a single expert tracing with fixed thresholds. Tool names are non-binding suggestions.",
+            "notes": "[note] Step 2 of the stroke pair (step 1 = structural-brain-extraction-stroke, same subject). Departs from the consensus tasks: ground truth is a single EXPERT mask, thresholds FIXED from literature (no LOTO). Scorer = Dice + lesion-wise F1 + volume error. Companion clinical task to clinical-ms-lesion-segmentation.",
+            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004884.git && cd ds004884 && datalad get sub-M2191/ses-681/anat/ derivatives/lesion_masks/sub-M2191/ses-681/anat/",
+            "expected_files_detail": "A binary lesion mask (NIfTI, any filename; values {0,1}) in native T1w space."
           }
         }
       }

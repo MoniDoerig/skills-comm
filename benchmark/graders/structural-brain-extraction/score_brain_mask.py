@@ -146,7 +146,8 @@ def evaluate(mask, zones, ref_binary, zooms, tau_mm):
     return m
 
 
-def validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask=None, dura_envelope=None):
+def validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask=None, dura_envelope=None,
+                   lesion_mask=None):
     core = zones == 2
     g = {}
     g["binary"] = not any(n.startswith("not_binary") or n == "values_not_0_1" for n in notes)
@@ -173,6 +174,12 @@ def validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask=None, dura
     if dura_envelope is not None:
         over_env_cm3 = float((mask & ~dura_envelope).sum() * vox_cm3)
         g["no_dura_inclusion"] = bool(over_env_cm3 <= rubric.get("dura_max_cm3", 30.0))
+    # Lesion-retention gate (activates only for packs shipping a lesion mask, e.g. the stroke task):
+    # a pathological cavity (chronic infarct, resection) is brain tissue that must stay in the mask;
+    # intensity strippers that treat the CSF-like lesion as background carve it out and fail here.
+    if lesion_mask is not None and lesion_mask.sum() > 0:
+        retained = float((mask & lesion_mask).sum() / lesion_mask.sum())
+        g["lesion_retained"] = bool(retained >= rubric.get("lesion_retained_min", 0.85))
     return g
 
 
@@ -227,10 +234,22 @@ def score(mask_path, pack_dir, stripped_path=None):
                              f"consensus reference grid {ref_img.shape[:3]}.")
         dura_envelope = np.asanyarray(env_img.dataobj) > BIN_TOL
 
-    gates = validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask, dura_envelope)
+    # Optional expert lesion mask (present only for the pathology/lesion tasks); shares the ref grid.
+    lesion_mask = None
+    les_path = pack / "reference" / "lesion_mask.nii.gz"
+    if les_path.exists():
+        les_img = nib.as_closest_canonical(nib.load(str(les_path)))
+        if not same_grid(les_img, ref_img):
+            raise SystemExit(f"ERROR: lesion_mask grid {les_img.shape[:3]} does not match the "
+                             f"consensus reference grid {ref_img.shape[:3]}.")
+        lesion_mask = np.asanyarray(les_img.dataobj) > BIN_TOL
+
+    gates = validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask, dura_envelope, lesion_mask)
     metrics = evaluate(mask, zones, ref_binary, zooms, rubric["tau_mm"])
     if dura_envelope is not None:
         metrics["dura_over_env_cm3"] = float((mask & ~dura_envelope).sum() * vox_cm3)
+    if lesion_mask is not None and lesion_mask.sum() > 0:
+        metrics["lesion_retained_frac"] = float((mask & lesion_mask).sum() / lesion_mask.sum())
 
     failures = [k for k, ok in gates.items() if not ok]
     weights = rubric["weights"]
