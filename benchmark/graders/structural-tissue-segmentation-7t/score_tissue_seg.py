@@ -89,12 +89,21 @@ def validity_gates(seg, notes, consensus, agreement, rubric):
     present = set(np.unique(seg)) - {0}
     g["valid_labels"] = present.issubset(set(CLASSES)) and len(present) >= len(CLASSES) - 1
     g["native_grid"] = not any(n.startswith("grid_mismatch") for n in notes)
-    floor = rubric.get("core_recall_floor", 0.5)
-    # every class must recover at least `floor` of its unanimous core (catches swapped/missing classes)
+    # A class "collapses" (missing/swapped) when it recovers meaningfully less of its unanimous
+    # core than the WORST reference tool does. The floor is LOTO-calibrated per class: a small,
+    # well-agreed structure (basal ganglia, WM: LOTO-worst ~0.91-0.94) gets a high floor; a fuzzy
+    # one (GM: ~0.75) a lower one. Margin gives a submission some slack below the worst tool.
+    env = rubric.get("envelope", {})
+    margin = rubric.get("collapse_margin", 0.20)
+    fixed = rubric.get("core_recall_floor", 0.5)  # fallback if no envelope
     ok = True
     for k in CLASSES:
         core = (consensus == k) & (agreement == 3)
-        if core.sum() and (seg == k)[core].mean() < floor:
+        if not core.sum():
+            continue
+        worst = env.get(str(k), {}).get("core_recall", {}).get("worst")
+        floor = max(0.25, worst - margin) if worst is not None else fixed
+        if (seg == k)[core].mean() < floor:
             ok = False
     g["no_class_collapse"] = ok
     return g

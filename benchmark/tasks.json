@@ -813,7 +813,7 @@
           "title": "Tissue parcellation at 7 Tesla (six structures)",
           "description": "Parcellate the 7T MP2RAGE image of sub-025 (CEREBRUM-7T, OpenNeuro ds003642) into six brain structures (GM, basal ganglia, WM, ventricles/CSF, cerebellum, brainstem) in native T1w space.",
           "prompt": {
-            "goal": "Parcellate the 7T MP2RAGE image of sub-025 into an integer label map of six structures \u2014 1=grey matter, 2=basal ganglia, 3=white matter, 4=ventricles/CSF, 5=cerebellum, 6=brainstem \u2014 in native T1w space.",
+            "goal": "Parcellate the 7T MP2RAGE image of sub-025 into an integer label map of six brain structures in native T1w space: 1=grey matter (cortical grey matter), 2=basal ganglia (deep grey nuclei: caudate, putamen, pallidum), 3=white matter (cerebral white matter), 4=ventricles (ventricular CSF only \u2014 lateral/3rd/4th ventricles, NOT sulcal CSF), 5=cerebellum (entire cerebellum, grey+white), 6=brainstem (midbrain, pons, medulla).",
             "dataset": {
               "source": "openneuro",
               "id": "ds003642",
