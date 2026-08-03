@@ -56,7 +56,10 @@ ComBat's batch effect: a nuisance you want to REMOVE, not interpret.
 
 PCNtoolkit's batch effect: we MODEL it. It must be categorical.
 
-Modelling it instead of removing it does not remove information from the data.
+Modelling it instead of removing it:
+
+- allows federated learning - you can adjust to new batch effect groups, e.g. new sites;
+- does not remove information from the data.
 
 Harmonization in PCNtoolkit is an invertible transform. It lets you model all the data as if it came from the same reference group, without removing any information from the data.
 

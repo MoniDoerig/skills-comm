@@ -114,14 +114,6 @@ fit(data: NormData) -> None
 predict(data: NormData) -> NormData
 fit_predict(fit_data: NormData, predict_data: NormData) -> NormData
 
-transfer(transfer_data: NormData, save_dir: str | None = None, **kwargs) -> NormativeModel
-transfer_predict(transfer_data, predict_data, save_dir=None, **kwargs) -> NormData
-extend(data: NormData, save_dir: str | None = None,
-       n_synth_samples: int | None = None) -> NormativeModel
-extend_predict(extend_data, predict_data, save_dir=None, n_synth_samples=None) -> NormData
-
-NormativeModel.merge(save_dir: str, models: list[NormativeModel | str]) -> NormativeModel
-
 harmonize(data: NormData, reference_batch_effect: dict | None = None) -> NormData
 synthesize(...) -> NormData
 save(path: str | None = None) -> None
@@ -130,12 +122,6 @@ NormativeModel.load(path: str, into=None) -> NormativeModel
 
 `fit` returns `None` — it predicts, evaluates, and saves internally. Use
 `predict` or `fit_predict` when you need a `NormData` back.
-
-`merge` is a **classmethod**: `save_dir` is the first positional argument
-and at least two models are required.
-
-`transfer` and `extend` return a **new** model; their default save
-directories are `<save_dir>_transfer` and `<save_dir>_extend`.
 
 ---
 

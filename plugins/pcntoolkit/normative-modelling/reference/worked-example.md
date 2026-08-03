@@ -184,40 +184,11 @@ model = NormativeModel(BLR(), y_transform="log1p")   # Y may contain zeros
 
 ---
 
-## Variation: transfer to a new site
-
-Adapts an existing model to batch-effect levels it was not fitted on,
-without refitting from scratch.
-
-```python
-# Hold out two sites from the fit
-transfer_data, fit_data = norm_data.batch_effects_split(
-    {"site": ["Milwaukee_b", "Oulu"]}, names=("transfer", "fit")
-)
-train, test = fit_data.train_test_split()
-transfer_train, transfer_test = transfer_data.train_test_split()
-
-model.fit_predict(train, test)
-
-# transfer_predict returns a NEW model; the original is unchanged
-transferred_model = model.transfer_predict(transfer_train, transfer_test)
-
-# extend_predict instead keeps the old sites and adds the new ones
-extended_model = model.extend_predict(transfer_train, transfer_test)
-```
-
-Both default to writing into `<save_dir>_transfer` / `<save_dir>_extend`.
-
----
-
-## Saving, loading, merging
+## Saving and loading
 
 ```python
 model.save("resources/blr/save_dir")
 loaded = NormativeModel.load("resources/blr/save_dir")
-
-# merge is a classmethod: save_dir first, then >=2 models
-merged = NormativeModel.merge("resources/merged", [model_a, model_b])
 ```
 
 ---
