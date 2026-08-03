@@ -3,7 +3,7 @@ name: normative-modelling
 description: >
   Fit, configure, and interpret normative models with PCNtoolkit.
   Use when: choosing between BLR and HBR; deciding how to handle
-  site or scanner effects (harmonization, batch effects, transfer);
+  site or scanner effects (harmonization, batch effects);
   preparing a dataframe as NormData; configuring likelihoods,
   priors, basis functions, or warps; setting up NormativeModel
   scalers and transforms; interpreting evaluation metrics
@@ -56,10 +56,7 @@ ComBat's batch effect: a nuisance you want to REMOVE, not interpret.
 
 PCNtoolkit's batch effect: we MODEL it. It must be categorical.
 
-Modelling it instead of removing it:
-
-- allows federated learning - you can adjust to new batch effect groups, e.g. new sites;
-- does not remove information from the data.
+Modelling it instead of removing it does not remove information from the data.
 
 Harmonization in PCNtoolkit is an invertible transform. It lets you model all the data as if it came from the same reference group, without removing any information from the data.
 
@@ -175,7 +172,7 @@ There are two families of metrics: point metrics and probabilistic (shape/distri
   This is the primary source; consult it before writing code.
 - [reference/worked-example.md](reference/worked-example.md) — an
   end-to-end runnable script, plus short variations (HBR, warp,
-  B-spline basis, transfer to a new site).
+  B-spline basis).
 
 Example notebooks in the repository, by topic:
 
@@ -186,11 +183,8 @@ Example notebooks in the repository, by topic:
 | HBR with Normal likelihood | [03_HBR_Normal.ipynb](../../../examples/03_HBR_Normal.ipynb) |
 | HBR with SHASH likelihood | [04_HBR_SHASH.ipynb](../../../examples/04_HBR_SHASH.ipynb) |
 | HBR with Beta likelihood | [05_HBR_Beta.ipynb](../../../examples/05_HBR_Beta.ipynb) |
-| Transfer and extend to new sites | [06_transfer_extend.ipynb](../../../examples/06_transfer_extend.ipynb) |
 | Comparing models | [07_model_comparison.ipynb](../../../examples/07_model_comparison.ipynb) |
-| Merging models | [10_merge.ipynb](../../../examples/10_merge.ipynb) |
 | Basis functions | [11_composite_basis_function.ipynb](../../../examples/11_composite_basis_function.ipynb) |
-| Federated learning | [12_federated_learning.ipynb](../../../examples/12_federated_learning.ipynb) |
 | Evaluation metrics | [13_evaluation_metrics.ipynb](../../../examples/13_evaluation_metrics.ipynb) |
 
 Rendered tutorials and auto-generated API docs:
@@ -217,13 +211,8 @@ signatures only — for the modelling decisions, use the sections above.
   `NormalLikelihood(...)`, not a string.
 - `dist_name` outside {Normal, HalfNormal, Uniform, Gamma, LogNormal}
   raises `KeyError`. `mapping` is limited to identity, exp, softplus.
-- `NormativeModel.merge` is a classmethod called as
-  `NormativeModel.merge(save_dir, [model_a, model_b])` — `save_dir` comes
-  first, and at least two models are required.
 - `fit(data)` returns `None`. It predicts, evaluates, and saves
   internally. Use `predict` or `fit_predict` to get a `NormData` back.
 - `MSLL` returns `None` when `baseline_logp` is absent. `MLL` emits a
-  `DeprecationWarning` (it was formerly `NLL`). `BIC` is implemented but
-  is not in the default statistics list, so it cannot be requested via
-  `statistics=`.
+  `DeprecationWarning` (it was formerly `NLL`).
 - Retrieve computed metrics with `data.get_statistics_df()`.
