@@ -27,6 +27,10 @@ and report results with PCNtoolkit. This is the decision guide: it covers
    signatures, defaults, and the closed sets of valid string values.
 3. For a runnable end-to-end script, see
    [reference/worked-example.md](reference/worked-example.md).
+4. For anything the reference files do not cover, consult the upstream
+   docs:
+   - https://pcntoolkit.readthedocs.io/en/stable/
+   - https://pcntoolkit.readthedocs.io/en/stable/autoapi/index.html
 
 Never guess a keyword argument name. Several are easy to get wrong
 (`save_dir` not `savedir`, `nknots` not `n_knots`). Check the API
@@ -165,35 +169,6 @@ There are two families of metrics: point metrics and probabilistic (shape/distri
 | ShapiroW | Probabilistic | Z-scores | Higher | 0–1 |
 | Skewness | Probabilistic | Z-scores | Closer to 0 | Unbounded |
 | Kurtosis | Probabilistic | Z-scores | Closer to 0 | −2 to ∞ |
-
----
-
-## Reference files
-
-- [reference/api-reference.md](reference/api-reference.md) — exact
-  signatures, defaults, and valid value sets for every class named above.
-  This is the primary source; consult it before writing code.
-- [reference/worked-example.md](reference/worked-example.md) — an
-  end-to-end runnable script, plus short variations (HBR, warp,
-  B-spline basis).
-
-Example notebooks in the repository, by topic:
-
-| Topic | Notebook |
-|---|---|
-| Loading data into NormData | [01_loading_data.ipynb](../../../examples/01_loading_data.ipynb) |
-| BLR | [02_BLR.ipynb](../../../examples/02_BLR.ipynb) |
-| HBR with Normal likelihood | [03_HBR_Normal.ipynb](../../../examples/03_HBR_Normal.ipynb) |
-| HBR with SHASH likelihood | [04_HBR_SHASH.ipynb](../../../examples/04_HBR_SHASH.ipynb) |
-| HBR with Beta likelihood | [05_HBR_Beta.ipynb](../../../examples/05_HBR_Beta.ipynb) |
-| Comparing models | [07_model_comparison.ipynb](../../../examples/07_model_comparison.ipynb) |
-| Basis functions | [11_composite_basis_function.ipynb](../../../examples/11_composite_basis_function.ipynb) |
-| Evaluation metrics | [13_evaluation_metrics.ipynb](../../../examples/13_evaluation_metrics.ipynb) |
-
-Rendered tutorials and auto-generated API docs:
-
-- https://pcntoolkit.readthedocs.io/en/stable/
-- https://pcntoolkit.readthedocs.io/en/stable/autoapi/index.html
 
 ---
 
