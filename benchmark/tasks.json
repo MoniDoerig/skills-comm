@@ -179,7 +179,8 @@
       "structural-brain-extraction-7t-nodura": "ground_truth/structural_gt/structural-brain-extraction-7t-nodura (as -7t plus dura_envelope.nii.gz for the no_dura_inclusion gate; grader in benchmark/graders/structural-brain-extraction-7t-nodura/)",
       "structural-tissue-segmentation-7t": "ground_truth/structural_gt/structural-tissue-segmentation-7t (majority-vote consensus CEREBRUM7T+FreeSurfer v6/v7 of the shipped 7T segmentations: consensus_seg.nii.gz + consensus_agreement.nii.gz, native T1w, 6-class; grader in benchmark/graders/structural-tissue-segmentation-7t/)",
       "structural-brain-extraction-stroke": "ground_truth/structural_gt/structural-brain-extraction-stroke (STAPLE consensus HD_BET+AFNI+SynthStrip on lesioned T1w: consensus_mask + consensus_zones + lesion_mask for the lesion_retained gate, native T1w; grader in benchmark/graders/structural-brain-extraction-stroke/)",
-      "clinical-stroke-lesion-segmentation": "ground_truth/clinical_gt/clinical-stroke-lesion-segmentation (expert lesion mask, native T1w; scorer benchmark/graders/clinical-stroke-lesion-segmentation/score_lesion_seg.py)"
+      "clinical-stroke-lesion-segmentation": "ground_truth/clinical_gt/clinical-stroke-lesion-segmentation (expert lesion mask, native T1w; scorer benchmark/graders/clinical-stroke-lesion-segmentation/score_lesion_seg.py)",
+      "clinical-wmh-segmentation": "ground_truth/clinical_gt/clinical-wmh-segmentation (primary expert WMH mask, native FLAIR; inter-rater-calibrated; scorer benchmark/graders/clinical-wmh-segmentation/score_lesion_seg.py)"
     },
     "xcpd_walkthrough_ds004450": {
       "id": "ds004450",
@@ -1837,6 +1838,50 @@
             "notes": "[note] Step 2 of the stroke pair (step 1 = structural-brain-extraction-stroke, same subject). Departs from the consensus tasks: ground truth is a single EXPERT mask, thresholds FIXED from literature (no LOTO). Scorer = Dice + lesion-wise F1 + volume error. Companion clinical task to clinical-ms-lesion-segmentation.",
             "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004884.git && cd ds004884 && datalad get sub-M2191/ses-681/anat/",
             "expected_files_detail": "A binary lesion mask (NIfTI, any filename; values {0,1}) in native T1w space."
+          }
+        },
+        "clinical-wmh-segmentation": {
+          "title": "White-matter hyperintensity (WMH) segmentation",
+          "description": "Segment white-matter hyperintensities on the FLAIR of subject Amsterdam/GE3T/100 (WMH Segmentation Challenge 2017), producing a binary WMH mask in native FLAIR space; graded against an expert mask with inter-rater-derived thresholds.",
+          "prompt": {
+            "goal": "Segment the white-matter hyperintensities (WMH) in the FLAIR image of subject Amsterdam/GE3T/100, producing a binary WMH mask in native FLAIR space.",
+            "dataset": {
+              "source": "dataverse",
+              "id": "doi:10.34894/AECRSD",
+              "version_pin": "V1",
+              "subjects": [
+                "Amsterdam/GE3T/100"
+              ]
+            },
+            "required_output": "A binary WMH mask (NIfTI, {0,1}) in native FLAIR space."
+          },
+          "solution": {
+            "ground_truth": "Primary expert WMH mask (observers O1/O2) from the WMH Challenge 2017, native FLAIR space. Pass/fail thresholds are DATA-DERIVED from inter-rater agreement (observers O3, O4 scored vs the primary), not fixed literature values. lesion_mask.nii.gz on OSF.",
+            "ground_truth_location": "OSF zjqey: ground_truth/clinical_gt/clinical-wmh-segmentation/ (lesion_mask.nii.gz, native FLAIR)",
+            "metric": "expert-mask, inter-rater-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from Dice + lesion-wise detection F1 + volume error",
+            "pass_criterion": "A binary WMH mask {0,1} in native FLAIR space; nonempty and volume-plausible; Dice / lesion-wise F1 / volume overlap with the expert mask above the inter-rater-derived pass lines; No processing errors; logs captured",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid.",
+            "grader": {
+              "kind": "expert-mask",
+              "description": "Grades a binary WMH mask against the primary expert tracing: Dice + lesion-wise detection F1 (connected components) + volume error, with thresholds data-derived from inter-rater agreement (O3/O4 vs primary). See PROVENANCE.md.",
+              "pack": "benchmark/graders/clinical-wmh-segmentation/",
+              "scorer": "benchmark/graders/clinical-wmh-segmentation/score_lesion_seg.py",
+              "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/clinical_gt/clinical-wmh-segmentation/lesion_mask.nii.gz benchmark/graders/clinical-wmh-segmentation/reference/lesion_mask.nii.gz",
+              "invoke": "python3 benchmark/graders/clinical-wmh-segmentation/score_lesion_seg.py --pred <AGENT_WMH_MASK> --pack benchmark/graders/clinical-wmh-segmentation/",
+              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "provenance": "benchmark/graders/clinical-wmh-segmentation/PROVENANCE.md"
+            },
+            "tool_mode": "agnostic",
+            "tool_suggestions": [
+              "lst",
+              "samseg",
+              "bianca",
+              "nnunet"
+            ],
+            "tool_note": "Context: dementia / small-vessel disease. WMH are many small FLAIR-hyperintense foci. Tools: LST/LST-AI, SAMSEG, BIANCA (needs training data), or a trained nnU-Net. Graded against a single expert tracing with inter-rater-derived thresholds. Tool names are non-binding.",
+            "notes": "[note] DEMENTIA/WMH axis; companion to clinical-stroke-lesion-segmentation. Multi-focal small lesions -> lesion-wise F1 weighted equally with Dice. UPGRADE over stroke: thresholds are data-derived from 3 raters (inter-rater Dice ~0.77), not fixed literature. Data on DataverseNL (DOI 10.34894/AECRSD, open Dataverse API, no DUA); expert masks grader-side only (OSF). WMH mask is native FLAIR space; label 1 = WMH.",
+            "dataset_fetch_reference": "mkdir -p wmh_input && curl -sSL --retry 3 https://dataverse.nl/api/access/datafile/325669 -o wmh_input/FLAIR.nii.gz && curl -sSL --retry 3 https://dataverse.nl/api/access/datafile/325515 -o wmh_input/3DT1.nii.gz",
+            "expected_files_detail": "A binary WMH mask (NIfTI, any filename; values {0,1}) in native FLAIR space."
           }
         }
       }

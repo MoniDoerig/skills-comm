@@ -1,0 +1,85 @@
+{
+  "item": "wmhseg_wmh2017_sub-100",
+  "prompt": "Segment the white-matter hyperintensities (WMH) in the FLAIR image of subject Amsterdam/GE3T/100 (WMH Segmentation Challenge 2017), producing a binary WMH mask in native FLAIR space.",
+  "reference": "Primary expert WMH mask (observers O1/O2), WMH Challenge 2017, native FLAIR space.",
+  "metric_thresholds": {
+    "dice": {
+      "full": 0.783,
+      "pass": 0.574
+    },
+    "lesion_f1": {
+      "full": 0.835,
+      "pass": 0.544
+    },
+    "abs_volume_err_pct": {
+      "full": 8.6,
+      "pass": 48.6
+    }
+  },
+  "weights": {
+    "dice": 0.4,
+    "lesion_f1": 0.4,
+    "abs_volume_err_pct": 0.2
+  },
+  "overlap_frac_for_match": 0.1,
+  "plausible_vol_cm3": [
+    0.1,
+    200.0
+  ],
+  "verdict_thresholds": {
+    "acceptable": 60,
+    "marginal": 30
+  },
+  "grid": {
+    "shape": [
+      132,
+      256,
+      83
+    ],
+    "zooms_mm": [
+      1.2000000476837158,
+      0.9765999913215637,
+      3.0
+    ],
+    "raw_affine": [
+      [
+        -1.2000000476837158,
+        0.0,
+        0.0,
+        77.13330078125
+      ],
+      [
+        0.0,
+        -0.9765999913215637,
+        0.0,
+        159.63400268554688
+      ],
+      [
+        0.0,
+        0.0,
+        3.0,
+        -143.72369384765625
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "threshold_basis": "DATA-DERIVED from inter-rater agreement: observers O3, O4 scored vs the primary (O1/O2) set the envelope. WMH = many small foci, so lesion-wise F1 is weighted equally with Dice.",
+  "inter_rater": {
+    "O3": {
+      "dice": 0.774,
+      "lesion_f1": 0.794,
+      "abs_volume_err_pct": 13.1
+    },
+    "O4": {
+      "dice": 0.792,
+      "lesion_f1": 0.876,
+      "abs_volume_err_pct": 4.1
+    }
+  },
+  "notes": "WMH volume 6.27 cm3, 115 foci"
+}
