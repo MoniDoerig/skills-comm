@@ -1,6 +1,6 @@
 {
   "item": "wmhseg_wmh2017_sub-100",
-  "prompt": "Segment the white-matter hyperintensities (WMH) in the FLAIR image of subject Amsterdam/GE3T/100 (WMH Segmentation Challenge 2017), producing a binary WMH mask in native FLAIR space.",
+  "prompt": "Segment the white-matter hyperintensities (WMH) in the FLAIR image of subject Amsterdam/GE3T/100 (WMH Segmentation Challenge 2017), producing a binary WMH mask in native FLAIR space. The data is on DataverseNL (DOI 10.34894/AECRSD), NOT OpenNeuro \u2014 fetch the FLAIR with the provided download command (open Dataverse access API, no login required).",
   "reference": "Primary expert WMH mask (observers O1/O2), WMH Challenge 2017, native FLAIR space.",
   "metric_thresholds": {
     "dice": {
