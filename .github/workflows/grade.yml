@@ -1,0 +1,158 @@
+name: grade
+
+# The GRADING PLANE. Pure Python (numpy/nibabel/scipy) — runs on github-hosted runners,
+# no Neurodesk needed. Reference NIfTIs are pulled from OSF (public project zjqey, no auth)
+# into each pack's reference/ dir; they are NEVER committed and NEVER exposed to the agent.
+#
+# Two entry points:
+#   * grade         — reusable (workflow_call) + manual: score ONE submission produced by the
+#                     execution plane, emit a ranked-ready envelope JSON as an artifact.
+#   * selftest      — on every push touching the harness/packs: synthesise a perfect and a
+#                     broken submission FROM the OSF reference and assert the grader agrees.
+#                     Guards the grading contract with zero dependency on the execution plane.
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: task_id (must exist in benchmark/harness/run_manifest.json)
+        required: true
+      model:
+        description: model label (e.g. qwen, glm, minimax)
+        required: true
+      condition:
+        description: baseline | skill
+        required: true
+        default: baseline
+      submission_artifact:
+        description: name of the uploaded artifact holding submission/output.nii.gz
+        required: true
+  workflow_call:
+    inputs:
+      task:        { required: true,  type: string }
+      model:       { required: true,  type: string }
+      condition:   { required: true,  type: string, default: baseline }
+      submission_artifact: { required: true, type: string }
+  push:
+    paths:
+      - benchmark/harness/**
+      - benchmark/graders/**
+      - .github/workflows/grade.yml
+
+concurrency:
+  group: grade-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------------------------------------------- production grading
+  grade:
+    if: ${{ github.event_name != 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install grading dependencies
+        run: pip install --quiet numpy nibabel scipy osfclient
+
+      - name: Download the agent submission
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.submission_artifact }}
+          path: run            # expects run/submission/output.nii.gz
+
+      - name: Fetch OSF reference (grader-side only)
+        run: python benchmark/harness/fetch_reference.py --task "${{ inputs.task }}"
+
+      - name: Grade
+        run: |
+          mkdir -p results
+          python benchmark/harness/grade_wrapper.py grade \
+            --task "${{ inputs.task }}" \
+            --submission-dir run \
+            --model "${{ inputs.model }}" \
+            --condition "${{ inputs.condition }}" \
+            --out "results/${{ inputs.task }}__${{ inputs.model }}__${{ inputs.condition }}.json"
+
+      - name: Upload envelope
+        uses: actions/upload-artifact@v4
+        with:
+          name: grade-${{ inputs.task }}-${{ inputs.model }}-${{ inputs.condition }}
+          path: results/*.json
+
+  # ---------------------------------------------------------------- self-test the plane
+  selftest:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - task: clinical-wmh-segmentation
+            graded_ref: lesion_mask.nii.gz          # binary scorer
+          - task: structural-tissue-segmentation-7t
+            graded_ref: consensus_seg.nii.gz        # multiclass scorer
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install grading dependencies
+        run: pip install --quiet numpy nibabel scipy osfclient
+
+      - name: Fetch OSF reference
+        run: python benchmark/harness/fetch_reference.py --task "${{ matrix.task }}"
+
+      - name: Synthesise perfect + broken submissions from the reference
+        run: |
+          python - <<'PY'
+          import numpy as np, nibabel as nib
+          from pathlib import Path
+          task="${{ matrix.task }}"; graded="${{ matrix.graded_ref }}"
+          ref = Path("benchmark/graders")/task/"reference"/graded
+          img = nib.load(str(ref))
+          # perfect = an exact copy of the graded reference -> must be "indistinguishable"
+          good = Path("run_perfect/submission"); good.mkdir(parents=True, exist_ok=True)
+          nib.save(img, str(good/"output.nii.gz"))
+          # broken = all-zeros on the same grid -> must trip a validity gate -> "invalid"
+          bad = Path("run_broken/submission"); bad.mkdir(parents=True, exist_ok=True)
+          z = nib.Nifti1Image(np.zeros(img.shape, dtype="uint8"), img.affine, img.header)
+          nib.save(z, str(bad/"output.nii.gz"))
+          print("synthesised perfect + broken for", task)
+          PY
+
+      - name: Grade both and assert the contract
+        run: |
+          mkdir -p results
+          python benchmark/harness/grade_wrapper.py grade --task "${{ matrix.task }}" \
+            --submission-dir run_perfect --model selftest --condition perfect \
+            --out results/perfect.json || true
+          python benchmark/harness/grade_wrapper.py grade --task "${{ matrix.task }}" \
+            --submission-dir run_broken --model selftest --condition broken \
+            --out results/broken.json || true
+          python - <<'PY'
+          import json, sys
+          p = json.load(open("results/perfect.json")); b = json.load(open("results/broken.json"))
+          print("perfect:", p["verdict"], p["score"], "| broken:", b["verdict"], b["score"])
+          ok = (p["verdict"] == "indistinguishable" and p["valid"] and p["score"] == 100.0
+                and b["verdict"] == "invalid" and not b["valid"])
+          if not ok:
+              print("SELFTEST FAILED: grading contract not upheld"); sys.exit(1)
+          print("SELFTEST PASSED")
+          PY
+
+      - name: Build leaderboard from this run
+        run: |
+          python benchmark/harness/grade_wrapper.py aggregate \
+            --glob "results/*.json" --out results/leaderboard.json
+
+      - name: Upload self-test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: selftest-${{ matrix.task }}
+          path: results/*.json

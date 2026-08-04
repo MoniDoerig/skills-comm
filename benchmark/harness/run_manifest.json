@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.0",
+  "description": "Drives the automated grading plane. One entry per gradeable task. All paths are relative to graders_root (default: the parent directory of this file's directory, i.e. benchmark/). The agent MUST write its result to output_path under the submission directory; the grader reads ONLY that path (no fuzzy file discovery).",
+  "defaults": {
+    "submission_output_path": "submission/output.nii.gz",
+    "osf_project": "zjqey",
+    "osf_ref_root": "osfstorage/ground_truth"
+  },
+  "tasks": {
+    "structural-brain-extraction": {
+      "pack_dir": "graders/structural-brain-extraction",
+      "scorer": "graders/structural-brain-extraction/score_brain_mask.py",
+      "pred_flag": "--mask",
+      "detail_kind": "binary",
+      "optional_inputs": {
+        "--stripped": "submission/stripped.nii.gz"
+      },
+      "osf_ref_dir": "structural_gt/structural-brain-extraction",
+      "reference_files": [
+        "consensus_mask.nii.gz",
+        "consensus_zones.nii.gz"
+      ]
+    },
+    "structural-brain-extraction-pediatric": {
+      "pack_dir": "graders/structural-brain-extraction-pediatric",
+      "scorer": "graders/structural-brain-extraction/score_brain_mask.py",
+      "pred_flag": "--mask",
+      "detail_kind": "binary",
+      "optional_inputs": {
+        "--stripped": "submission/stripped.nii.gz"
+      },
+      "osf_ref_dir": "structural_gt/structural-brain-extraction-pediatric",
+      "reference_files": [
+        "consensus_mask.nii.gz",
+        "consensus_zones.nii.gz"
+      ]
+    },
+    "structural-brain-extraction-motion": {
+      "pack_dir": "graders/structural-brain-extraction-motion",
+      "scorer": "graders/structural-brain-extraction/score_brain_mask.py",
+      "pred_flag": "--mask",
+      "detail_kind": "binary",
+      "optional_inputs": {
+        "--stripped": "submission/stripped.nii.gz"
+      },
+      "osf_ref_dir": "structural_gt/structural-brain-extraction-motion",
+      "reference_files": [
+        "consensus_mask.nii.gz",
+        "consensus_zones.nii.gz"
+      ]
+    },
+    "structural-brain-extraction-7t": {
+      "pack_dir": "graders/structural-brain-extraction-7t",
+      "scorer": "graders/structural-brain-extraction/score_brain_mask.py",
+      "pred_flag": "--mask",
+      "detail_kind": "binary",
+      "optional_inputs": {
+        "--stripped": "submission/stripped.nii.gz"
+      },
+      "osf_ref_dir": "structural_gt/structural-brain-extraction-7t",
+      "reference_files": [
+        "consensus_mask.nii.gz",
+        "consensus_zones.nii.gz"
+      ]
+    },
+    "structural-brain-extraction-7t-nodura": {
+      "pack_dir": "graders/structural-brain-extraction-7t-nodura",
+      "scorer": "graders/structural-brain-extraction/score_brain_mask.py",
+      "pred_flag": "--mask",
+      "detail_kind": "binary",
+      "optional_inputs": {
+        "--stripped": "submission/stripped.nii.gz"
+      },
+      "osf_ref_dir": "structural_gt/structural-brain-extraction-7t-nodura",
+      "reference_files": [
+        "consensus_mask.nii.gz",
+        "consensus_zones.nii.gz",
+        "dura_envelope.nii.gz"
+      ]
+    },
+    "structural-brain-extraction-stroke": {
+      "pack_dir": "graders/structural-brain-extraction-stroke",
+      "scorer": "graders/structural-brain-extraction/score_brain_mask.py",
+      "pred_flag": "--mask",
+      "detail_kind": "binary",
+      "optional_inputs": {
+        "--stripped": "submission/stripped.nii.gz"
+      },
+      "osf_ref_dir": "structural_gt/structural-brain-extraction-stroke",
+      "reference_files": [
+        "consensus_mask.nii.gz",
+        "consensus_zones.nii.gz",
+        "lesion_mask.nii.gz"
+      ]
+    },
+    "structural-tissue-segmentation-7t": {
+      "pack_dir": "graders/structural-tissue-segmentation-7t",
+      "scorer": "graders/structural-tissue-segmentation-7t/score_tissue_seg.py",
+      "pred_flag": "--seg",
+      "detail_kind": "multiclass",
+      "optional_inputs": {},
+      "osf_ref_dir": "structural_gt/structural-tissue-segmentation-7t",
+      "reference_files": [
+        "consensus_seg.nii.gz",
+        "consensus_agreement.nii.gz"
+      ]
+    },
+    "clinical-stroke-lesion-segmentation": {
+      "pack_dir": "graders/clinical-stroke-lesion-segmentation",
+      "scorer": "graders/clinical-stroke-lesion-segmentation/score_lesion_seg.py",
+      "pred_flag": "--pred",
+      "detail_kind": "binary",
+      "optional_inputs": {},
+      "osf_ref_dir": "clinical_gt/clinical-stroke-lesion-segmentation",
+      "reference_files": [
+        "lesion_mask.nii.gz"
+      ]
+    },
+    "clinical-wmh-segmentation": {
+      "pack_dir": "graders/clinical-wmh-segmentation",
+      "scorer": "graders/clinical-wmh-segmentation/score_lesion_seg.py",
+      "pred_flag": "--pred",
+      "detail_kind": "binary",
+      "optional_inputs": {},
+      "osf_ref_dir": "clinical_gt/clinical-wmh-segmentation",
+      "reference_files": [
+        "lesion_mask.nii.gz"
+      ]
+    }
+  }
+}
