@@ -13,9 +13,9 @@ anti-leak boundary:
 ```
  EXECUTION PLANE  (Neurodesk self-hosted runner)      GRADING PLANE  (any github-hosted runner)
  ─────────────────────────────────────────────        ──────────────────────────────────────────
- reads the task prompt from tasks.json                 downloads submission/output.nii.gz
+ reads the task prompt from tasks.json                 downloads submissions/<task>/output.nii.gz
  agent picks tools, module load, sbatch                fetches the OSF reference into pack/reference/
- writes ONE file: submission/output.nii.gz  ──────►    runs the scorer via grade_wrapper.py
+ writes submissions/<task>/output.nii.gz  ──────►      runs the scorer via grade_wrapper.py
  never sees the reference                              emits a ranked-ready envelope JSON
 ```
 
@@ -33,9 +33,10 @@ ground truth is never in the agent's input.
 ## The output contract (why grading is deterministic)
 
 Every gradeable task prompt in `tasks.json` mandates one exact output path — the graded file is
-always `submission/output.nii.gz` (brain-extraction tasks also write `submission/stripped.nii.gz`).
-The grader reads **only** that path: no guessing which of several NIfTIs the agent meant, no
-grading of intermediates or copied inputs.
+always `submissions/<task_id>/output.nii.gz` (brain-extraction tasks also write
+`submissions/<task_id>/stripped.nii.gz`). One `submissions/` tree, one folder per task, so a
+run over many tasks stays namespaced. The grader reads **only** that path: no guessing which of
+several NIfTIs the agent meant, no grading of intermediates or copied inputs.
 
 ## The scoring model — a tier *and* a number
 
@@ -75,6 +76,8 @@ python grade_wrapper.py list            # add --verbose for scorer + detail kind
 python fetch_reference.py --task clinical-wmh-segmentation
 
 # grade one submission -> envelope JSON
+# --submission-dir is the working root; the grader looks for
+# <root>/submissions/<task_id>/output.nii.gz (so one root can hold many tasks)
 python grade_wrapper.py grade \
   --task clinical-wmh-segmentation --submission-dir ./run_qwen \
   --model qwen --condition baseline --out results/qwen.json

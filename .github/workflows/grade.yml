@@ -62,7 +62,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.submission_artifact }}
-          path: run            # expects run/submission/output.nii.gz
+          path: run            # expects run/submissions/<task_id>/output.nii.gz
 
       - name: Fetch OSF reference (grader-side only)
         run: python benchmark/harness/fetch_reference.py --task "${{ inputs.task }}"
@@ -117,10 +117,10 @@ jobs:
           ref = Path("benchmark/graders")/task/"reference"/graded
           img = nib.load(str(ref))
           # perfect = an exact copy of the graded reference -> must be "indistinguishable"
-          good = Path("run_perfect/submission"); good.mkdir(parents=True, exist_ok=True)
+          good = Path("run_perfect/submissions")/task; good.mkdir(parents=True, exist_ok=True)
           nib.save(img, str(good/"output.nii.gz"))
           # broken = all-zeros on the same grid -> must trip a validity gate -> "invalid"
-          bad = Path("run_broken/submission"); bad.mkdir(parents=True, exist_ok=True)
+          bad = Path("run_broken/submissions")/task; bad.mkdir(parents=True, exist_ok=True)
           z = nib.Nifti1Image(np.zeros(img.shape, dtype="uint8"), img.affine, img.header)
           nib.save(z, str(bad/"output.nii.gz"))
           print("synthesised perfect + broken for", task)

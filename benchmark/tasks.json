@@ -291,7 +291,7 @@
                 "sub-0004"
               ]
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): create a folder `submission/` in your working directory and write the binary brain mask to `submission/output.nii.gz` \u2014 THIS is the graded file \u2014 and the skull-stripped image to `submission/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submission/`. Only `submission/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction/` under your working directory \u2014 create that folder. Put the binary brain mask at `submissions/structural-brain-extraction/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction/`. Only `submissions/structural-brain-extraction/output.nii.gz` is scored."
           },
           "solution": {
             "ground_truth": "STAPLE consensus of a panel of accepted tools (ANTs, HD-BET, FSL BET, AFNI, SynthStrip), split into core/margin/background zones and calibrated once on this subject; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz, hosted on OSF and fetched into the grader pack reference/ at grade time.",
@@ -344,7 +344,7 @@
               ],
               "acquisition": "acq-headmotion2"
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): create a folder `submission/` in your working directory and write the binary brain mask to `submission/output.nii.gz` \u2014 THIS is the graded file \u2014 and the skull-stripped image to `submission/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submission/`. Only `submission/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-motion/` under your working directory \u2014 create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-motion/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-motion/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-motion/`. Only `submissions/structural-brain-extraction-motion/output.nii.gz` is scored."
           },
           "solution": {
             "ground_truth": "STAPLE consensus of a panel of accepted tools (ANTs, HD-BET, FSL BET, AFNI, SynthStrip) run on the same high-motion scan, split into core/margin/background zones and calibrated once; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz, hosted on OSF and fetched into the grader pack reference/ at grade time.",
@@ -390,7 +390,7 @@
                 "sub-pixar017"
               ]
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): create a folder `submission/` in your working directory and write the binary brain mask to `submission/output.nii.gz` \u2014 THIS is the graded file \u2014 and the skull-stripped image to `submission/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submission/`. Only `submission/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-pediatric/` under your working directory \u2014 create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-pediatric/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-pediatric/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-pediatric/`. Only `submissions/structural-brain-extraction-pediatric/output.nii.gz` is scored."
           },
           "solution": {
             "ground_truth": "STAPLE consensus of a panel of accepted tools (HD-BET, AFNI, SynthStrip, FSL BET -R) run on the child T1w, split into core/margin/background zones and calibrated once; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz, hosted on OSF and fetched into the grader pack reference/ at grade time.",
@@ -742,7 +742,7 @@
                 "sub-025"
               ]
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): create a folder `submission/` in your working directory and write the binary brain mask to `submission/output.nii.gz` \u2014 THIS is the graded file \u2014 and the skull-stripped image to `submission/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submission/`. Only `submission/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-7t/` under your working directory \u2014 create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-7t/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-7t/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-7t/`. Only `submissions/structural-brain-extraction-7t/output.nii.gz` is scored."
           },
           "solution": {
             "ground_truth": "STAPLE consensus of a curated panel (HD-BET, AFNI, SynthStrip) run on the 7T MP2RAGE UNI, split into core/margin/background zones and calibrated once; native T1w space. FSL BET -R was dropped from the panel (catastrophic under-extraction at 7T) and kept as a scored candidate. consensus_mask.nii.gz + consensus_zones.nii.gz on OSF, fetched into the grader pack reference/ at grade time.",
@@ -785,7 +785,7 @@
                 "sub-025"
               ]
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): create a folder `submission/` in your working directory and write the binary brain mask to `submission/output.nii.gz` \u2014 THIS is the graded file \u2014 and the skull-stripped image to `submission/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submission/`. Only `submission/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-7t-nodura/` under your working directory \u2014 create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-7t-nodura/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-7t-nodura/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-7t-nodura/`. Only `submissions/structural-brain-extraction-7t-nodura/output.nii.gz` is scored."
           },
           "solution": {
             "ground_truth": "Same subject and consensus as structural-brain-extraction-7t, plus a dura-out pial envelope (union of the four CEREBRUM-7T tissue segmentations, sulci-filled). The grader adds a one-sided over-inclusion gate: a mask extending past the envelope into the dura fails. consensus_mask.nii.gz + consensus_zones.nii.gz + dura_envelope.nii.gz on OSF.",
@@ -829,7 +829,7 @@
                 "sub-025"
               ]
             },
-            "required_output": "An integer label map (NIfTI) with labels 1..6 as specified, in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): create a folder `submission/` in your working directory and write the integer label map to `submission/output.nii.gz`. Use this exact path and filename, and place no other NIfTI inside `submission/`. Only `submission/output.nii.gz` is scored."
+            "required_output": "An integer label map (NIfTI) with labels 1..6 as specified, in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write the integer label map to `submissions/structural-tissue-segmentation-7t/output.nii.gz` under your working directory \u2014 create the `submissions/structural-tissue-segmentation-7t/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/structural-tissue-segmentation-7t/`. Only `submissions/structural-tissue-segmentation-7t/output.nii.gz` is scored."
           },
           "solution": {
             "ground_truth": "Majority-vote consensus of three whole-brain segmentations shipped with CEREBRUM-7T (CEREBRUM7T, FreeSurfer v6, FreeSurfer v7; nighres dropped as a label-scheme outlier), fused into a 6-class label map with a per-voxel agreement map (unanimous-core / majority-boundary zones), calibrated once by leave-one-tool-out. consensus_seg.nii.gz + consensus_agreement.nii.gz on OSF, fetched into the grader pack reference/ at grade time.",
@@ -873,7 +873,7 @@
                 "sub-M2191"
               ]
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): create a folder `submission/` in your working directory and write the binary brain mask to `submission/output.nii.gz` \u2014 THIS is the graded file \u2014 and the skull-stripped image to `submission/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submission/`. Only `submission/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-stroke/` under your working directory \u2014 create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-stroke/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-stroke/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-stroke/`. Only `submissions/structural-brain-extraction-stroke/output.nii.gz` is scored."
           },
           "solution": {
             "ground_truth": "STAPLE consensus of the lesion-retaining tools (HD-BET, AFNI, SynthStrip) run on the lesioned T1w, split into core/margin/background zones; native T1w space. FSL BET dropped from the panel (retains only 52% of the lesion) and kept as a scored candidate. The expert lesion mask (registered T2w->T1w) is shipped for a lesion_retained gate. consensus_mask + consensus_zones + lesion_mask on OSF.",
@@ -1818,7 +1818,7 @@
                 "sub-M2191"
               ]
             },
-            "required_output": "A binary lesion mask (NIfTI, {0,1}) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): create a folder `submission/` in your working directory and write the binary mask to `submission/output.nii.gz`. Use this exact path and filename, and place no other NIfTI inside `submission/`. Only `submission/output.nii.gz` is scored."
+            "required_output": "A binary lesion mask (NIfTI, {0,1}) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write the binary mask to `submissions/clinical-stroke-lesion-segmentation/output.nii.gz` under your working directory \u2014 create the `submissions/clinical-stroke-lesion-segmentation/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/clinical-stroke-lesion-segmentation/`. Only `submissions/clinical-stroke-lesion-segmentation/output.nii.gz` is scored."
           },
           "solution": {
             "ground_truth": "Expert manual lesion tracing shipped with ARC (drawn in T2w space), rigid-registered into native T1w space. A genuine gold standard \u2014 NOT a tool consensus (automated lesion tools disagree too much). lesion_mask.nii.gz on OSF.",
@@ -1862,7 +1862,7 @@
                 "Amsterdam/GE3T/100"
               ]
             },
-            "required_output": "A binary WMH mask (NIfTI, {0,1}) in native FLAIR space.\n\nOUTPUT LOCATION (exact, mandatory): create a folder `submission/` in your working directory and write the binary mask to `submission/output.nii.gz`. Use this exact path and filename, and place no other NIfTI inside `submission/`. Only `submission/output.nii.gz` is scored."
+            "required_output": "A binary WMH mask (NIfTI, {0,1}) in native FLAIR space.\n\nOUTPUT LOCATION (exact, mandatory): write the binary mask to `submissions/clinical-wmh-segmentation/output.nii.gz` under your working directory \u2014 create the `submissions/clinical-wmh-segmentation/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/clinical-wmh-segmentation/`. Only `submissions/clinical-wmh-segmentation/output.nii.gz` is scored."
           },
           "solution": {
             "ground_truth": "Primary expert WMH mask (observers O1/O2) from the WMH Challenge 2017, native FLAIR space. Pass/fail thresholds are DATA-DERIVED from inter-rater agreement (observers O3, O4 scored vs the primary), not fixed literature values. lesion_mask.nii.gz on OSF.",

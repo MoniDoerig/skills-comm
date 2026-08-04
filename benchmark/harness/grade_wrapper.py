@@ -96,7 +96,8 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
     if not (pack / "rubric.json").exists():
         raise SystemExit(f"ERROR: rubric.json missing in pack: {pack}")
 
-    out_rel = spec.get("submission_output_path") or manifest["defaults"]["submission_output_path"]
+    out_rel = (spec.get("submission_output_path")
+               or manifest["defaults"]["submission_output_path"]).format(task_id=task_id)
     pred = Path(submission_dir) / out_rel
     if not pred.exists():
         # A missing contracted output is a submission failure, not a harness crash:
@@ -111,7 +112,7 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
     cmd = [sys.executable, str(scorer), spec["pred_flag"], str(pred),
            "--pack", str(pack), "--json", str(result_json)]
     for flag, rel in (spec.get("optional_inputs") or {}).items():
-        cand = Path(submission_dir) / rel
+        cand = Path(submission_dir) / rel.format(task_id=task_id)
         if cand.exists():
             cmd += [flag, str(cand)]
 
