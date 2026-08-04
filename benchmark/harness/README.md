@@ -68,6 +68,9 @@ carries `per_class`. `tiebreak` (mean Dice) breaks ties at equal `score`.
 ## Running it
 
 ```bash
+# list the live (gradeable) task IDs — the functional subset of the full catalog
+python grade_wrapper.py list            # add --verbose for scorer + detail kind
+
 # fetch the grader-side reference for a task (public OSF, no auth)
 python fetch_reference.py --task clinical-wmh-segmentation
 
@@ -82,6 +85,11 @@ python grade_wrapper.py aggregate --glob "results/*.json" --out results/leaderbo
 
 Add a task by giving it an entry in `run_manifest.json` (pack, scorer, flag, OSF reference) — no
 code change needed.
+
+The full task catalog (`tasks.json`) stays complete; the automated subset is the manifest.
+Live tasks also carry `"grading": "automated"` in `tasks.json`, so the functional set is
+queryable from the catalog itself. `run_manifest.json` remains the source of truth for what the
+harness grades.
 
 ## CI
 

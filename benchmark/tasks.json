@@ -279,6 +279,7 @@
         },
         "structural-brain-extraction": {
           "title": "Brain extraction (skull stripping)",
+          "grading": "automated",
           "description": "Skull-strip the T1w of sub-0004 of OpenNeuro dataset ds002790, producing a brain-extracted image and a binary brain mask in native T1w space.",
           "prompt": {
             "goal": "Skull-strip the T1-weighted image of sub-0004, producing a brain-extracted image and a binary brain mask in the native T1w space.",
@@ -330,6 +331,7 @@
         },
         "structural-brain-extraction-motion": {
           "title": "Brain extraction under head motion (skull stripping)",
+          "grading": "automated",
           "description": "Skull-strip the high-motion T1w of sub-000103 of MR-ART (OpenNeuro ds004173), producing a brain-extracted image and a binary brain mask in native T1w space, despite motion artefacts.",
           "prompt": {
             "goal": "Skull-strip the motion-corrupted T1-weighted image (acq-headmotion2) of sub-000103, producing a brain-extracted image and a binary brain mask in the native T1w space.",
@@ -376,6 +378,7 @@
         },
         "structural-brain-extraction-pediatric": {
           "title": "Brain extraction in a young child (skull stripping)",
+          "grading": "automated",
           "description": "Skull-strip the T1w of sub-pixar017 (~3.6 yo) of OpenNeuro dataset ds000228, producing a brain-extracted image and a binary brain mask in native T1w space.",
           "prompt": {
             "goal": "Skull-strip the T1-weighted image of sub-pixar017, producing a brain-extracted image and a binary brain mask in the native T1w space.",
@@ -727,6 +730,7 @@
         },
         "structural-brain-extraction-7t": {
           "title": "Brain extraction at 7 Tesla (MP2RAGE skull stripping)",
+          "grading": "automated",
           "description": "Skull-strip the 7T MP2RAGE UNI image of sub-025 of CEREBRUM-7T (OpenNeuro ds003642), producing a brain-extracted image and a binary brain mask in native T1w space.",
           "prompt": {
             "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of sub-025, producing a brain-extracted image and a binary brain mask in the native T1w space.",
@@ -769,6 +773,7 @@
         },
         "structural-brain-extraction-7t-nodura": {
           "title": "Brain extraction at 7T with explicit dura removal (skull stripping)",
+          "grading": "automated",
           "description": "Skull-strip the 7T MP2RAGE UNI image of sub-025 of CEREBRUM-7T (OpenNeuro ds003642) AND remove the dura, producing a brain-extracted image and a binary brain mask in native T1w space.",
           "prompt": {
             "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of sub-025 AND remove the dura, producing a brain-extracted image and a binary brain mask in the native T1w space.",
@@ -812,6 +817,7 @@
         },
         "structural-tissue-segmentation-7t": {
           "title": "Tissue parcellation at 7 Tesla (six structures)",
+          "grading": "automated",
           "description": "Parcellate the 7T MP2RAGE image of sub-025 (CEREBRUM-7T, OpenNeuro ds003642) into six brain structures (GM, basal ganglia, WM, ventricles/CSF, cerebellum, brainstem) in native T1w space.",
           "prompt": {
             "goal": "Parcellate the 7T MP2RAGE image of sub-025 into an integer label map of six brain structures in native T1w space: 1=grey matter (cortical grey matter), 2=basal ganglia (deep grey nuclei: caudate, putamen, pallidum), 3=white matter (cerebral white matter), 4=ventricles (ventricular CSF only \u2014 lateral/3rd/4th ventricles, NOT sulcal CSF), 5=cerebellum (entire cerebellum, grey+white), 6=brainstem (midbrain, pons, medulla).",
@@ -855,6 +861,7 @@
         },
         "structural-brain-extraction-stroke": {
           "title": "Brain extraction of a lesioned (chronic-stroke) brain",
+          "grading": "automated",
           "description": "Skull-strip the T1w of sub-M2191 (Aphasia Recovery Cohort, ds004884), a chronic-stroke subject whose brain contains an 82.8 cm3 infarct cavity; produce a brain-extracted image and a binary brain mask in native T1w space. The lesion is brain tissue (graded by the lesion_retained gate) but this is NOT disclosed to the agent.",
           "prompt": {
             "goal": "Skull-strip the T1-weighted image of sub-M2191 session ses-681, producing a brain-extracted image and a binary brain mask in the native T1w space.",
@@ -1799,6 +1806,7 @@
         },
         "clinical-stroke-lesion-segmentation": {
           "title": "Stroke lesion segmentation (T1)",
+          "grading": "automated",
           "description": "Segment the chronic stroke lesion in the T1w of sub-M2191 (Aphasia Recovery Cohort, ds004884), producing a binary lesion mask in native T1w space, graded against an expert manual tracing.",
           "prompt": {
             "goal": "Segment the chronic stroke lesion in the T1-weighted image of sub-M2191 session ses-681, producing a binary lesion mask in native T1w space.",
@@ -1842,6 +1850,7 @@
         },
         "clinical-wmh-segmentation": {
           "title": "White-matter hyperintensity (WMH) segmentation",
+          "grading": "automated",
           "description": "Segment white-matter hyperintensities on the FLAIR of subject Amsterdam/GE3T/100 (WMH Segmentation Challenge 2017), producing a binary WMH mask in native FLAIR space; graded against an expert mask with inter-rater-derived thresholds.",
           "prompt": {
             "goal": "Segment the white-matter hyperintensities (WMH) on the FLAIR image of subject Amsterdam/GE3T/100 from the WMH Segmentation Challenge 2017.\n\nDATA \u2014 open, no login (DataverseNL, DOI 10.34894/AECRSD). This dataset is NOT on OpenNeuro; do not use datalad. Download with:\n  mkdir -p wmh_input\n  curl -sSL --retry 3 https://dataverse.nl/api/access/datafile/325669 -o wmh_input/FLAIR.nii.gz\n  curl -sSL --retry 3 https://dataverse.nl/api/access/datafile/325515 -o wmh_input/3DT1.nii.gz\nwmh_input/FLAIR.nii.gz is the segmentation input; wmh_input/3DT1.nii.gz is the co-registered T1 (optional to use).\n\nOUTPUT \u2014 a single binary WMH mask (NIfTI, values {0,1}) in the NATIVE FLAIR space: the same grid and affine as FLAIR.nii.gz (shape 132x256x83). Do not resample to any other space.",

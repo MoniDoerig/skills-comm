@@ -210,7 +210,20 @@ def main(argv=None):
     a.add_argument("--glob", required=True, help="glob for envelope JSONs, e.g. 'results/*.json'")
     a.add_argument("--out", required=True)
 
+    ls = sub.add_parser("list", help="print the live (gradeable) task IDs from the manifest")
+    ls.add_argument("--manifest", default=str(Path(__file__).parent / "run_manifest.json"))
+    ls.add_argument("--verbose", action="store_true", help="also show scorer + detail kind")
+
     args = ap.parse_args(argv)
+    if args.cmd == "list":
+        tasks = json.load(open(args.manifest))["tasks"]
+        for tid in sorted(tasks):
+            if args.verbose:
+                s = tasks[tid]
+                print(f"{tid:42s} {Path(s['scorer']).name:22s} {s['detail_kind']}")
+            else:
+                print(tid)
+        return 0
     if args.cmd == "grade":
         env = grade(args.task, args.submission_dir, args.manifest, args.graders_root,
                     args.model, args.condition, args.timestamp)
