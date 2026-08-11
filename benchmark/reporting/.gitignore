@@ -1,0 +1,6 @@
+# never commit imaging data or scratch
+*.nii
+*.nii.gz
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
