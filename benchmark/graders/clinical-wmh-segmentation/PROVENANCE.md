@@ -6,13 +6,13 @@ FLAIR space). White-matter hyperintensities of presumed vascular origin (dementi
 ## Ground truth
 
 `lesion_mask.nii.gz` is the **primary expert WMH mask** (observers O1/O2 per the challenge's reference
-standard, STRIVE-compliant), binarised to WMH (label 1; the dataset's label 2 "other pathology" is not
+standard [1], STRIVE-compliant), binarised to WMH (label 1; the dataset's label 2 "other pathology" is not
 present for this subject). Native FLAIR space, 6.27 cm³, **115 foci**.
 
 ## Thresholds are data-derived from inter-rater agreement
 
-The WMH Challenge ships two additional raters (O3, O4) on the training subjects. Scoring each against
-the primary gives a *measured* envelope rather than a literature guess:
+The WMH Challenge [1] ships two additional raters (O3, O4) on the training subjects. Scoring each
+against the primary gives a *measured* envelope rather than a literature guess:
 
 | rater vs primary | Dice | lesion-wise F1 | volume error |
 |---|---|---|---|
@@ -51,3 +51,13 @@ O3 326449, O4 326442) are used to build this pack and live on OSF — never give
 - **Two extra raters, not a full distribution** — the envelope uses O3/O4 vs primary; more raters would
   tighten it. Still far better grounded than a fixed literature threshold.
 - License CC-BY-NC-4.0 (non-commercial), fine for a benchmark.
+
+## References
+
+Thresholds here are **data-derived** (O3/O4 vs primary), not a literature prior — this reference is
+*dataset / protocol provenance*, crediting the source of the reference standard and the multi-observer
+masks the envelope is built on.
+
+1. H. J. Kuijf, J. M. Biesbroek, J. de Bresser, et al., "Standardized Assessment of Automatic
+   Segmentation of White Matter Hyperintensities and Results of the WMH Segmentation Challenge,"
+   *IEEE Trans. Med. Imaging* 38(11):2556–2568, 2019. doi:10.1109/TMI.2019.2905770.

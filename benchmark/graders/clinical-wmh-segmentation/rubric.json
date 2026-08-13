@@ -81,5 +81,6 @@
       "abs_volume_err_pct": 4.1
     }
   },
-  "notes": "WMH volume 6.27 cm3, 115 foci"
+  "notes": "WMH volume 6.27 cm3, 115 foci",
+  "dataset_reference": "Kuijf HJ, Biesbroek JM, de Bresser J, et al. Standardized Assessment of Automatic Segmentation of White Matter Hyperintensities and Results of the WMH Segmentation Challenge. IEEE Trans Med Imaging 38(11):2556-2568, 2019. doi:10.1109/TMI.2019.2905770. NOTE: thresholds are DATA-DERIVED (O3/O4 vs primary), not from this reference; it is dataset/protocol provenance."
 }
