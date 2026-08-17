@@ -298,7 +298,7 @@
             "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction/ (consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w)",
             "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input image; Brain mask is binary (values 0 and 1 only); Brain mask is anatomically plausible: skull/dura removed, brain retained; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores the mask against a STAPLE consensus of a panel of accepted tools, split into core (must keep) / margin (free, not scored) / background (must exclude); all thresholds (tolerance tau, per-metric envelope, gate caps) are calibrated by leave-one-tool-out. See PROVENANCE.md for the calibration procedure.",
@@ -312,7 +312,7 @@
                 "nibabel"
               ],
               "returns": "JSON: verdict in {indistinguishable, acceptable, marginal, unacceptable, invalid}, quality 0-100, gate_failures[], metrics{}",
-              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass",
               "provenance": "benchmark/graders/structural-brain-extraction/PROVENANCE.md"
             },
             "tool_mode": "agnostic",
@@ -351,7 +351,7 @@
             "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction-motion/ (consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w)",
             "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input; Brain mask is binary (0 and 1 only); Brain retained and skull/dura/neck removed despite the motion artefacts; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores the mask against a STAPLE consensus of accepted tools run on the motion scan, split into core (must keep) / margin (free, not scored) / background (must exclude); thresholds (tolerance tau, per-metric envelope, gate caps) calibrated by leave-one-tool-out. See PROVENANCE.md.",
@@ -359,7 +359,7 @@
               "scorer": "benchmark/graders/structural-brain-extraction/score_brain_mask.py",
               "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-motion/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction-motion/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-motion/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction-motion/reference/consensus_zones.nii.gz",
               "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction-motion/",
-              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass",
               "provenance": "benchmark/graders/structural-brain-extraction-motion/PROVENANCE.md"
             },
             "tool_mode": "agnostic",
@@ -397,7 +397,7 @@
             "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction-pediatric/ (consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w)",
             "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input; Brain mask is binary (0 and 1 only); Brain (incl. cerebellum and brainstem) retained and skull/dura/neck removed; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores the mask against a STAPLE consensus of accepted tools run on the child T1w, split into core (must keep) / margin (free, not scored) / background (must exclude); thresholds (tolerance tau, per-metric envelope, gate caps) calibrated by leave-one-tool-out. See PROVENANCE.md.",
@@ -405,7 +405,7 @@
               "scorer": "benchmark/graders/structural-brain-extraction/score_brain_mask.py",
               "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-pediatric/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction-pediatric/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-pediatric/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction-pediatric/reference/consensus_zones.nii.gz",
               "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction-pediatric/",
-              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass",
               "provenance": "benchmark/graders/structural-brain-extraction-pediatric/PROVENANCE.md"
             },
             "tool_mode": "agnostic",
@@ -749,7 +749,7 @@
             "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction-7t/ (consensus_mask.nii.gz + consensus_zones.nii.gz, native T1w)",
             "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input; Brain mask is binary (0 and 1 only); Brain (incl. cerebellum and brainstem) retained and skull/dura/neck removed; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores the mask against a STAPLE consensus of accepted tools run on the 7T MP2RAGE UNI, split into core (must keep) / margin (free, not scored) / background (must exclude); thresholds calibrated by leave-one-tool-out. See PROVENANCE.md.",
@@ -757,7 +757,7 @@
               "scorer": "benchmark/graders/structural-brain-extraction/score_brain_mask.py",
               "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction-7t/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction-7t/reference/consensus_zones.nii.gz",
               "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction-7t/",
-              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass",
               "provenance": "benchmark/graders/structural-brain-extraction-7t/PROVENANCE.md"
             },
             "tool_mode": "agnostic",
@@ -792,7 +792,7 @@
             "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction-7t-nodura/ (consensus_mask.nii.gz + consensus_zones.nii.gz + dura_envelope.nii.gz, native T1w)",
             "metric": "consensus-calibrated + no_dura_inclusion gate: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry matches the input; Brain mask is binary; Brain (incl. cerebellum and brainstem) retained; the DURA is removed (mask does not extend past the pial envelope, over-inclusion <= 30 cm3); No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0). A dura-retaining mask fails the no_dura_inclusion gate.",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass. A dura-retaining mask fails the no_dura_inclusion gate.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores the mask against the structural-brain-extraction-7t consensus AND a no_dura_inclusion gate: over-inclusion beyond a dura-out pial envelope > dura_max_cm3 (30) -> invalid. See PROVENANCE.md.",
@@ -800,7 +800,7 @@
               "scorer": "benchmark/graders/structural-brain-extraction/score_brain_mask.py",
               "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t-nodura/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction-7t-nodura/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t-nodura/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction-7t-nodura/reference/consensus_zones.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t-nodura/dura_envelope.nii.gz benchmark/graders/structural-brain-extraction-7t-nodura/reference/dura_envelope.nii.gz",
               "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction-7t-nodura/",
-              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass",
               "provenance": "benchmark/graders/structural-brain-extraction-7t-nodura/PROVENANCE.md"
             },
             "tool_mode": "agnostic",
@@ -836,7 +836,7 @@
             "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-tissue-segmentation-7t/ (consensus_seg.nii.gz + consensus_agreement.nii.gz, native T1w)",
             "metric": "consensus-calibrated per-class: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (mean of six per-class Dice/NSD/core-recall envelopes)",
             "pass_criterion": "An integer label map with the six specified classes present; Geometry (dimensions, voxel size, affine) matches the input; Each class recovers the majority of its unanimous consensus core (no class collapse/confusion); No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Multi-class scorer: per-class Dice/NSD/core-recall against a majority-vote consensus of accepted segmentations split into unanimous-core / majority-boundary zones; thresholds calibrated by leave-one-tool-out. See PROVENANCE.md.",
@@ -844,7 +844,7 @@
               "scorer": "benchmark/graders/structural-tissue-segmentation-7t/score_tissue_seg.py",
               "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-tissue-segmentation-7t/consensus_seg.nii.gz benchmark/graders/structural-tissue-segmentation-7t/reference/consensus_seg.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-tissue-segmentation-7t/consensus_agreement.nii.gz benchmark/graders/structural-tissue-segmentation-7t/reference/consensus_agreement.nii.gz",
               "invoke": "python3 benchmark/graders/structural-tissue-segmentation-7t/score_tissue_seg.py --seg <AGENT_LABELMAP> --pack benchmark/graders/structural-tissue-segmentation-7t/",
-              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass",
               "provenance": "benchmark/graders/structural-tissue-segmentation-7t/PROVENANCE.md"
             },
             "tool_mode": "agnostic",
@@ -880,7 +880,7 @@
             "ground_truth_location": "OSF zjqey: ground_truth/structural_gt/structural-brain-extraction-stroke/ (consensus_mask.nii.gz + consensus_zones.nii.gz + lesion_mask.nii.gz, native T1w)",
             "metric": "consensus-calibrated + lesion_retained gate: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; geometry matches the input; mask is binary; brain (incl. the stroke lesion) retained and skull/dura removed; the mask contains >= 85% of the expert lesion (lesion_retained); No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0). A mask that carves out the lesion fails the lesion_retained gate.",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass. A mask that carves out the lesion fails the lesion_retained gate.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores the mask against a STAPLE consensus of lesion-retaining tools split into core/margin/background, PLUS a lesion_retained gate (mask must contain >= lesion_retained_min of the expert lesion). See PROVENANCE.md.",
@@ -888,7 +888,7 @@
               "scorer": "benchmark/graders/structural-brain-extraction/score_brain_mask.py",
               "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-stroke/consensus_mask.nii.gz benchmark/graders/structural-brain-extraction-stroke/reference/consensus_mask.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-stroke/consensus_zones.nii.gz benchmark/graders/structural-brain-extraction-stroke/reference/consensus_zones.nii.gz && osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-stroke/lesion_mask.nii.gz benchmark/graders/structural-brain-extraction-stroke/reference/lesion_mask.nii.gz",
               "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction-stroke/",
-              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass",
               "provenance": "benchmark/graders/structural-brain-extraction-stroke/PROVENANCE.md"
             },
             "tool_mode": "agnostic",
@@ -1745,30 +1745,46 @@
         },
         "clinical-ms-lesion-segmentation": {
           "title": "MS white-matter lesion segmentation",
-          "description": "Automatic MS white-matter lesion segmentation for patient01 of the open_ms_data cross-sectional dataset (FLAIR-based), with Dice against the provided consensus ground truth",
+          "grading": "automated",
+          "description": "Segment the multiple-sclerosis white-matter lesions of patient01 of the open_ms_data cross-sectional dataset (Ljubljana MS database) on FLAIR, producing a binary lesion mask in the supplied co-registered 1 mm FLAIR space, graded against the expert multi-rater consensus mask.",
           "prompt": {
-            "goal": "Segment the white-matter (FLAIR-hyperintense) lesions for patient01 of the open_ms_data cross-sectional dataset. Use the co-registered data (all sequences registered to FLAIR space, with a provided brain mask). Produce a binary lesion mask in FLAIR space, restricted to the brain mask. The dataset provides an expert consensus ground truth that may be used to report Dice, but the segmentation must be produced automatically.",
+            "goal": "Segment the multiple-sclerosis white-matter lesions of patient01 of the open_ms_data cross-sectional dataset (Ljubljana MS database) on the FLAIR image.\n\nDATA - open, no login (CC-BY). This dataset is NOT on OpenNeuro; do not use datalad. Download the three input files with:\n  mkdir -p ms_input\n  for f in FLAIR T1W brainmask; do curl -sSL --retry 3 https://raw.githubusercontent.com/muschellij2/open_ms_data/65704901f60650824565aa5a4818611aa89716f4/cross_sectional/coregistered_resampled/patient01/$f.nii.gz -o ms_input/$f.nii.gz; done\nms_input/FLAIR.nii.gz is the segmentation input; ms_input/T1W.nii.gz is the co-registered T1 (optional to use); ms_input/brainmask.nii.gz bounds the brain. All three share one grid.\n\nOUTPUT - a single binary lesion mask (NIfTI, values {0,1}) restricted to the brain mask, on the grid of ms_input/FLAIR.nii.gz: the same shape and affine (154x240x240, 1 mm isotropic). Do not resample to any other space.",
             "dataset": {
               "source": "github",
               "id": "muschellij2/open_ms_data",
-              "version_pin": "latest",
+              "version_pin": "65704901f60650824565aa5a4818611aa89716f4",
               "subjects": [
                 "patient01"
               ]
             },
-            "required_output": "Binary lesion mask (NIfTI) {0,1}) in FLAIR space/affine, restricted to the brain mask",
-            "required_tool": "lstai"
+            "required_output": "A binary lesion mask (NIfTI, {0,1}) on the grid of the supplied FLAIR - same shape and affine. Do not resample to any other space.\n\nOUTPUT LOCATION (exact, mandatory): write the binary mask to `submissions/clinical-ms-lesion-segmentation/output.nii.gz` under your working directory - create the `submissions/clinical-ms-lesion-segmentation/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/clinical-ms-lesion-segmentation/`. Only `submissions/clinical-ms-lesion-segmentation/output.nii.gz` is scored."
           },
           "solution": {
-            "ground_truth": "Binary MS lesion mask; reference consensus_gt.nii.gz ships with open_ms_data patient01.",
-            "ground_truth_location": "(to be added)",
-            "metric": "spatial_correlation",
-            "pass_criterion": "Co-registered FLAIR (+optional T1W) and brain mask loaded; MS lesion segmentation run automatically (e.g. LST-AI); Binary lesion mask produced in FLAIR space; values {0,1}; within brain mask; Dice overlap vs consensus_gt.nii.gz reported; No processing errors; logs captured",
-            "output_validation": "Binary mask {0,1} in FLAIR space/affine, within brain mask. PRIMARY metric: Dice vs consensus_gt.nii.gz (real ground truth -> objectively scorable, unlike most segmentation tasks). Plausible lesion-volume range for MS",
-            "tool_mode": "named",
-            "tool_note": "Context: clinical. LST-AI (tool lstai/1.2.0, CLI `lst`) - deep-learning MS-lesion ensemble. Other options exist (SAMSEG, BIANCA) but LST-AI is the MS-specific tool. Input FLAIR (+optional T1W); restrict to brain mask",
-            "notes": "[input_files] cross_sectional/coregistered_resampled/patient01/: FLAIR.nii.gz, T1W.nii.gz, T2W.nii.gz, T1WKS.nii.gz (all FLAIR space), brainmask.nii.gz, consensus_gt.nii.gz (ground truth) [tool_specific_operational] LST-AI: tool load lstai/1.2.0; CLI `lst`; feed FLAIR (+optional T1W); outputs lesion probability + binary mask",
-            "dataset_fetch_reference": "git clone https://github.com/muschellij2/open_ms_data"
+            "ground_truth": "Expert multi-rater consensus lesion mask shipped with the Ljubljana MS database - three expert raters segmented the patient independently and the released mask is their consensus. A genuine gold standard, NOT a tool consensus (automated MS lesion tools span Dice 0.50-0.74 on this cohort). Voxel data as published, on the header of the FLAIR handed to the agent (the published mask's own header misses it by <= 0.4 mm). lesion_mask.nii.gz on OSF.",
+            "ground_truth_location": "OSF zjqey: ground_truth/clinical_gt/clinical-ms-lesion-segmentation/ (lesion_mask.nii.gz, co-registered resampled FLAIR grid)",
+            "metric": "expert-mask: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from Dice + lesion-wise detection F1 + volume error (thresholds fixed from published results on this same cohort)",
+            "pass_criterion": "A binary lesion mask {0,1} on the supplied FLAIR grid; nonempty and volume-plausible (0.5-150 cm3); Dice and lesion-wise overlap with the expert consensus above the fixed lines; No processing errors; logs captured",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
+            "grader": {
+              "kind": "expert-mask",
+              "description": "Grades a binary lesion mask against the expert multi-rater consensus: Dice (0.4) + lesion-wise detection F1 over connected components (0.4) + absolute volume error (0.2). Thresholds are fixed from the LST-AI evaluation on this same cohort (full marks = LST-AI 0.74 Dice / 0.70 F1; zero credit at LST-LGA 0.53 / 0.33). Lesions are counted with the same convention as that paper: >= 10 % overlap counts as detected, components < 3 voxels are not counted. See PROVENANCE.md.",
+              "pack": "benchmark/graders/clinical-ms-lesion-segmentation/",
+              "scorer": "benchmark/graders/clinical-ms-lesion-segmentation/score_lesion_seg.py",
+              "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/clinical_gt/clinical-ms-lesion-segmentation/lesion_mask.nii.gz benchmark/graders/clinical-ms-lesion-segmentation/reference/lesion_mask.nii.gz",
+              "invoke": "python3 benchmark/graders/clinical-ms-lesion-segmentation/score_lesion_seg.py --pred <AGENT_LESION_MASK> --pack benchmark/graders/clinical-ms-lesion-segmentation/",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass",
+              "provenance": "benchmark/graders/clinical-ms-lesion-segmentation/PROVENANCE.md"
+            },
+            "tool_mode": "agnostic",
+            "tool_suggestions": [
+              "lstai",
+              "samseg",
+              "nnunet"
+            ],
+            "tool_note": "Context: multiple sclerosis, FLAIR-hyperintense white-matter lesions, multifocal. MS-specific lesion tools (LST-AI, the LST variants), general segmenters with a lesion model (SAMSEG), or a trained network. Tool names are non-binding suggestions.",
+            "notes": "[note] Companion clinical task to clinical-stroke-lesion-segmentation: same scorer, same expert-mask design, different pathology and different threshold basis (published per-dataset benchmarks rather than a manual-tracing inter-rater ceiling). [caution] Upstream, consensus_gt.nii.gz sits in the SAME folder as the images - the prompt therefore fetches the three input files individually rather than cloning the repository, and the grader reports (never scores) a submission with Dice >= 0.995 as a suspected copy of the reference.",
+            "dataset_fetch_reference": "for f in FLAIR T1W brainmask; do curl -sSL --retry 3 https://raw.githubusercontent.com/muschellij2/open_ms_data/65704901f60650824565aa5a4818611aa89716f4/cross_sectional/coregistered_resampled/patient01/$f.nii.gz -o ms_input/$f.nii.gz; done",
+            "expected_files_detail": "A binary lesion mask (NIfTI, any filename; values {0,1}) on the supplied FLAIR grid (154x240x240, 1 mm isotropic)."
           }
         },
         "clinical-subcortical-nuclei": {
@@ -1825,7 +1841,7 @@
             "ground_truth_location": "OSF zjqey: ground_truth/clinical_gt/clinical-stroke-lesion-segmentation/ (lesion_mask.nii.gz, native T1w)",
             "metric": "expert-mask: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from Dice + lesion-wise detection F1 + volume error (fixed literature thresholds)",
             "pass_criterion": "A binary lesion mask {0,1} in native T1w space; nonempty and volume-plausible; Dice and lesion-wise overlap with the expert mask above the fixed pass lines; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid (script exit code 0).",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "expert-mask",
               "description": "Grades a binary lesion mask against the expert tracing: Dice + lesion-wise detection F1 (connected components) + absolute volume error, with fixed literature thresholds (chronic-stroke inter-rater Dice ~0.7 = full marks). See PROVENANCE.md.",
@@ -1833,7 +1849,7 @@
               "scorer": "benchmark/graders/clinical-stroke-lesion-segmentation/score_lesion_seg.py",
               "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/clinical_gt/clinical-stroke-lesion-segmentation/lesion_mask.nii.gz benchmark/graders/clinical-stroke-lesion-segmentation/reference/lesion_mask.nii.gz",
               "invoke": "python3 benchmark/graders/clinical-stroke-lesion-segmentation/score_lesion_seg.py --pred <AGENT_LESION_MASK> --pack benchmark/graders/clinical-stroke-lesion-segmentation/",
-              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass",
               "provenance": "benchmark/graders/clinical-stroke-lesion-segmentation/PROVENANCE.md"
             },
             "tool_mode": "agnostic",
@@ -1869,7 +1885,7 @@
             "ground_truth_location": "OSF zjqey: ground_truth/clinical_gt/clinical-wmh-segmentation/ (lesion_mask.nii.gz, native FLAIR)",
             "metric": "expert-mask, inter-rater-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from Dice + lesion-wise detection F1 + volume error",
             "pass_criterion": "A binary WMH mask {0,1} in native FLAIR space; nonempty and volume-plausible; Dice / lesion-wise F1 / volume overlap with the expert mask above the inter-rater-derived pass lines; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict != invalid.",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "expert-mask",
               "description": "Grades a binary WMH mask against the primary expert tracing: Dice + lesion-wise detection F1 (connected components) + volume error, with thresholds data-derived from inter-rater agreement (O3/O4 vs primary). See PROVENANCE.md.",
@@ -1877,7 +1893,7 @@
               "scorer": "benchmark/graders/clinical-wmh-segmentation/score_lesion_seg.py",
               "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/clinical_gt/clinical-wmh-segmentation/lesion_mask.nii.gz benchmark/graders/clinical-wmh-segmentation/reference/lesion_mask.nii.gz",
               "invoke": "python3 benchmark/graders/clinical-wmh-segmentation/score_lesion_seg.py --pred <AGENT_WMH_MASK> --pack benchmark/graders/clinical-wmh-segmentation/",
-              "pass_criterion": "verdict != invalid (script exit code 0)",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass",
               "provenance": "benchmark/graders/clinical-wmh-segmentation/PROVENANCE.md"
             },
             "tool_mode": "agnostic",

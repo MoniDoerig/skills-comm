@@ -116,6 +116,17 @@
         "lesion_mask.nii.gz"
       ]
     },
+    "clinical-ms-lesion-segmentation": {
+      "pack_dir": "graders/clinical-ms-lesion-segmentation",
+      "scorer": "graders/clinical-ms-lesion-segmentation/score_lesion_seg.py",
+      "pred_flag": "--pred",
+      "detail_kind": "binary",
+      "optional_inputs": {},
+      "osf_ref_dir": "clinical_gt/clinical-ms-lesion-segmentation",
+      "reference_files": [
+        "lesion_mask.nii.gz"
+      ]
+    },
     "clinical-wmh-segmentation": {
       "pack_dir": "graders/clinical-wmh-segmentation",
       "scorer": "graders/clinical-wmh-segmentation/score_lesion_seg.py",
