@@ -4,14 +4,22 @@
 Unlike the brain-extraction / tissue graders (which score against a tool *consensus*), lesion
 segmentation is graded against a single expert manual mask — automated lesion tools disagree too
 much to form a trustworthy consensus, so the dataset's expert tracing IS the ground truth. Because
-one subject gives no leave-one-out envelope, the pass/fail thresholds are FIXED from the literature
-(chronic-stroke inter-rater Dice ~0.7), recorded in rubric.json.
+one subject gives no leave-one-out envelope, the pass/fail thresholds are FIXED per task in
+rubric.json; the `threshold_basis` field there records where each number comes from.
 
 Metrics:
   dice                overlap with the expert mask
   lesion_f1           lesion-WISE detection F1 (connected components; small lesions that tank Dice
                       still register as detected/missed) — precision/recall over lesion instances
   abs_volume_err_pct  |predicted - expert| volume, % of expert
+
+Lesion counting is rubric-driven: `overlap_frac_for_match` is the fraction of a reference lesion a
+prediction must cover to count as detected, and the optional `min_lesion_voxels` drops components
+below that size from both maps before matching — a task whose reference carries many sub-detectable
+specks sets it to the convention its thresholds were taken from. Absent, nothing is dropped.
+
+The optional `copy_suspect_dice` reports (never scores) a submission whose overlap is too perfect to
+be a segmentation — for tasks whose dataset ships the reference mask next to the images.
 
 Pack (--pack DIR): rubric.json + reference/lesion_mask.nii.gz (expert mask, native grid).
 Usage:  score_lesion_seg.py --pred agent_lesion.nii.gz --pack PACK_DIR [--json out.json]
@@ -47,22 +55,34 @@ def load_mask(path, ref_img):
     return m, notes
 
 
-def lesion_wise_f1(pred, ref, min_overlap):
+def countable(labels, n, min_vox):
+    """Component indices large enough to count as lesion instances."""
+    if n == 0:
+        return []
+    if min_vox <= 1:
+        return list(range(1, n + 1))
+    sizes = np.bincount(labels.ravel(), minlength=n + 1)
+    return [i for i in range(1, n + 1) if sizes[i] >= min_vox]
+
+
+def lesion_wise_f1(pred, ref, min_overlap, min_vox=0):
     """Detection F1 over connected components. A reference lesion counts detected if a predicted
     component overlaps >= min_overlap of it; a predicted component is a false positive if it
-    overlaps no reference lesion."""
-    rl, nr = ndi.label(ref, STRUCT)
-    pl, npd = ndi.label(pred, STRUCT)
-    if nr == 0 and npd == 0:
+    overlaps no reference lesion. Components smaller than min_vox are not counted on either side."""
+    rl, nr_all = ndi.label(ref, STRUCT)
+    pl, np_all = ndi.label(pred, STRUCT)
+    ref_idx = countable(rl, nr_all, min_vox)
+    pred_idx = countable(pl, np_all, min_vox)
+    if not ref_idx and not pred_idx:
         return 1.0, 1.0, 1.0, 0, 0, 0
     tp = 0
-    for i in range(1, nr + 1):
+    for i in ref_idx:
         comp = rl == i
         if (pred & comp).sum() >= min_overlap * comp.sum():
             tp += 1
-    fn = nr - tp
+    fn = len(ref_idx) - tp
     fp = 0
-    for j in range(1, npd + 1):
+    for j in pred_idx:
         comp = pl == j
         if (ref & comp).sum() == 0:
             fp += 1
@@ -106,7 +126,8 @@ def score(pred_path, pack_dir):
     th = rubric["metric_thresholds"]
     m = {}
     m["dice"] = 2 * (pred & ref).sum() / max(pred.sum() + ref.sum(), 1)
-    f1, prec, rec, tp, fp, fn = lesion_wise_f1(pred, ref, rubric.get("overlap_frac_for_match", 0.1))
+    f1, prec, rec, tp, fp, fn = lesion_wise_f1(pred, ref, rubric.get("overlap_frac_for_match", 0.1),
+                                               rubric.get("min_lesion_voxels", 0))
     m["lesion_f1"] = f1; m["lesion_precision"] = prec; m["lesion_recall"] = rec
     m["tp"], m["fp"], m["fn"] = tp, fp, fn
     m["pred_vol_cm3"] = float(pred.sum() * vox_cm3); m["ref_vol_cm3"] = float(ref.sum() * vox_cm3)
@@ -143,9 +164,18 @@ def score(pred_path, pack_dir):
     else:
         verdict = "unacceptable"
 
-    return {"verdict": verdict, "quality": round(quality, 2), "gate_failures": failures,
-            "load_notes": notes, "subscores": {k: round(v, 3) for k, v in subs.items()},
-            "metrics": {k: round(float(v), 4) for k, v in m.items()}}
+    result = {"verdict": verdict, "quality": round(quality, 2), "gate_failures": failures,
+              "load_notes": notes, "subscores": {k: round(v, 3) for k, v in subs.items()},
+              "metrics": {k: round(float(v), 4) for k, v in m.items()}}
+
+    # Some datasets ship the reference mask alongside the images the task hands out. A submission
+    # that reproduces it voxel-for-voxel is a copy, not a segmentation. Reported, never scored:
+    # the harness decides what to do with a flagged run.
+    copy_dice = rubric.get("copy_suspect_dice")
+    if copy_dice is not None:
+        result["suspected_reference_copy"] = bool(m["dice"] >= copy_dice)
+
+    return result
 
 
 def main(argv=None):
