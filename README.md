@@ -35,6 +35,7 @@ is either a full **Claude Code plugin** (with a `.claude-plugin/plugin.json` man
 | [`plugins/combat-harmonization`](plugins/combat-harmonization) | ComBat-family harmonization strategy, execution, and QC |
 | [`plugins/fc-matrix-generation`](plugins/fc-matrix-generation) | Functional connectivity matrix generation from resting-state fMRI |
 | [`plugins/job-monitor`](plugins/job-monitor) | SLURM/PBS/LSF job monitoring and fast failure detection |
+| [`plugins/pcntoolkit`](plugins/pcntoolkit) | Give the AI agent knowledge for both the normative modelling scientific background and how it can be implemented in the `pcntoolkit` python package |
 | [`plugins/registration`](plugins/registration) | Image registration and registration QC |
 
 [`skill-iterations/`](skill-iterations/) is a **teaching example**: the same
