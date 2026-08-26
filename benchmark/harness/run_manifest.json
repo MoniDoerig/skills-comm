@@ -105,6 +105,37 @@
         "consensus_agreement.nii.gz"
       ]
     },
+    "structural-mni-registration": {
+      "pack_dir": "graders/structural-mni-registration",
+      "scorer": "graders/structural-mni-registration/score_registration.py",
+      "pred_flag": "--warped",
+      "detail_kind": "registration",
+      "optional_inputs": {
+        "--dseg": "submissions/{task_id}/dseg.nii.gz"
+      },
+      "osf_ref_dir": "structural_gt/structural-mni-registration",
+      "reference_files": [
+        "template_T1w.nii.gz",
+        "template_brain_mask.nii.gz",
+        "template_probseg_GM.nii.gz",
+        "template_probseg_WM.nii.gz",
+        "template_probseg_CSF.nii.gz"
+      ]
+    },
+    "diffusion-brain-mask": {
+      "pack_dir": "graders/diffusion-brain-mask",
+      "scorer": "graders/diffusion-brain-mask/score_brain_mask.py",
+      "pred_flag": "--mask",
+      "detail_kind": "binary",
+      "optional_inputs": {
+        "--stripped": "submissions/{task_id}/stripped.nii.gz"
+      },
+      "osf_ref_dir": "diffusion_gt/diffusion-brain-mask",
+      "reference_files": [
+        "consensus_mask.nii.gz",
+        "consensus_zones.nii.gz"
+      ]
+    },
     "clinical-stroke-lesion-segmentation": {
       "pack_dir": "graders/clinical-stroke-lesion-segmentation",
       "scorer": "graders/clinical-stroke-lesion-segmentation/score_lesion_seg.py",
