@@ -22,9 +22,8 @@ The segmentation is an agent **input**, not a reference.
 
 ## The reference is the template, not another tool
 
-Grading against fMRIPrep's MNI output — which is what the earlier version of this task did —
-measures agreement with one implementation of one pipeline, not registration quality. Instead the
-reference is the **template's own tissue priors** (`label-{GM,WM,CSF}_probseg`), which state where
+Grading against fMRIPrep's MNI output would measure agreement with one implementation of one
+pipeline, not registration quality. The reference is instead the **template's own tissue priors** (`label-{GM,WM,CSF}_probseg`), which state where
 each tissue belongs in MNI space independently of any registration software.
 
 A population prior is not a per-subject truth, so no absolute Dice threshold would be defensible.
@@ -149,10 +148,3 @@ tool.
 `ground_truth/structural_gt/structural-mni-registration/`). They are unmodified TemplateFlow
 files, redistributable under the template's own licence. Fetch them before grading; see
 `reference/README.md`.
-
-## Departure from the earlier task definition
-
-The pre-existing `structural-mni-registration` entry was manually graded, asked only for a warped
-T1w, and named fMRIPrep's MNI output as the comparison. That grades agreement with one pipeline
-rather than registration quality, and — as the numbers above show — the image-similarity metric it
-implies barely separates an affine from a nonlinear warp.

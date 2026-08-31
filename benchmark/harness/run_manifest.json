@@ -168,6 +168,20 @@
       "reference_files": [
         "lesion_mask.nii.gz"
       ]
+    },
+    "functional-bold-to-mni": {
+      "pack_dir": "graders/functional-bold-to-mni",
+      "scorer": "graders/functional-bold-to-mni/score_registration.py",
+      "pred_flag": "--warped",
+      "detail_kind": "registration",
+      "optional_inputs": {
+        "--dseg": "submissions/{task_id}/mask.nii.gz"
+      },
+      "osf_ref_dir": "fmri_gt/functional-bold-to-mni",
+      "reference_files": [
+        "template_T1w.nii.gz",
+        "template_brain_mask.nii.gz"
+      ]
     }
   }
 }

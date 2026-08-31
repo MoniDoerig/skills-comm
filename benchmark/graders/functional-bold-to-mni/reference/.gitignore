@@ -1,0 +1,4 @@
+# Reference NIfTIs are hosted on OSF (zjqey: fmri_gt/functional-bold-to-mni/),
+# fetched at grade time — never commit them to git.
+*.nii
+*.nii.gz

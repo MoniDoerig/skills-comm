@@ -163,13 +163,3 @@ dilation on retained background.
 `reference/consensus_mask.nii.gz` and `consensus_zones.nii.gz` are **not** in git — they belong
 on OSF (zjqey, `ground_truth/diffusion_gt/diffusion-brain-mask/`). Fetch them before grading; see
 `reference/README.md`. Everything else the grader needs is in `rubric.json`.
-
-## Departure from the earlier task definition
-
-The pre-existing `diffusion-brain-mask` entry graded against `mask.mif` on a third-party OSF
-project (y2dq4), produced by `dwi2mask` on a preprocessed, bias-corrected `.mif` that is not part
-of the BIDS dataset. That reference is a single tool's output, depends on an external project,
-and requires a non-BIDS input. This pack replaces it with a three-tool consensus computed from
-the pinned OpenNeuro release, so the task is reproducible from the dataset alone — and, as the
-preprocessing result above shows, that earlier reference was a mask of a *different* image from
-the one the task hands the agent.
