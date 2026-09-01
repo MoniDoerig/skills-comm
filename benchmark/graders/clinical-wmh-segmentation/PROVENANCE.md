@@ -46,10 +46,9 @@ O3 326449, O4 326442) are used to build this pack and live on OSF — never give
 
 ## Caveats
 
-- **n = 1 subject.** A new subject means a new pack; but the inter-rater envelope generalises the idea.
 - **FLAIR is anisotropic** (~1.2 × 1.0 × 3.0 mm, 2D multi-slice) — realistic clinical WMH data.
-- **Two extra raters, not a full distribution** — the envelope uses O3/O4 vs primary; more raters would
-  tighten it. Still far better grounded than a fixed literature threshold.
+- **Two extra raters, not a full distribution** — the envelope uses O3/O4 vs primary; more raters
+  would tighten it.
 - License CC-BY-NC-4.0 (non-commercial), fine for a benchmark.
 
 ## References

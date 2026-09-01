@@ -97,8 +97,8 @@ Three independent accepted chains — ANTs, FSL, and fMRIPrep's own output — a
 `indistinguishable` (93.7–100). Reversing the transform composition scores `unacceptable` (16.7).
 Registering straight to the template scores `unacceptable` (0.0) by affine and `invalid` by SyN,
 which inflates the brain to 4488 cm³ and fails two gates. A chain that skips only the
-EPI-to-anatomical stage scores `marginal` (54.1), which is the honest verdict: for same-session
-data that stage is near-identity, so skipping it is a real but small error. Full tables in
+EPI-to-anatomical stage scores `marginal` (54.1): for same-session data that stage is
+near-identity, so skipping it is a real but small error. Full tables in
 `PROVENANCE.md`.
 
 ## Layout
@@ -107,7 +107,7 @@ data that stage is near-identity, so skipping it is a real but small error. Full
 functional-bold-to-mni/
 ├── rubric.json               # envelope, weights, gate caps, grid, scoring mode
 ├── score_registration.py     # the scorer, shared with structural-mni-registration
-├── reference/                # template + brain mask — FETCHED FROM OSF, not in git
+├── reference/                # template + brain mask — fetched from OSF
 │   ├── README.md
 │   └── .gitignore
 ├── README.md

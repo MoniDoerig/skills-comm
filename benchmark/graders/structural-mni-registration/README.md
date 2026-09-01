@@ -79,7 +79,7 @@ in `PROVENANCE.md`.
 structural-mni-registration/
 ├── rubric.json               # envelope, weights, gate caps, grid, label convention
 ├── score_registration.py     # the scorer
-├── reference/                # template + priors — FETCHED FROM OSF, not in git
+├── reference/                # template + priors — fetched from OSF
 │   ├── README.md
 │   └── .gitignore
 ├── README.md

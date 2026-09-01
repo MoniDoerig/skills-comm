@@ -76,7 +76,7 @@ property of multifocal MS at 1 mm, not a scoring artefact.
 clinical-ms-lesion-segmentation/
 ├── rubric.json          # fixed metric thresholds, weights, verdict thresholds, grid
 ├── score_lesion_seg.py  # the lesion scorer (shared with the stroke and WMH packs)
-├── reference/           # expert consensus mask — FETCHED FROM OSF, not in git
+├── reference/           # expert consensus mask — fetched from OSF
 │   ├── README.md
 │   └── .gitignore
 ├── README.md

@@ -39,20 +39,15 @@ subject reproduces this pack exactly; all numbers a grader needs are in `rubric.
 
 ## Reference data (on OSF)
 
-The `reference/` NIfTIs are **not** stored in git — they live on OSF with the other task ground
-truth (code on GitHub, data on OSF):
+The `reference/` NIfTIs are on OSF with the other task ground truth:
 
 - OSF project zjqey (https://osf.io/zjqey/), path `ground_truth/structural_gt/structural-brain-extraction/`
 - `consensus_mask.nii.gz`, `consensus_zones.nii.gz` (native T1w space)
 
 Fetch them before grading — see `reference/README.md` for the `osf fetch` commands. Everything else
-the grader needs (tau, the envelope, the gate caps) is in `rubric.json`, which is tracked in git.
+the grader needs (tau, the envelope, the gate caps) is in `rubric.json`.
 
 ## Caveats
 
 - **Consensus of tools is not truth.** If every accepted tool keeps a structure (e.g. the superior
   sagittal sinus), removing it is penalised. One manual expert tracing would settle it.
-- **n = 1 subject, healthy adult.** The numbers are calibrated on this brain; a new subject, field
-  strength, or pathology means calibrating a new pack, not transplanting these values.
-- **The panel drives everything.** Report it explicitly and report how verdicts move when each member
-  is dropped.

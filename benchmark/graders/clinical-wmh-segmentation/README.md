@@ -39,7 +39,7 @@ masks are **grader-side only** (OSF); they are never in the agent's input.
 clinical-wmh-segmentation/
 ├── rubric.json          # inter-rater-derived thresholds, weights, grid; records the O3/O4 metrics
 ├── score_lesion_seg.py  # Dice + lesion-wise F1 + volume error
-├── reference/           # primary expert WMH mask — FETCHED FROM OSF, not in git
+├── reference/           # primary expert WMH mask — fetched from OSF
 │   ├── README.md
 │   └── .gitignore
 ├── README.md

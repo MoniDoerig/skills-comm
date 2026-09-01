@@ -61,7 +61,4 @@ The `reference/` NIfTIs are **not** in git — they live on OSF (zjqey,
 
 ## Caveats
 
-- **n = 1 subject.** Calibrated on this brain; a new subject means a new pack.
 - **τ is wide.** The quality score is permissive by design here; the gates do the discrimination.
-- **Companion task.** `structural-brain-extraction-7t-nodura` reuses this subject with an explicit
-  "remove the dura" prompt and an added over-inclusion gate.

@@ -101,7 +101,7 @@ Weights 0.50 / 0.50. Gate caps: brain volume 1230–3030 cm³, centre of mass wi
 | `Direct_affine` | unacceptable | 0.00 | — |
 | `Direct_SyN` | invalid | 0.00 | `brain_volume_plausible`, `brain_in_place` |
 
-`ANTs_no_epi` at `marginal` is the honest verdict rather than a tuning failure. The
+`ANTs_no_epi` scores `marginal` because the error it introduces is small. The
 EPI-to-anatomical transform for this subject is 0.84° of rotation and 1.62 mm of translation,
 because BOLD and T1w were acquired in the same session at the same isocentre. Skipping a
 near-identity stage is a real error — 3 mm of displacement — but not a wrong answer, and the
@@ -191,8 +191,8 @@ and coronal, one column per arm.
 
 ## Known limitations
 
-- One subject, one run. The envelope is calibrated on a single item; the accepted band is tight
-  (NMI 0.0538–0.0580) and reflects three tools on one dataset, not population variability.
+- **The accepted band is tight** (NMI 0.0538–0.0580) and reflects three tools on one dataset
+  rather than population variability.
 - Susceptibility distortion is only partly corrected, and not uniformly across the accepted band.
   The dataset ships a phase-difference fieldmap whose `IntendedFor` lists this run, but fMRIPrep's
   report states it used fieldmap-less (SyN-based) correction instead; the ANTs and FSL arms apply

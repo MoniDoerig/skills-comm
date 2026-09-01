@@ -96,9 +96,9 @@ whether the agent managed to write a NIfTI.
 
 LST-AI's Dice 0.719 / F1 0.747 on this subject sits within a fraction of a standard deviation of its
 published means on this cohort (0.74 ± 0.10 / 0.70 ± 0.10). **patient01 is a typical subject for the
-cohort the thresholds came from** — the check that makes fixed thresholds defensible on n = 1.
+cohort the thresholds came from**, so the published thresholds apply to it.
 
-Two honest caveats about the panel. SAMSEG's 0.493 is below its published cohort mean of 0.62,
+Two caveats about the panel. SAMSEG's 0.493 is below its published cohort mean of 0.62,
 though inside one standard deviation; this run is one plausible configuration (FLAIR + T1,
 `--lesion-mask-pattern 1 0`, FreeSurfer 8.0.0, default lesion threshold), not a tuned reproduction
 of the published setup, and the rubric's anchors come from the published table rather than from this

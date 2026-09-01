@@ -49,7 +49,7 @@ space. See PROVENANCE.
 ```
 structural-brain-extraction-stroke/
 ├── rubric.json          # τ, envelope, weights, gate caps, lesion_retained_min, grid.raw_affine
-├── reference/           # consensus + lesion NIfTIs — FETCHED FROM OSF, not in git
+├── reference/           # consensus + lesion NIfTIs — fetched from OSF
 │   ├── README.md
 │   └── .gitignore
 ├── README.md

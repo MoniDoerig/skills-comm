@@ -1,7 +1,6 @@
-# Reference data (fetched from OSF, not stored in git)
+# Reference data
 
-The frozen consensus reference for this grader lives on OSF, not in this repo
-(policy: **code on GitHub, data on OSF**):
+The frozen consensus reference for this grader is on OSF:
 
 - **OSF project:** zjqey — https://osf.io/zjqey/
 - **Path:** `ground_truth/structural_gt/structural-tissue-segmentation-7t/`
@@ -14,4 +13,4 @@ Fetch them into this directory before grading:
     osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-tissue-segmentation-7t/consensus_seg.nii.gz        consensus_seg.nii.gz
     osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-tissue-segmentation-7t/consensus_agreement.nii.gz  consensus_agreement.nii.gz
 
-`rubric.json` (tracked in git) carries every calibrated number the grader needs.
+`rubric.json` carries every calibrated number the grader needs.

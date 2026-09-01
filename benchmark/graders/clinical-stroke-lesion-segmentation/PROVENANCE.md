@@ -38,8 +38,8 @@ empty → `invalid` (nonempty gate).
 
 ## Caveats
 
-- **n = 1 subject**, one large single lesion. The lesion-wise F1 machinery generalises to
-  multi-focal cases, but the thresholds were not tuned on a multi-lesion subject.
+- **One large single lesion.** The lesion-wise F1 machinery applies to multi-focal cases, but the
+  thresholds were not tuned on one.
 - **Registration error** from the T2w→T1w mapping is possible (small; intra-session, rigid, 1 mm).
 - **Fixed thresholds** are a literature prior [1–3], not this subject's inter-rater spread (ARC ships
   one tracing per subject). A multi-rater subset would let the tolerance be data-derived. The prior is

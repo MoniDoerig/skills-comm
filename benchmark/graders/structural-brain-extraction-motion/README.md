@@ -42,7 +42,7 @@ On the motion scan the tools **diverge and partly fail**, so the reference panel
 ```
 structural-brain-extraction-motion/
 ├── rubric.json          # frozen calibration: τ, envelope, weights, gate caps (incl. focal_bg_max_cm3)
-├── reference/           # consensus NIfTIs — FETCHED FROM OSF, not in git
+├── reference/           # consensus NIfTIs — fetched from OSF
 │   ├── README.md        #   OSF location + fetch command
 │   └── .gitignore
 ├── README.md

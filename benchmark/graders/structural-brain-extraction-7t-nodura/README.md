@@ -61,7 +61,7 @@ instruction-following signal.
 ```
 structural-brain-extraction-7t-nodura/
 ├── rubric.json          # -7t calibration + dura_max_cm3 + the no_dura_inclusion gate
-├── reference/           # consensus + dura_envelope NIfTIs — FETCHED FROM OSF, not in git
+├── reference/           # consensus + dura_envelope NIfTIs — fetched from OSF
 │   ├── README.md
 │   └── .gitignore
 ├── README.md

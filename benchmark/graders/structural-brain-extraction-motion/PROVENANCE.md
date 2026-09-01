@@ -46,9 +46,7 @@ The `reference/` NIfTIs are **not** stored in git — they live on OSF (zjqey,
 ## Caveats
 
 - **Curating the panel uses judgement.** ANTs is dropped objectively (coherence); BET is dropped for
-  neck over-inclusion. Report the panel and how verdicts move when a member is dropped.
+  neck over-inclusion.
 - **Consensus leans on HD-BET.** The core ≈ HD-BET (the tightest, most trusted tool here). A more
   rigorous alternative is a clean-scan-derived truth (extract from `acq-standard`, register onto the
   motion scan), which does not depend on how tools behave under motion.
-- **n = 1 subject, healthy adult under motion.** Calibrated on this brain; a new subject means a new
-  pack.

@@ -38,7 +38,7 @@ python3 ../structural-brain-extraction/score_brain_mask.py \
 ```
 structural-brain-extraction-pediatric/
 ├── rubric.json          # frozen calibration: τ, envelope, weights, gate caps
-├── reference/           # consensus NIfTIs — FETCHED FROM OSF, not in git
+├── reference/           # consensus NIfTIs — fetched from OSF
 │   ├── README.md        #   OSF location + fetch command
 │   └── .gitignore
 ├── README.md

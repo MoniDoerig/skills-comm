@@ -71,7 +71,7 @@ monotonically and both two-voxel failures are caught. Full tables in `PROVENANCE
 diffusion-brain-mask/
 ├── rubric.json           # calibrated numbers (tau, envelope, weights, gate caps, grid)
 ├── score_brain_mask.py   # shared scorer, unmodified
-├── reference/            # consensus NIfTIs — FETCHED FROM OSF, not in git
+├── reference/            # consensus NIfTIs — fetched from OSF
 │   ├── README.md
 │   └── .gitignore
 ├── README.md

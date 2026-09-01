@@ -52,7 +52,6 @@ retains ~0 dura by construction.
 
 ## Caveats
 
-- **n = 1 subject.** Calibrated on this brain; a new subject means a new pack.
 - **HD-BET's 18 cm³ is mostly an inferior brainstem/cord nub, not dura.** The cap tolerates it. A
   stricter reading of "no dura" would tighten the cap, at the risk of failing an otherwise good mask.
 - **The envelope leans on the shipped segmentations.** It is a curated dura-out reference, not a

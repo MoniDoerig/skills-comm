@@ -45,7 +45,6 @@ is a fluid-filled cavity, dark and CSF-like on T1 — a natural failure point:
 
 ## Caveats
 
-- **n = 1 subject.** Calibrated on this brain; a new subject means a new pack.
 - **Registration error.** The lesion mask is drawn on T2w and rigidly mapped to T1w; sub-voxel
   misalignment is possible but small (intra-session, 1 mm iso, rigid).
 - **The lesion is in the core**, so BET's drop already trips `no_focal_core_loss`; `lesion_retained`

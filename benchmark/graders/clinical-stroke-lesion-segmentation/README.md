@@ -47,7 +47,7 @@ Dice 0.74); eroded 4 vox → `unacceptable` (Dice 0.48); empty → `invalid`.
 clinical-stroke-lesion-segmentation/
 ├── rubric.json          # fixed metric thresholds, weights, verdict thresholds, grid
 ├── score_lesion_seg.py  # the lesion scorer
-├── reference/           # expert lesion mask — FETCHED FROM OSF, not in git
+├── reference/           # expert lesion mask — fetched from OSF
 │   ├── README.md
 │   └── .gitignore
 ├── README.md

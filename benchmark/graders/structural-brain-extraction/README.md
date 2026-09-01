@@ -24,16 +24,16 @@ Every threshold (the surface tolerance τ, the per-metric pass/fail envelope, th
 structural-brain-extraction/
 ├── rubric.json                       # frozen calibration: τ, envelope, weights, gate caps, grid
 ├── score_brain_mask.py               # the grader — importable score() + CLI
-├── reference/                        # consensus NIfTIs — FETCHED FROM OSF, not in git
+├── reference/                        # consensus NIfTIs — fetched from OSF
 │   ├── README.md                     #   OSF location + fetch command
 │   └── .gitignore                    #   keeps *.nii.gz out of git
 ├── README.md
 └── PROVENANCE.md
 ```
 
-The consensus reference (`consensus_mask.nii.gz`, `consensus_zones.nii.gz`) lives on **OSF**
-(project zjqey, path `ground_truth/structural_gt/structural-brain-extraction/`), not in git — code on GitHub,
-data on OSF. Fetch it into `reference/` before grading (see `reference/README.md`):
+The consensus reference (`consensus_mask.nii.gz`, `consensus_zones.nii.gz`) is on **OSF**
+(project zjqey, path `ground_truth/structural_gt/structural-brain-extraction/`). Fetch it into
+`reference/` before grading (see `reference/README.md`):
 
 ```bash
 osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/consensus_mask.nii.gz  reference/consensus_mask.nii.gz
@@ -41,8 +41,7 @@ osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extrac
 ```
 
 The pack is **frozen once** per benchmark subject; scoring a submission never re-calibrates — it
-only computes the cheap per-mask metrics against this reference. Everything except the two NIfTIs
-(all of `rubric.json`) is tracked in git.
+only computes the cheap per-mask metrics against this reference.
 
 ## Run it
 
@@ -97,12 +96,11 @@ $ python3 score_brain_mask.py --mask anat_bet_f07_mask.nii.gz --pack .
 $ echo $?    # 1
 ```
 
-## Policy knobs (documented, not hidden)
+## Policy knobs
 
 - **Reference panel** (`rubric.json:reference_tools`) — defines the consensus AND every threshold.
-  Adding a tool only *loosens* the benchmark (core is an intersection). Keep it small and defensible.
+  Adding a tool only *loosens* the benchmark, because the core is an intersection.
 - **`focal_max_cm3`** — calibrated (`SLACK` × worst held-out focal miss, floored). Larger = more lenient
   on localised cuts.
 - **`native_grid` gate** — here a header-only deoblique (AFNI-style) is recovered onto the native grid
   rather than failed; flip to strict if the task should reject any header that doesn't match the input.
-- **n = 1 subject.** This pack is calibrated on sub-0004; a second subject means freezing a second pack.

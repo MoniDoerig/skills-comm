@@ -51,7 +51,7 @@ segmentations, fused by majority vote.
 structural-tissue-segmentation-7t/
 ├── rubric.json              # per-class τ, LOTO envelope, weights, gates
 ├── score_tissue_seg.py      # the multi-class scorer
-├── reference/               # consensus NIfTIs — FETCHED FROM OSF, not in git
+├── reference/               # consensus NIfTIs — fetched from OSF
 │   ├── README.md
 │   └── .gitignore
 ├── README.md

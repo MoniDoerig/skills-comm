@@ -35,13 +35,10 @@ Four tools were run on the T1w and were all mutually coherent (pairwise Dice ~0.
 
 ## Reference data (on OSF)
 
-The `reference/` NIfTIs are not stored in git — they live on OSF (zjqey,
+The `reference/` NIfTIs are on OSF (zjqey,
 `ground_truth/structural_gt/structural-brain-extraction-pediatric/`). Fetch them before grading; see
 `reference/README.md`. Everything else the grader needs is in `rubric.json`.
 
 ## Caveats
 
 - **Consensus leans on the tighter tools.** SynthStrip's CSF rim lands in the margin, not the core.
-- **n = 1 subject, ~3.6 yo.** Calibrated on this brain; a new age/subject means a new pack.
-- **Convention.** If the benchmark later fixes a tissue-only convention (exclude sulcal/surface CSF), drop
-  SynthStrip for a tighter 3-tool panel (τ ≈ 3.0 mm).

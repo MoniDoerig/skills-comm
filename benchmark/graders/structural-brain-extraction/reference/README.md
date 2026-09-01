@@ -1,7 +1,6 @@
-# Reference data (fetched from OSF, not stored in git)
+# Reference data
 
-The frozen consensus reference for this grader lives on OSF, not in this repo
-(policy: **code on GitHub, data on OSF**):
+The frozen consensus reference for this grader is on OSF:
 
 - **OSF project:** zjqey — https://osf.io/zjqey/
 - **Path:** `ground_truth/structural_gt/structural-brain-extraction/`
@@ -15,5 +14,5 @@ otherwise `pip install osfclient`):
     osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/consensus_mask.nii.gz  consensus_mask.nii.gz
     osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/consensus_zones.nii.gz consensus_zones.nii.gz
 
-`rubric.json` (tracked in git) already carries every calibrated number the grader needs;
-only these two NIfTIs are fetched.
+`rubric.json` carries every calibrated number the grader needs; only these two NIfTIs are
+fetched.

@@ -60,7 +60,6 @@ see `reference/README.md`. Everything else is in `rubric.json`.
 
 ## Caveats
 
-- **n = 1 subject.** Calibrated on this brain; a new subject means a new pack.
 - **Six-structure parcellation, not classic 3-class GM/WM/CSF.** The classes follow the CEREBRUM-7T
   protocol (basal ganglia, cerebellum, brainstem are their own labels; CSF is ventricular). An agent
   must output this exact legend.

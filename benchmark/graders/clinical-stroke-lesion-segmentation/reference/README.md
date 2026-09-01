@@ -1,6 +1,4 @@
-# Reference data (fetched from OSF, not stored in git)
-
-Code on GitHub, data on OSF.
+# Reference data
 
 - **OSF project:** zjqey — https://osf.io/zjqey/
 - **Path:** `ground_truth/clinical_gt/clinical-stroke-lesion-segmentation/`

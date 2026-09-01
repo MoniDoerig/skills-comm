@@ -144,7 +144,7 @@ tool.
 
 ## Reference data (on OSF)
 
-`reference/template_*.nii.gz` are **not** in git — they belong on OSF (zjqey,
+`reference/template_*.nii.gz` are on OSF (zjqey,
 `ground_truth/structural_gt/structural-mni-registration/`). They are unmodified TemplateFlow
 files, redistributable under the template's own licence. Fetch them before grading; see
 `reference/README.md`.

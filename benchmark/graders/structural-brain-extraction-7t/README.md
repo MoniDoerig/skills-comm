@@ -51,7 +51,7 @@ Run on the cleaned UNI, then curated by the coherence check:
 ```
 structural-brain-extraction-7t/
 ├── rubric.json          # frozen calibration: τ, envelope, weights, gate caps, grid.raw_affine
-├── reference/           # consensus NIfTIs — FETCHED FROM OSF, not in git
+├── reference/           # consensus NIfTIs — fetched from OSF
 │   ├── README.md        #   OSF location + fetch command
 │   └── .gitignore
 ├── README.md
