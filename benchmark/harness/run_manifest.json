@@ -110,7 +110,7 @@
       "scorer": "graders/structural-mni-registration/score_registration.py",
       "pred_flag": "--warped",
       "detail_kind": "registration",
-      "optional_inputs": {
+      "required_inputs": {
         "--dseg": "submissions/{task_id}/dseg.nii.gz"
       },
       "osf_ref_dir": "structural_gt/structural-mni-registration",
@@ -174,7 +174,7 @@
       "scorer": "graders/functional-bold-to-mni/score_registration.py",
       "pred_flag": "--warped",
       "detail_kind": "registration",
-      "optional_inputs": {
+      "required_inputs": {
         "--dseg": "submissions/{task_id}/mask.nii.gz"
       },
       "osf_ref_dir": "fmri_gt/functional-bold-to-mni",

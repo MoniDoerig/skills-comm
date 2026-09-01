@@ -1,7 +1,7 @@
 # Benchmark grading harness
 
 Automated, uniform grading for the neuroimaging benchmark. An open-weight model runs a task
-prompt unattended (it picks its own tools), produces one output file, and this harness scores
+prompt unattended (it picks its own tools), produces the required output files, and this harness scores
 it against a frozen reference — producing a numeric, rankable result.
 
 ## The two planes
@@ -13,9 +13,9 @@ anti-leak boundary:
 ```
  EXECUTION PLANE  (Neurodesk self-hosted runner)      GRADING PLANE  (any github-hosted runner)
  ─────────────────────────────────────────────        ──────────────────────────────────────────
- reads the task prompt from tasks.json                 downloads submissions/<task>/output.nii.gz
+ reads the task prompt from tasks.json                 downloads submissions/<task>/
  agent picks tools, module load, sbatch                fetches the OSF reference into pack/reference/
- writes submissions/<task>/output.nii.gz  ──────►      runs the scorer via grade_wrapper.py
+ writes the required output files          ──────►      runs the scorer via grade_wrapper.py
  never sees the reference                              emits a ranked-ready envelope JSON
 ```
 
@@ -28,15 +28,15 @@ ground truth is never in the agent's input.
 |---|---|
 | `run_manifest.json` | one entry per gradeable task: which pack, which scorer, the prediction flag (`--mask`/`--seg`/`--pred`), the detail shape, and the OSF reference location + filenames. The single source of truth the tooling reads. |
 | `fetch_reference.py` | pulls a task's reference NIfTIs from OSF (public project `zjqey`, no auth) into its `pack/reference/`. Idempotent. |
-| `grade_wrapper.py` | the uniform front-end. Dispatches to the correct scorer (the three scorers are **never modified**), wraps the result in a stable envelope, and aggregates many envelopes into a ranked leaderboard. |
+| `grade_wrapper.py` | the uniform front-end. Dispatches to the correct scorer, wraps the result in a stable envelope, and aggregates many envelopes into a ranked leaderboard. |
 
 ## The output contract (why grading is deterministic)
 
-Every gradeable task prompt in `tasks.json` mandates one exact output path — the graded file is
-always `submissions/<task_id>/output.nii.gz` (brain-extraction tasks also write
-`submissions/<task_id>/stripped.nii.gz`). One `submissions/` tree, one folder per task, so a
-run over many tasks stays namespaced. The grader reads **only** that path: no guessing which of
-several NIfTIs the agent meant, no grading of intermediates or copied inputs.
+Every gradeable task prompt in `tasks.json` mandates exact output paths. The primary output is
+always `submissions/<task_id>/output.nii.gz`. Registration tasks also require a transformed
+segmentation or mask, and brain-extraction tasks can include `stripped.nii.gz`. One
+`submissions/` tree holds one folder per task, so a run over many tasks stays namespaced. The
+grader reads only the paths in `run_manifest.json`; it does not search for outputs.
 
 ## The scoring model — a tier *and* a number
 

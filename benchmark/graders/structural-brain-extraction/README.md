@@ -73,12 +73,14 @@ Dice fields were replaced):
   "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/consensus_mask.nii.gz reference/consensus_mask.nii.gz && osf -p zjqey fetch .../consensus_zones.nii.gz reference/consensus_zones.nii.gz",
   "entry": "score_brain_mask.py",
   "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction/",
-  "pass_criterion": "verdict != invalid (script exit code 0)"
+  "validity_criterion": "verdict != invalid (script exit code 0)",
+  "pass_criterion": "verdict is acceptable or indistinguishable"
 }
 ```
 
-A harness fetches the reference (`reference_fetch`), runs `invoke`, and passes the submission when
-`verdict != invalid`.
+A harness fetches the reference (`reference_fetch`) and runs `invoke`. Exit code 0 means that the
+submission passed all validity gates. The submission passes the benchmark when the verdict is
+`acceptable` or `indistinguishable`.
 
 ## Test evidence
 

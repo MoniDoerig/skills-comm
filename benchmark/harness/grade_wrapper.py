@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Uniform grading front-end for the benchmark.
 
-The three task scorers (score_brain_mask.py, score_tissue_seg.py, score_lesion_seg.py)
-each emit a slightly different result shape and take a differently-named prediction flag.
+The task scorers emit different result shapes and take differently named prediction flags.
 This wrapper is the single entry point the CI grading job calls. It:
 
   1. looks a task up in run_manifest.json (task -> pack, scorer, prediction flag, detail shape),
@@ -82,7 +81,7 @@ def _normalise_detail(raw: dict, detail_kind: str) -> dict:
 def grade(task_id, submission_dir, manifest_path, graders_root=None,
           model="unknown", condition="baseline", timestamp=None):
     manifest_path = Path(manifest_path)
-    manifest = json.load(open(manifest_path))
+    manifest = json.loads(manifest_path.read_text())
     if task_id not in manifest["tasks"]:
         raise SystemExit(f"ERROR: task '{task_id}' not in {manifest_path}. "
                          f"Known: {', '.join(sorted(manifest['tasks']))}")
@@ -107,10 +106,20 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
                               "gate_failures": ["missing_output"],
                               "load_notes": [f"no submission at {out_rel}"]})
 
-    # Build: python <scorer> <pred_flag> <pred> --pack <pack> --json <tmp> [optional inputs]
+    # Build: python <scorer> <pred_flag> <pred> --pack <pack> --json <tmp> [extra inputs]
     result_json = Path(submission_dir) / f".grade_{task_id}.json"
     cmd = [sys.executable, str(scorer), spec["pred_flag"], str(pred),
            "--pack", str(pack), "--json", str(result_json)]
+    for flag, rel in (spec.get("required_inputs") or {}).items():
+        cand = Path(submission_dir) / rel.format(task_id=task_id)
+        if not cand.exists():
+            return _envelope(
+                task_id, spec, model, condition, timestamp,
+                raw={"verdict": "invalid", "quality": 0.0,
+                     "gate_failures": [f"missing_required_output:{cand.name}"],
+                     "load_notes": [f"no submission at {rel.format(task_id=task_id)}"]},
+            )
+        cmd += [flag, str(cand)]
     for flag, rel in (spec.get("optional_inputs") or {}).items():
         cand = Path(submission_dir) / rel.format(task_id=task_id)
         if cand.exists():
