@@ -1,0 +1,4 @@
+# Reference NIfTIs are hosted on OSF (zjqey: structural_gt/structural-brain-extraction/),
+# fetched at grade time — never commit them to git.
+*.nii
+*.nii.gz
