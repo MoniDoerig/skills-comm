@@ -51,12 +51,12 @@ Run on the cleaned UNI, then curated by the coherence check:
 ```
 structural-brain-extraction-7t/
 ├── rubric.json          # frozen calibration: τ, envelope, weights, gate caps, grid.raw_affine
-├── reference/           # consensus NIfTIs — fetched from OSF
-│   ├── README.md        #   OSF location + fetch command
+├── reference/           # consensus NIfTIs — fetched from the Hub
+│   ├── README.md        #   dataset path + fetch command
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference on OSF: project zjqey, `ground_truth/structural_gt/structural-brain-extraction-7t/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-7t/`.
 The pack is frozen once; scoring never re-calibrates.

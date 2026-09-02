@@ -1,18 +1,22 @@
 # Reference data
 
-- **OSF project:** zjqey — https://osf.io/zjqey/
-- **Path:** `ground_truth/structural_gt/structural-mni-registration/`
-- **Files** (all on the MNI152NLin2009cAsym res-01 grid, 193x229x193 at 1 mm):
+The frozen reference for this grader is on the Hugging Face Hub:
+
+- **Dataset:** `neurodeskorg/skills-comm-ground-truth`
+- **Path:** `structural_gt/structural-mni-registration/`
+- **Revision:** `f0229ea2b089`
+- **Files:**
   - `template_T1w.nii.gz` — the template, for in-brain image correlation
   - `template_brain_mask.nii.gz` — brain overlap and the correlation region
   - `template_probseg_GM.nii.gz`, `template_probseg_WM.nii.gz`, `template_probseg_CSF.nii.gz` —
-    tissue priors, the reference for propagated-label overlap
+  - `template_probseg_WM.nii.gz`
+  - `template_probseg_CSF.nii.gz`
 
-Fetch before grading:
+Fetch them into this directory before grading:
 
-    for f in template_T1w template_brain_mask template_probseg_GM template_probseg_WM template_probseg_CSF; do
-      osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-mni-registration/$f.nii.gz $f.nii.gz
-    done
+    python benchmark/harness/fetch_reference.py --task structural-mni-registration
 
-These are unmodified TemplateFlow files (tpl-MNI152NLin2009cAsym), redistributable under the
-template's own licence; cite Fonov et al. 2011 and TemplateFlow with any use.
+The dataset is public, so no token is required. Pinning the revision means a
+grading run scores against an exact, named reference set.
+
+`rubric.json` carries every calibrated number the grader needs.

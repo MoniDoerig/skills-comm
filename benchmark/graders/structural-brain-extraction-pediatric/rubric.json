@@ -128,13 +128,13 @@
   },
   "_pack": {
     "reference": {
-      "host": "OSF project zjqey, path ground_truth/structural_gt/structural-brain-extraction-pediatric/",
+      "host": "Hugging Face neurodeskorg/skills-comm-ground-truth, path structural_gt/structural-brain-extraction-pediatric/",
       "files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz (0=bg,1=margin,2=core)"
       ],
       "fetch_into": "reference/ before grading - see reference/README.md"
     },
-    "note": "Frozen once from HD_BET+AFNI+SynthStrip+BET_R on ds000228 sub-pixar017 (~3.6 yo, clean FOV). Scoring never re-calibrates. Data on OSF, code on GitHub."
+    "note": "Frozen once from HD_BET+AFNI+SynthStrip+BET_R on ds000228 sub-pixar017 (~3.6 yo, clean FOV). Scoring never re-calibrates. Reference data on the Hugging Face Hub; code on GitHub."
   }
 }

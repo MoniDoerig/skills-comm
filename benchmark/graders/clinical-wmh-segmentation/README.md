@@ -31,7 +31,7 @@ are many and small.
 
 The images come from **DataverseNL** (DOI `10.34894/AECRSD`) via the open Dataverse access API — a
 plain `curl`, no login or Data-Use-Agreement — so an agent can fetch the FLAIR itself. The expert
-masks are **grader-side only** (OSF); they are never in the agent's input.
+masks are **grader-side only**; they are never in the agent's input.
 
 ## Layout
 
@@ -39,11 +39,11 @@ masks are **grader-side only** (OSF); they are never in the agent's input.
 clinical-wmh-segmentation/
 ├── rubric.json          # inter-rater-derived thresholds, weights, grid; records the O3/O4 metrics
 ├── score_lesion_seg.py  # Dice + lesion-wise F1 + volume error
-├── reference/           # primary expert WMH mask — fetched from OSF
+├── reference/           # primary expert WMH mask — fetched from the Hub
 │   ├── README.md
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference on OSF: project zjqey, `ground_truth/clinical_gt/clinical-wmh-segmentation/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `clinical_gt/clinical-wmh-segmentation/`.

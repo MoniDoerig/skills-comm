@@ -1,16 +1,19 @@
 # Reference data
 
-- **OSF project:** zjqey — https://osf.io/zjqey/
-- **Path:** `ground_truth/fmri_gt/functional-bold-to-mni/`
-- **Files** (both on the MNI152NLin2009cAsym res-01 grid, 193x229x193 at 1 mm):
+The frozen reference for this grader is on the Hugging Face Hub:
+
+- **Dataset:** `neurodeskorg/skills-comm-ground-truth`
+- **Path:** `fmri_gt/functional-bold-to-mni/`
+- **Revision:** `f0229ea2b089`
+- **Files:**
   - `template_T1w.nii.gz` — the template, for in-brain mutual information
   - `template_brain_mask.nii.gz` — the region NMI is measured in, and the placement reference
 
-Fetch before grading:
+Fetch them into this directory before grading:
 
-    for f in template_T1w template_brain_mask; do
-      osf -p zjqey fetch osfstorage/ground_truth/fmri_gt/functional-bold-to-mni/$f.nii.gz $f.nii.gz
-    done
+    python benchmark/harness/fetch_reference.py --task functional-bold-to-mni
 
-These are unmodified TemplateFlow files (tpl-MNI152NLin2009cAsym), redistributable under the
-template's own licence; cite Fonov et al. 2011 and TemplateFlow with any use.
+The dataset is public, so no token is required. Pinning the revision means a
+grading run scores against an exact, named reference set.
+
+`rubric.json` carries every calibrated number the grader needs.

@@ -142,9 +142,9 @@ minutes** on 10 cores. FSL FNIRT was the slowest at 25 minutes, NiftyReg under 2
 45-minute agent budget, so the skill arm cannot be penalised for choosing a slower-but-better
 tool.
 
-## Reference data (on OSF)
+## Reference data
 
-`reference/template_*.nii.gz` are on OSF (zjqey,
-`ground_truth/structural_gt/structural-mni-registration/`). They are unmodified TemplateFlow
+`reference/template_*.nii.gz` are on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
+`structural_gt/structural-mni-registration/`). They are unmodified TemplateFlow
 files, redistributable under the template's own licence. Fetch them before grading; see
 `reference/README.md`.

@@ -128,14 +128,14 @@
   },
   "_pack": {
     "reference": {
-      "host": "OSF project zjqey, path ground_truth/structural_gt/structural-brain-extraction/",
+      "host": "Hugging Face neurodeskorg/skills-comm-ground-truth, path structural_gt/structural-brain-extraction/",
       "files": [
         "consensus_mask.nii.gz (binary consensus, native T1w)",
         "consensus_zones.nii.gz (0=background, 1=margin, 2=core)"
       ],
       "fetch_into": "reference/ before grading \u2014 see reference/README.md"
     },
-    "note": "Frozen once from a panel of accepted tools; see PROVENANCE.md. Scoring a submission never re-calibrates. Data on OSF, code on GitHub."
+    "note": "Frozen once from a panel of accepted tools; see PROVENANCE.md. Scoring a submission never re-calibrates. Reference data on the Hugging Face Hub; code on GitHub."
   },
   "focal_bg_max_cm3": 40.0
 }

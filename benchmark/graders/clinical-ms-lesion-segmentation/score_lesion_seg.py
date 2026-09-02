@@ -116,7 +116,7 @@ def score(pred_path, pack_dir):
     ref_p = pack / "reference" / "lesion_mask.nii.gz"
     if not ref_p.exists():
         raise SystemExit(f"ERROR: reference/lesion_mask.nii.gz not in {pack/'reference'}. "
-                         "Fetch from OSF (see reference/README.md).")
+                         "Fetch it with benchmark/harness/fetch_reference.py.")
     rimg = nib.as_closest_canonical(nib.load(str(ref_p)))
     ref = np.asanyarray(rimg.dataobj) > BIN_TOL
     zooms = np.asarray(rimg.header.get_zooms()[:3], float)

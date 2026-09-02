@@ -61,12 +61,12 @@ instruction-following signal.
 ```
 structural-brain-extraction-7t-nodura/
 ├── rubric.json          # -7t calibration + dura_max_cm3 + the no_dura_inclusion gate
-├── reference/           # consensus + dura_envelope NIfTIs — fetched from OSF
+├── reference/           # consensus + dura_envelope NIfTIs — fetched from the Hub
 │   ├── README.md
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference on OSF: project zjqey, `ground_truth/structural_gt/structural-brain-extraction-7t-nodura/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-7t-nodura/`.
 The pack is frozen once; scoring never re-calibrates.

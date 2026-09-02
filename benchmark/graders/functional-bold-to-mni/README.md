@@ -107,11 +107,11 @@ near-identity, so skipping it is a real but small error. Full tables in
 functional-bold-to-mni/
 ├── rubric.json               # envelope, weights, gate caps, grid, scoring mode
 ├── score_registration.py     # the scorer, shared with structural-mni-registration
-├── reference/                # template + brain mask — fetched from OSF
+├── reference/                # template + brain mask — fetched from the Hub
 │   ├── README.md
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference on OSF: project zjqey, `ground_truth/fmri_gt/functional-bold-to-mni/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `fmri_gt/functional-bold-to-mni/`.

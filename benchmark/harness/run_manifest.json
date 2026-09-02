@@ -3,8 +3,9 @@
   "description": "Drives the automated grading plane. One entry per gradeable task. Paths are relative to graders_root (default: the parent of this file's dir, i.e. benchmark/) except submission paths, which are relative to --submission-dir and templated with {task_id}. The agent writes its result to submissions/<task_id>/output.nii.gz; the grader reads ONLY that path (no fuzzy file discovery).",
   "defaults": {
     "submission_output_path": "submissions/{task_id}/output.nii.gz",
-    "osf_project": "zjqey",
-    "osf_ref_root": "osfstorage/ground_truth"
+    "reference_repo": "neurodeskorg/skills-comm-ground-truth",
+    "reference_repo_type": "dataset",
+    "reference_revision": "f0229ea2b089"
   },
   "tasks": {
     "structural-brain-extraction": {
@@ -15,7 +16,7 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/stripped.nii.gz"
       },
-      "osf_ref_dir": "structural_gt/structural-brain-extraction",
+      "ref_dir": "structural_gt/structural-brain-extraction",
       "reference_files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz"
@@ -29,7 +30,7 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/stripped.nii.gz"
       },
-      "osf_ref_dir": "structural_gt/structural-brain-extraction-pediatric",
+      "ref_dir": "structural_gt/structural-brain-extraction-pediatric",
       "reference_files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz"
@@ -43,7 +44,7 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/stripped.nii.gz"
       },
-      "osf_ref_dir": "structural_gt/structural-brain-extraction-motion",
+      "ref_dir": "structural_gt/structural-brain-extraction-motion",
       "reference_files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz"
@@ -57,7 +58,7 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/stripped.nii.gz"
       },
-      "osf_ref_dir": "structural_gt/structural-brain-extraction-7t",
+      "ref_dir": "structural_gt/structural-brain-extraction-7t",
       "reference_files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz"
@@ -71,7 +72,7 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/stripped.nii.gz"
       },
-      "osf_ref_dir": "structural_gt/structural-brain-extraction-7t-nodura",
+      "ref_dir": "structural_gt/structural-brain-extraction-7t-nodura",
       "reference_files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz",
@@ -86,7 +87,7 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/stripped.nii.gz"
       },
-      "osf_ref_dir": "structural_gt/structural-brain-extraction-stroke",
+      "ref_dir": "structural_gt/structural-brain-extraction-stroke",
       "reference_files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz",
@@ -99,7 +100,7 @@
       "pred_flag": "--seg",
       "detail_kind": "multiclass",
       "optional_inputs": {},
-      "osf_ref_dir": "structural_gt/structural-tissue-segmentation-7t",
+      "ref_dir": "structural_gt/structural-tissue-segmentation-7t",
       "reference_files": [
         "consensus_seg.nii.gz",
         "consensus_agreement.nii.gz"
@@ -113,7 +114,7 @@
       "required_inputs": {
         "--dseg": "submissions/{task_id}/dseg.nii.gz"
       },
-      "osf_ref_dir": "structural_gt/structural-mni-registration",
+      "ref_dir": "structural_gt/structural-mni-registration",
       "reference_files": [
         "template_T1w.nii.gz",
         "template_brain_mask.nii.gz",
@@ -130,7 +131,7 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/stripped.nii.gz"
       },
-      "osf_ref_dir": "diffusion_gt/diffusion-brain-mask",
+      "ref_dir": "diffusion_gt/diffusion-brain-mask",
       "reference_files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz"
@@ -142,7 +143,7 @@
       "pred_flag": "--pred",
       "detail_kind": "binary",
       "optional_inputs": {},
-      "osf_ref_dir": "clinical_gt/clinical-stroke-lesion-segmentation",
+      "ref_dir": "clinical_gt/clinical-stroke-lesion-segmentation",
       "reference_files": [
         "lesion_mask.nii.gz"
       ]
@@ -153,7 +154,7 @@
       "pred_flag": "--pred",
       "detail_kind": "binary",
       "optional_inputs": {},
-      "osf_ref_dir": "clinical_gt/clinical-ms-lesion-segmentation",
+      "ref_dir": "clinical_gt/clinical-ms-lesion-segmentation",
       "reference_files": [
         "lesion_mask.nii.gz"
       ]
@@ -164,7 +165,7 @@
       "pred_flag": "--pred",
       "detail_kind": "binary",
       "optional_inputs": {},
-      "osf_ref_dir": "clinical_gt/clinical-wmh-segmentation",
+      "ref_dir": "clinical_gt/clinical-wmh-segmentation",
       "reference_files": [
         "lesion_mask.nii.gz"
       ]
@@ -177,7 +178,7 @@
       "required_inputs": {
         "--dseg": "submissions/{task_id}/mask.nii.gz"
       },
-      "osf_ref_dir": "fmri_gt/functional-bold-to-mni",
+      "ref_dir": "fmri_gt/functional-bold-to-mni",
       "reference_files": [
         "template_T1w.nii.gz",
         "template_brain_mask.nii.gz"

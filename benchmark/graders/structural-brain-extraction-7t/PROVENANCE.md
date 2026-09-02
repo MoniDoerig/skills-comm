@@ -53,10 +53,10 @@ a missed denoising step.
 5. **Envelope** by leave-one-tool-out → per-metric median (full marks) / worst (pass line).
 6. **Gate caps:** `focal_max_cm3` (localised core loss) and `focal_bg_max_cm3` = 40 cm³ (fixed).
 
-## Reference data (on OSF)
+## Reference data
 
-The `reference/` NIfTIs are **not** in git — they live on OSF (zjqey,
-`ground_truth/structural_gt/structural-brain-extraction-7t/`). Fetch them before grading; see
+The `reference/` NIfTIs are **not** in git — they live on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
+`structural_gt/structural-brain-extraction-7t/`). Fetch them before grading; see
 `reference/README.md`. Everything else the grader needs is in `rubric.json`.
 
 ## Caveats

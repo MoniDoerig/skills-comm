@@ -14,20 +14,20 @@ anti-leak boundary:
  EXECUTION PLANE  (Neurodesk self-hosted runner)      GRADING PLANE  (any github-hosted runner)
  ─────────────────────────────────────────────        ──────────────────────────────────────────
  reads the task prompt from tasks.json                 downloads submissions/<task>/
- agent picks tools, module load, sbatch                fetches the OSF reference into pack/reference/
+ agent picks tools, module load, sbatch                fetches the reference into pack/reference/
  writes the required output files          ──────►      runs the scorer via grade_wrapper.py
  never sees the reference                              emits a ranked-ready envelope JSON
 ```
 
-The reference NIfTIs live only in the grading plane (pulled from OSF at grade time), so the
+The reference NIfTIs live only in the grading plane (pulled from the Hub at grade time), so the
 ground truth is never in the agent's input.
 
 ## Files
 
 | file | role |
 |---|---|
-| `run_manifest.json` | one entry per gradeable task: which pack, which scorer, the prediction flag (`--mask`/`--seg`/`--pred`), the detail shape, and the OSF reference location + filenames. The single source of truth the tooling reads. |
-| `fetch_reference.py` | pulls a task's reference NIfTIs from OSF (public project `zjqey`, no auth) into its `pack/reference/`. Idempotent. |
+| `run_manifest.json` | one entry per gradeable task: which pack, which scorer, the prediction flag (`--mask`/`--seg`/`--pred`), the detail shape, and the reference location + filenames. The single source of truth the tooling reads. |
+| `fetch_reference.py` | pulls a task's reference NIfTIs from the Hugging Face dataset `neurodeskorg/skills-comm-ground-truth` at the revision pinned in the manifest, into its `pack/reference/`. Public, no token needed. Idempotent. |
 | `grade_wrapper.py` | the uniform front-end. Dispatches to the correct scorer, wraps the result in a stable envelope, and aggregates many envelopes into a ranked leaderboard. |
 
 ## The output contract (why grading is deterministic)
@@ -72,7 +72,7 @@ carries `per_class`. `tiebreak` (mean Dice) breaks ties at equal `score`.
 # list the live (gradeable) task IDs — the functional subset of the full catalog
 python grade_wrapper.py list            # add --verbose for scorer + detail kind
 
-# fetch the grader-side reference for a task (public OSF, no auth)
+# fetch the grader-side reference for a task (public dataset, no token needed)
 python fetch_reference.py --task clinical-wmh-segmentation
 
 # grade one submission -> envelope JSON
@@ -86,7 +86,7 @@ python grade_wrapper.py grade \
 python grade_wrapper.py aggregate --glob "results/*.json" --out results/leaderboard.json
 ```
 
-Add a task by giving it an entry in `run_manifest.json` (pack, scorer, flag, OSF reference) — no
+Add a task by giving it an entry in `run_manifest.json` (pack, scorer, flag, reference) — no
 code change needed.
 
 The full task catalog (`tasks.json`) stays complete; the automated subset is the manifest.
@@ -101,6 +101,6 @@ harness grades.
 - **`grade`** — reusable (`workflow_call`) + manual: scores one real submission and uploads its
   envelope. The execution-plane workflow calls this per run.
 - **`selftest`** — on every push touching `harness/` or `graders/`: synthesises a perfect
-  submission (a copy of the OSF reference) and a broken one (all-zeros), and asserts the grader
+  submission (a copy of the reference) and a broken one (all-zeros), and asserts the grader
   returns `indistinguishable`/100 and `invalid` respectively. Runs entirely on a github-hosted
   runner — it validates the grading contract with no Neurodesk dependency.

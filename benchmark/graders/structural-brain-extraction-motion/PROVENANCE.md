@@ -37,10 +37,10 @@ ANTs and BET remain as scored **candidates** (they come out `invalid`), which va
    *not* LOTO-calibrated: a competent tool retains ~0 contiguous background by construction, and with
    a small panel leave-one-out would be fooled by the loosest tool's dura.
 
-## Reference data (on OSF)
+## Reference data
 
-The `reference/` NIfTIs are **not** stored in git — they live on OSF (zjqey,
-`ground_truth/structural_gt/structural-brain-extraction-motion/`). Fetch them before grading; see
+The `reference/` NIfTIs are **not** stored in git — they live on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
+`structural_gt/structural-brain-extraction-motion/`). Fetch them before grading; see
 `reference/README.md`. Everything else the grader needs is in `rubric.json`.
 
 ## Caveats

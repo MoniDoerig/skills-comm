@@ -1,14 +1,15 @@
 name: grade
 
 # The GRADING PLANE. Pure Python (numpy/nibabel/scipy) — runs on github-hosted runners,
-# no Neurodesk needed. Reference NIfTIs are pulled from OSF (public project zjqey, no auth)
+# no Neurodesk needed. Reference NIfTIs are pulled from the Hugging Face dataset
+# neurodeskorg/skills-comm-ground-truth at a pinned revision (public, no token)
 # into each pack's reference/ dir; they are NEVER committed and NEVER exposed to the agent.
 #
 # Two entry points:
 #   * grade         — reusable (workflow_call) + manual: score ONE submission produced by the
 #                     execution plane, emit a ranked-ready envelope JSON as an artifact.
 #   * selftest      — on every push touching the harness/packs: synthesise a perfect and a
-#                     broken submission FROM the OSF reference and assert the grader agrees.
+#                     broken submission FROM the reference and assert the grader agrees.
 #                     Guards the grading contract with zero dependency on the execution plane.
 
 on:
@@ -56,7 +57,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install grading dependencies
-        run: pip install --quiet numpy nibabel scipy osfclient
+        run: pip install --quiet numpy nibabel scipy huggingface_hub
 
       - name: Download the agent submission
         uses: actions/download-artifact@v4
@@ -64,7 +65,7 @@ jobs:
           name: ${{ inputs.submission_artifact }}
           path: run            # expects run/submissions/<task_id>/output.nii.gz
 
-      - name: Fetch OSF reference (grader-side only)
+      - name: Fetch reference (grader-side only)
         run: python benchmark/harness/fetch_reference.py --task "${{ inputs.task }}"
 
       - name: Grade
@@ -103,9 +104,9 @@ jobs:
           python-version: "3.11"
 
       - name: Install grading dependencies
-        run: pip install --quiet numpy nibabel scipy osfclient
+        run: pip install --quiet numpy nibabel scipy huggingface_hub
 
-      - name: Fetch OSF reference
+      - name: Fetch reference
         run: python benchmark/harness/fetch_reference.py --task "${{ matrix.task }}"
 
       - name: Synthesise perfect + broken submissions from the reference

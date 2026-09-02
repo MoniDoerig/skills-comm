@@ -1,9 +1,10 @@
 # Reference data
 
-The frozen reference for this grader is on OSF:
+The frozen reference for this grader is on the Hugging Face Hub:
 
-- **OSF project:** zjqey — https://osf.io/zjqey/
-- **Path:** `ground_truth/structural_gt/structural-brain-extraction-7t-nodura/`
+- **Dataset:** `neurodeskorg/skills-comm-ground-truth`
+- **Path:** `structural_gt/structural-brain-extraction-7t-nodura/`
+- **Revision:** `f0229ea2b089`
 - **Files:**
   - `consensus_mask.nii.gz` — binary STAPLE consensus (native T1w grid)
   - `consensus_zones.nii.gz` — 0 = background, 1 = margin, 2 = core
@@ -11,8 +12,9 @@ The frozen reference for this grader is on OSF:
 
 Fetch them into this directory before grading:
 
-    osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t-nodura/consensus_mask.nii.gz  consensus_mask.nii.gz
-    osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t-nodura/consensus_zones.nii.gz  consensus_zones.nii.gz
-    osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction-7t-nodura/dura_envelope.nii.gz  dura_envelope.nii.gz
+    python benchmark/harness/fetch_reference.py --task structural-brain-extraction-7t-nodura
+
+The dataset is public, so no token is required. Pinning the revision means a
+grading run scores against an exact, named reference set.
 
 `rubric.json` carries every calibrated number the grader needs.

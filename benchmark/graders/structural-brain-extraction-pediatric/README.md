@@ -38,11 +38,11 @@ python3 ../structural-brain-extraction/score_brain_mask.py \
 ```
 structural-brain-extraction-pediatric/
 ├── rubric.json          # frozen calibration: τ, envelope, weights, gate caps
-├── reference/           # consensus NIfTIs — fetched from OSF
-│   ├── README.md        #   OSF location + fetch command
+├── reference/           # consensus NIfTIs — fetched from the Hub
+│   ├── README.md        #   dataset path + fetch command
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference on OSF: project zjqey, `ground_truth/structural_gt/structural-brain-extraction-pediatric/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-pediatric/`.

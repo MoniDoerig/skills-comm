@@ -1,13 +1,20 @@
 # Reference data
 
-- **OSF project:** zjqey — https://osf.io/zjqey/
-- **Path:** `ground_truth/diffusion_gt/diffusion-brain-mask/`
+The frozen reference for this grader is on the Hugging Face Hub:
+
+- **Dataset:** `neurodeskorg/skills-comm-ground-truth`
+- **Path:** `diffusion_gt/diffusion-brain-mask/`
+- **Revision:** `f0229ea2b089`
 - **Files:**
-  - `consensus_mask.nii.gz` — STAPLE consensus of dwi2mask + SynthStrip + HD-BET +
-    AFNI 3dSkullStrip, on the diffusion grid of ds001226 sub-CON02 ses-preop acq-AP
+  - `consensus_mask.nii.gz` — STAPLE consensus of SynthStrip, HD-BET and AFNI 3dSkullStrip,
+    on the diffusion grid of ds001226 sub-CON02 ses-preop acq-AP
   - `consensus_zones.nii.gz` — 0 = background, 1 = margin, 2 = core
 
-Fetch before grading:
+Fetch them into this directory before grading:
 
-    osf -p zjqey fetch osfstorage/ground_truth/diffusion_gt/diffusion-brain-mask/consensus_mask.nii.gz consensus_mask.nii.gz
-    osf -p zjqey fetch osfstorage/ground_truth/diffusion_gt/diffusion-brain-mask/consensus_zones.nii.gz consensus_zones.nii.gz
+    python benchmark/harness/fetch_reference.py --task diffusion-brain-mask
+
+The dataset is public, so no token is required. Pinning the revision means a
+grading run scores against an exact, named reference set.
+
+`rubric.json` carries every calibrated number the grader needs.
