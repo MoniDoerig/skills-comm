@@ -7,7 +7,10 @@ exposed to the model.
 
 Reads run_manifest.json for the task's ref_dir + reference_files and pulls each from the reference
 dataset repo at the pinned revision, so a grading run scores against an exact, named reference set.
-The repo is public: no token is required. Idempotent — files already present are left untouched.
+
+Access to the dataset is gated, which is what keeps the reference out of the execution plane: the
+grading job supplies a read token via the HF_TOKEN environment variable, and the plane where the
+agent works has none. Idempotent — files already present are left untouched.
 
     python fetch_reference.py --task clinical-wmh-segmentation
 """
@@ -46,8 +49,12 @@ def fetch(task_id, manifest_path, graders_root=None, force=False, revision=None)
             got = hf_hub_download(repo_id=repo_id, repo_type=repo_type, filename=remote,
                                   revision=rev, force_download=force)
         except Exception as e:
+            hint = ""
+            if "401" in str(e) or "403" in str(e) or "gated" in str(e).lower():
+                hint = ("\nThe dataset is gated. Set HF_TOKEN to a token whose account has been "
+                        "granted\naccess, then retry. Request access on the dataset page.")
             raise SystemExit(f"ERROR: could not fetch {remote} from {repo_id}\n"
-                             f"{type(e).__name__}: {e}")
+                             f"{type(e).__name__}: {e}{hint}")
         # Copy out of the shared cache so the pack owns its reference and a later cache sweep
         # cannot empty it mid-run.
         shutil.copyfile(got, local)

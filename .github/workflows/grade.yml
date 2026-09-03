@@ -2,7 +2,8 @@ name: grade
 
 # The GRADING PLANE. Pure Python (numpy/nibabel/scipy) — runs on github-hosted runners,
 # no Neurodesk needed. Reference NIfTIs are pulled from the Hugging Face dataset
-# neurodeskorg/skills-comm-ground-truth at a pinned revision (public, no token)
+# neurodeskorg/skills-comm-ground-truth at a pinned revision. Access is gated, so the grading
+# job reads a token from the HF_TOKEN secret. The execution plane never gets one.
 # into each pack's reference/ dir; they are NEVER committed and NEVER exposed to the agent.
 #
 # Two entry points:
@@ -66,6 +67,8 @@ jobs:
           path: run            # expects run/submissions/<task_id>/output.nii.gz
 
       - name: Fetch reference (grader-side only)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: python benchmark/harness/fetch_reference.py --task "${{ inputs.task }}"
 
       - name: Grade
@@ -107,6 +110,8 @@ jobs:
         run: pip install --quiet numpy nibabel scipy huggingface_hub
 
       - name: Fetch reference
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: python benchmark/harness/fetch_reference.py --task "${{ matrix.task }}"
 
       - name: Synthesise perfect + broken submissions from the reference
