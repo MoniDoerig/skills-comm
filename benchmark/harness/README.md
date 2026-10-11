@@ -6,21 +6,25 @@ it against a frozen reference — producing a numeric, rankable result.
 
 ## The two planes
 
-The model *doing* a task needs the full neuroimaging stack (Lmod modules, SLURM, GPU); the
+The model *doing* a task needs a full neuroimaging stack (tools, a scheduler, often a GPU); the
 grader is pure `numpy`/`nibabel`/`scipy`. So the pipeline splits, and the split is also the
 anti-leak boundary:
 
 ```
- EXECUTION PLANE  (Neurodesk self-hosted runner)      GRADING PLANE  (any github-hosted runner)
+ EXECUTION PLANE  (self-hosted runner)                GRADING PLANE  (any github-hosted runner)
  ─────────────────────────────────────────────        ──────────────────────────────────────────
  reads the task prompt from tasks.json                 downloads submissions/<task>/
- agent picks tools, module load, sbatch                fetches the reference into pack/reference/
+ agent picks and runs its own tools                    fetches the reference into pack/reference/
  writes the required output files          ──────►      runs the scorer via grade_wrapper.py
  never sees the reference                              emits a ranked-ready envelope JSON
 ```
 
 The reference NIfTIs live only in the grading plane (pulled from the Hub at grade time), so the
 ground truth is never in the agent's input.
+
+The execution plane is whatever environment supplies the task's tools — the current sweeps use a
+self-hosted Neurodesk runner, but nothing in the harness depends on that. A plane that can run the
+task prompt and write the required output paths can be graded.
 
 ## Files
 
@@ -103,4 +107,4 @@ harness grades.
 - **`selftest`** — on every push touching `harness/` or `graders/`: synthesises a perfect
   submission (a copy of the reference) and a broken one (all-zeros), and asserts the grader
   returns `indistinguishable`/100 and `invalid` respectively. Runs entirely on a github-hosted
-  runner — it validates the grading contract with no Neurodesk dependency.
+  runner — it validates the grading contract without involving the execution plane at all.

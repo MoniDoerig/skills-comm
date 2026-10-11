@@ -1,7 +1,7 @@
 name: grade
 
 # The GRADING PLANE. Pure Python (numpy/nibabel/scipy) — runs on github-hosted runners,
-# no Neurodesk needed. Reference NIfTIs are pulled from the Hugging Face dataset
+# with no neuroimaging stack and no dependency on whatever environment ran the task. Reference NIfTIs are pulled from the Hugging Face dataset
 # neurodeskorg/skills-comm-ground-truth at a pinned revision. Access is gated, so the grading
 # job reads a token from the HF_TOKEN secret. The execution plane never gets one.
 # into each pack's reference/ dir; they are NEVER committed and NEVER exposed to the agent.
