@@ -27,7 +27,7 @@ ground truth is never in the agent's input.
 | file | role |
 |---|---|
 | `run_manifest.json` | one entry per gradeable task: which pack, which scorer, the prediction flag (`--mask`/`--seg`/`--pred`), the detail shape, and the reference location + filenames. The single source of truth the tooling reads. |
-| `fetch_reference.py` | pulls a task's reference NIfTIs from the Hugging Face dataset `neurodeskorg/skills-comm-ground-truth` at the revision pinned in the manifest, into its `pack/reference/`. Public, no token needed. Idempotent. |
+| `fetch_reference.py` | pulls a task's reference NIfTIs from the Hugging Face dataset `neurodeskorg/skills-comm-ground-truth` at the revision pinned in the manifest, into its `pack/reference/`. The dataset is gated, so this needs a read token in `HF_TOKEN` for an account with access. Idempotent. |
 | `grade_wrapper.py` | the uniform front-end. Dispatches to the correct scorer, wraps the result in a stable envelope, and aggregates many envelopes into a ranked leaderboard. |
 
 ## The output contract (why grading is deterministic)
@@ -72,7 +72,7 @@ carries `per_class`. `tiebreak` (mean Dice) breaks ties at equal `score`.
 # list the live (gradeable) task IDs — the functional subset of the full catalog
 python grade_wrapper.py list            # add --verbose for scorer + detail kind
 
-# fetch the grader-side reference for a task (public dataset, no token needed)
+# fetch the grader-side reference for a task (gated dataset; export HF_TOKEN first)
 python fetch_reference.py --task clinical-wmh-segmentation
 
 # grade one submission -> envelope JSON
