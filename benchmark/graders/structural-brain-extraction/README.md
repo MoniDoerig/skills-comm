@@ -24,20 +24,19 @@ Every threshold (the surface tolerance τ, the per-metric pass/fail envelope, th
 structural-brain-extraction/
 ├── rubric.json                       # frozen calibration: τ, envelope, weights, gate caps, grid
 ├── score_brain_mask.py               # the grader — importable score() + CLI
-├── reference/                        # consensus NIfTIs — fetched from OSF
-│   ├── README.md                     #   OSF location + fetch command
+├── reference/                        # consensus NIfTIs — fetched from the Hub
+│   ├── README.md                     #   dataset path + fetch command
 │   └── .gitignore                    #   keeps *.nii.gz out of git
 ├── README.md
 └── PROVENANCE.md
 ```
 
-The consensus reference (`consensus_mask.nii.gz`, `consensus_zones.nii.gz`) is on **OSF**
-(project zjqey, path `ground_truth/structural_gt/structural-brain-extraction/`). Fetch it into
-`reference/` before grading (see `reference/README.md`):
+The consensus reference (`consensus_mask.nii.gz`, `consensus_zones.nii.gz`) is on the Hugging Face
+Hub — `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction/`.
+Fetch it into `reference/` before grading:
 
 ```bash
-osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/consensus_mask.nii.gz  reference/consensus_mask.nii.gz
-osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/consensus_zones.nii.gz reference/consensus_zones.nii.gz
+python benchmark/harness/fetch_reference.py --task structural-brain-extraction
 ```
 
 The pack is **frozen once** per benchmark subject; scoring a submission never re-calibrates — it
@@ -70,7 +69,7 @@ Dice fields were replaced):
 "grader": {
   "kind": "consensus-calibrated",
   "pack": "benchmark/graders/structural-brain-extraction/",
-  "reference_fetch": "osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/consensus_mask.nii.gz reference/consensus_mask.nii.gz && osf -p zjqey fetch .../consensus_zones.nii.gz reference/consensus_zones.nii.gz",
+  "reference_fetch": "python benchmark/harness/fetch_reference.py --task structural-brain-extraction",
   "entry": "score_brain_mask.py",
   "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction/",
   "validity_criterion": "verdict != invalid (script exit code 0)",

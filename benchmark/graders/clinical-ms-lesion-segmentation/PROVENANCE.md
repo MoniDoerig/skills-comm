@@ -114,10 +114,10 @@ sets `copy_suspect_dice = 0.995`: a submission that reproduces the reference too
 as `suspected_reference_copy` in the scorer output. That flag never changes the verdict — the
 harness decides what to do with a flagged run.
 
-## Reference data (on OSF)
+## Reference data
 
-`reference/lesion_mask.nii.gz` is **not** in git — it lives on OSF (zjqey,
-`ground_truth/clinical_gt/clinical-ms-lesion-segmentation/`). Fetch it before grading; see
+`reference/lesion_mask.nii.gz` is **not** in git — it lives on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
+`clinical_gt/clinical-ms-lesion-segmentation/`). Fetch it before grading; see
 `reference/README.md`. Everything else the grader needs is in `rubric.json`. The Ljubljana database
 is CC-BY, so the mask is redistributable with attribution.
 

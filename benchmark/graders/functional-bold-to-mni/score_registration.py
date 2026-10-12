@@ -230,7 +230,7 @@ def score(warped_path, dseg_path, pack_dir):
     missing = [n for n in need if not (refdir / n).exists()]
     if missing:
         raise SystemExit(f"ERROR: missing reference file(s) in {refdir}: {missing}. "
-                         "Fetch them from OSF (see reference/README.md).")
+                         "Fetch them with benchmark/harness/fetch_reference.py.")
 
     tpl_img = nib.as_closest_canonical(nib.load(str(refdir / "template_T1w.nii.gz")))
     ref = {"T1w": np.asanyarray(tpl_img.dataobj).astype(np.float64),

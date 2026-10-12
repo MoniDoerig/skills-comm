@@ -37,14 +37,14 @@ masks for a subject — build the STAPLE consensus and zones, derive tau and the
 envelope, then write `rubric.json` and the `reference/` NIfTIs. Rebuilding with the same panel and
 subject reproduces this pack exactly; all numbers a grader needs are in `rubric.json`.
 
-## Reference data (on OSF)
+## Reference data
 
-The `reference/` NIfTIs are on OSF with the other task ground truth:
+The `reference/` NIfTIs are on the Hugging Face Hub with the other task ground truth:
 
-- OSF project zjqey (https://osf.io/zjqey/), path `ground_truth/structural_gt/structural-brain-extraction/`
+- Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction/`
 - `consensus_mask.nii.gz`, `consensus_zones.nii.gz` (native T1w space)
 
-Fetch them before grading — see `reference/README.md` for the `osf fetch` commands. Everything else
+Fetch them before grading — see `reference/README.md` for the fetch command. Everything else
 the grader needs (tau, the envelope, the gate caps) is in `rubric.json`.
 
 ## Caveats

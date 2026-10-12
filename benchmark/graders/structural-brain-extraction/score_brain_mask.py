@@ -204,12 +204,8 @@ def score(mask_path, pack_dir, stripped_path=None):
     if missing:
         raise SystemExit(
             f"ERROR: reference file(s) {missing} not found in {ref_dir}.\n"
-            "The consensus reference is hosted on OSF, not in git — fetch it first "
-            "(see reference/README.md):\n"
-            "  osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/"
-            f"consensus_mask.nii.gz {ref_dir / 'consensus_mask.nii.gz'}\n"
-            "  osf -p zjqey fetch osfstorage/ground_truth/structural_gt/structural-brain-extraction/"
-            f"consensus_zones.nii.gz {ref_dir / 'consensus_zones.nii.gz'}")
+            "Fetch the reference first (see reference/README.md):\n"
+            "  python benchmark/harness/fetch_reference.py --task <task-id>")
     ref_img = nib.as_closest_canonical(nib.load(str(pack / "reference" / "consensus_mask.nii.gz")))
     zones = np.asanyarray(nib.as_closest_canonical(
         nib.load(str(pack / "reference" / "consensus_zones.nii.gz"))).dataobj).astype(np.int16)

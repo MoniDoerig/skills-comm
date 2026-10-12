@@ -42,7 +42,7 @@ voxels → `marginal` (Dice 0.24, +636 % volume — tiny lesions are unforgiving
 
 Images: DataverseNL DOI `10.34894/AECRSD`, open Dataverse access API (`curl .../api/access/datafile/<id>`,
 no auth/DUA). FLAIR file id 325669, T1 id 325515 for this subject. The expert masks (primary id 325503,
-O3 326449, O4 326442) are used to build this pack and live on OSF — never given to the agent.
+O3 326449, O4 326442) are used to build this pack and are never given to the agent.
 
 ## Caveats
 

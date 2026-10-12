@@ -42,12 +42,12 @@ On the motion scan the tools **diverge and partly fail**, so the reference panel
 ```
 structural-brain-extraction-motion/
 ├── rubric.json          # frozen calibration: τ, envelope, weights, gate caps (incl. focal_bg_max_cm3)
-├── reference/           # consensus NIfTIs — fetched from OSF
-│   ├── README.md        #   OSF location + fetch command
+├── reference/           # consensus NIfTIs — fetched from the Hub
+│   ├── README.md        #   dataset path + fetch command
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference on OSF: project zjqey, `ground_truth/structural_gt/structural-brain-extraction-motion/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-motion/`.
 The pack is frozen once; scoring never re-calibrates.

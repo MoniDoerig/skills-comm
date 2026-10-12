@@ -37,10 +37,10 @@ is a fluid-filled cavity, dark and CSF-like on T1 — a natural failure point:
 6. **Gate caps:** `focal_max_cm3`, `focal_bg_max_cm3` = 40 cm³ (fixed), and **`lesion_retained_min`
    = 0.85** (fixed) — a competent stripper keeps ≥ 94 % of the lesion; BET's 52 % fails with margin.
 
-## Reference data (on OSF)
+## Reference data
 
-`consensus_mask.nii.gz`, `consensus_zones.nii.gz`, `lesion_mask.nii.gz` are **not** in git — OSF
-(zjqey, `ground_truth/structural_gt/structural-brain-extraction-stroke/`). Fetch before grading; see
+`consensus_mask.nii.gz`, `consensus_zones.nii.gz`, `lesion_mask.nii.gz` are on the Hugging Face Hub
+(`neurodeskorg/skills-comm-ground-truth`, `structural_gt/structural-brain-extraction-stroke/`). Fetch before grading; see
 `reference/README.md`.
 
 ## Caveats

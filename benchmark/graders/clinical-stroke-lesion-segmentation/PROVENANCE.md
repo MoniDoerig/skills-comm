@@ -30,10 +30,10 @@ Perturbing the expert mask against the pack: self → `indistinguishable` (q100,
 vox → `acceptable` (q80, Dice 0.74, volume +72 %); eroded 4 vox → `unacceptable` (Dice 0.48, F1 0.40);
 empty → `invalid` (nonempty gate).
 
-## Reference data (on OSF)
+## Reference data
 
-`lesion_mask.nii.gz` is **not** in git — OSF (zjqey,
-`ground_truth/clinical_gt/clinical-stroke-lesion-segmentation/`). Fetch before grading; see
+`lesion_mask.nii.gz` is on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
+`clinical_gt/clinical-stroke-lesion-segmentation/`). Fetch before grading; see
 `reference/README.md`.
 
 ## Caveats

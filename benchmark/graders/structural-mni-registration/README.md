@@ -79,11 +79,11 @@ in `PROVENANCE.md`.
 structural-mni-registration/
 ├── rubric.json               # envelope, weights, gate caps, grid, label convention
 ├── score_registration.py     # the scorer
-├── reference/                # template + priors — fetched from OSF
+├── reference/                # template + priors — fetched from the Hub
 │   ├── README.md
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference on OSF: project zjqey, `ground_truth/structural_gt/structural-mni-registration/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-mni-registration/`.

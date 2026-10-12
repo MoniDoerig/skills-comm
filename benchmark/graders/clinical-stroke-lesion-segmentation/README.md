@@ -47,11 +47,11 @@ Dice 0.74); eroded 4 vox → `unacceptable` (Dice 0.48); empty → `invalid`.
 clinical-stroke-lesion-segmentation/
 ├── rubric.json          # fixed metric thresholds, weights, verdict thresholds, grid
 ├── score_lesion_seg.py  # the lesion scorer
-├── reference/           # expert lesion mask — fetched from OSF
+├── reference/           # expert lesion mask — fetched from the Hub
 │   ├── README.md
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference on OSF: project zjqey, `ground_truth/clinical_gt/clinical-stroke-lesion-segmentation/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `clinical_gt/clinical-stroke-lesion-segmentation/`.

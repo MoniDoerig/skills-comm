@@ -52,10 +52,10 @@ Scored against the frozen pack: CEREBRUM7T `indistinguishable` (q99.4), FreeSurf
 `indistinguishable` (q100), and the dropped **nighres `invalid`** (WM Dice 0.09 →
 `no_class_collapse`) — the outlier is rejected, confirming the grader discriminates.
 
-## Reference data (on OSF)
+## Reference data
 
-`reference/consensus_seg.nii.gz` + `consensus_agreement.nii.gz` are **not** in git — they live on OSF
-(zjqey, `ground_truth/structural_gt/structural-tissue-segmentation-7t/`). Fetch them before grading;
+`reference/consensus_seg.nii.gz` + `consensus_agreement.nii.gz` are on the Hugging Face Hub
+(`neurodeskorg/skills-comm-ground-truth`, `structural_gt/structural-tissue-segmentation-7t/`). Fetch them before grading;
 see `reference/README.md`. Everything else is in `rubric.json`.
 
 ## Caveats

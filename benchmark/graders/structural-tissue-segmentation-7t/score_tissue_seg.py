@@ -126,7 +126,7 @@ def score(seg_path, pack_dir):
     refd = pack / "reference"
     for f in ("consensus_seg.nii.gz", "consensus_agreement.nii.gz"):
         if not (refd / f).exists():
-            raise SystemExit(f"ERROR: {f} not found in {refd}. Fetch the reference from OSF "
+            raise SystemExit(f"ERROR: {f} not found in {refd}. Fetch the reference with "
                              "(see reference/README.md).")
     cimg = nib.as_closest_canonical(nib.load(str(refd / "consensus_seg.nii.gz")))
     consensus = np.asanyarray(cimg.dataobj).astype(np.int16)

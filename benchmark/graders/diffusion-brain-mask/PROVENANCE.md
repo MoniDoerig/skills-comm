@@ -158,8 +158,9 @@ apart, and they name the failure.
 Symmetric within a voxel, and both two-voxel failures are caught — erosion on core loss,
 dilation on retained background.
 
-## Reference data (on OSF)
+## Reference data
 
 `reference/consensus_mask.nii.gz` and `consensus_zones.nii.gz` are **not** in git — they belong
-on OSF (zjqey, `ground_truth/diffusion_gt/diffusion-brain-mask/`). Fetch them before grading; see
+on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
+`diffusion_gt/diffusion-brain-mask/`). Fetch them before grading; see
 `reference/README.md`. Everything else the grader needs is in `rubric.json`.
