@@ -3,6 +3,11 @@
 A **consensus-calibrated grader** for the `structural-brain-extraction` benchmark task — a
 more discriminating alternative to grading a skull-strip by *Dice against one reference mask*.
 
+![How a brain-extraction submission is graded: five skull-strippers are fused by STAPLE into core, margin and background zones; a submission passes ten validity gates, then earns a 0-100 quality score weighting NSD 30%, core recall 25%, background inclusion 20%, HD95 15% and volume error 10%; an FSL BET run at f=0.7 would score about 71 on metrics alone but fails the focal-core-cut gate.](brain_extraction_grading.png)
+
+*Full size: [`brain_extraction_grading.png`](brain_extraction_grading.png). Every number in it comes
+from this pack's `rubric.json` and the test-evidence runs below.*
+
 The prompt is tool-agnostic (`tool_mode: agnostic`), so the grader must ask *"is this a competent
 brain mask?"*, not *"does it match one specific tool?"*. Every skull-stripper draws a slightly
 different boundary and they disagree in a few predictable places (sagittal sinus, tentorium,
@@ -27,6 +32,7 @@ structural-brain-extraction/
 ├── reference/                        # consensus NIfTIs — fetched from the Hub
 │   ├── README.md                     #   dataset path + fetch command
 │   └── .gitignore                    #   keeps *.nii.gz out of git
+├── brain_extraction_grading.png     # the explainer figure above
 ├── README.md
 └── PROVENANCE.md
 ```

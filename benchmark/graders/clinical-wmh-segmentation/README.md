@@ -8,6 +8,11 @@ Subject: **WMH Segmentation Challenge 2017**, Amsterdam/GE3T/100 — a clinical 
 multi-focal WMH foci** (6.3 cm³). This is the case where **Dice alone is misleading** (a small
 boundary slip on tiny lesions tanks it) and **lesion-wise detection matters**.
 
+![How a WMH submission is graded: three experts trace the same FLAIR and the primary mask becomes the reference; a submission passes four validity gates, then earns a 0-100 quality score weighting Dice 40%, lesion-wise F1 40% and volume error 20%; altered copies of the expert mask show that dilating by 2 voxels finds every lesion yet scores marginal.](wmh_grading.png)
+
+*Full size: [`wmh_grading.png`](wmh_grading.png). Every number in it comes from this pack's
+`rubric.json` and the grader run on the rater masks.*
+
 ## Why inter-rater calibration (the upgrade over the stroke task)
 
 The stroke lesion task used *fixed literature* thresholds (one expert tracing, no rater spread). The
@@ -42,6 +47,7 @@ clinical-wmh-segmentation/
 ├── reference/           # primary expert WMH mask — fetched from the Hub
 │   ├── README.md
 │   └── .gitignore
+├── wmh_grading.png      # the explainer figure above
 ├── README.md
 └── PROVENANCE.md
 ```
