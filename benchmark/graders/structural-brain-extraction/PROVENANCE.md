@@ -16,6 +16,9 @@ A panel of **accepted tools**, each run on the subject's T1w:
 
 ## Calibration steps
 
+The steps below are drawn as panel 1 of
+[`brain_extraction_grading.png`](brain_extraction_grading.png) (linked from the README).
+
 1. **Geometry harmonisation.** Every mask is reoriented to canonical RAS and placed on the reference
    grid. AFNI's `3dSkullStrip` writes a *header-only deoblique* (obliquity zeroed, voxel data left on
    the input grid); trusting that header and resampling displaces the brain ~11 mm, so it is read on

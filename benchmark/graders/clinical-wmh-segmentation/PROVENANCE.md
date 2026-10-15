@@ -11,6 +11,9 @@ present for this subject). Native FLAIR space, 6.27 cm³, **115 foci**.
 
 ## Thresholds are data-derived from inter-rater agreement
 
+This section is drawn as panel 1 of
+[`wmh_grading.png`](wmh_grading.png) (linked from the README).
+
 The WMH Challenge [1] ships two additional raters (O3, O4) on the training subjects. Scoring each
 against the primary gives a *measured* envelope rather than a literature guess:
 
@@ -19,14 +22,15 @@ against the primary gives a *measured* envelope rather than a literature guess:
 | O3 | 0.774 | 0.794 | 13 % |
 | O4 | 0.792 | 0.876 | 4 % |
 
-Envelope: **full marks = mean rater-vs-primary** (as good as another expert), **pass = a margin below
-the worst rater**:
+Envelope: **full marks = mean rater-vs-primary** (as good as another expert); **zero point = a fixed
+margin**: 0.20 below the weaker rater for Dice, 0.25 below the weaker rater for F1, and 40 points
+above the rater mean for volume error.
 
-| metric | full | pass |
+| metric | full marks | zero point |
 |---|---|---|
 | Dice | 0.783 | 0.574 |
 | lesion-wise F1 | 0.835 | 0.544 |
-| abs. volume error | 9 % | 48.6 % |
+| abs. volume error | 8.6 % | 48.6 % |
 
 Weights: Dice 0.40, lesion-wise F1 0.40, volume error 0.20 — F1 raised to parity with Dice because WMH
 are many small foci where detection, not just boundary overlap, is the point.

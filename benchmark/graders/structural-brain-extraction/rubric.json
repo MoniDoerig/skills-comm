@@ -111,6 +111,7 @@
     "binary",
     "native_grid",
     "no_catastrophic_core_loss",
+    "no_focal_bg_inclusion",
     "no_focal_core_loss",
     "no_internal_holes",
     "nonempty",

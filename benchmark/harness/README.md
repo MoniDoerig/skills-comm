@@ -44,17 +44,31 @@ grader reads only the paths in `run_manifest.json`; it does not search for outpu
 
 ## The scoring model — a tier *and* a number
 
-Each scorer runs a two-tier cascade, and you always get a rankable score:
+Each scorer runs a cascade of gates, then a score, then one override — and you always get a
+rankable number:
 
 1. **Validity gates** (binary, native grid, non-empty, plausible volume, plus task-specific gates
    like no-dura-inclusion, lesion-retained, no-class-collapse). Any failure → `verdict = "invalid"`,
    `score = 0`.
-2. **Quality** (only if all gates pass) → a weighted 0–100 from per-metric subscores, then banded
-   into `unacceptable / marginal / acceptable / indistinguishable`. `indistinguishable` means "as
-   good as the reference expects" and always scores 100, so the `score` is monotonic with the tier.
+2. **Quality** (only if all gates pass) → a weighted 0–100 from per-metric subscores, banded into
+   `unacceptable / marginal / acceptable` at the pack's `verdict_thresholds`.
+3. **`indistinguishable`** overrides the band when *every* scored metric lands inside what the pack's
+   own references achieve. Each pack sets that bar from its calibration: a consensus-calibrated pack
+   asks for every metric at least as good as the worst held-out tool, an inter-rater-calibrated pack
+   asks for full marks on every metric. It is a separate test, not a score threshold — so a submission
+   can be `indistinguishable` without scoring 100, and `score` is **not** monotonic with the tier.
 
 `valid` and `score` are independent: a submission can be valid but score low (e.g. a mask that
-passes every gate but overlaps the reference poorly).
+passes every gate but overlaps the reference poorly). Only `invalid` forces the score to 0.
+
+Two packs carry a one-page figure of the whole cascade — reference construction, gates, weights, and
+a worked case where the gate and the score disagree. They are worth reading before the others,
+because they cover the two ways a pack is calibrated:
+
+| figure | calibration | shows |
+|---|---|---|
+| [`structural-brain-extraction`](../graders/structural-brain-extraction/README.md) | consensus of a tool panel, leave-one-tool-out | a mask that scores ~71 on metrics yet fails a gate |
+| [`clinical-wmh-segmentation`](../graders/clinical-wmh-segmentation/README.md) | inter-rater, three expert tracings | a mask that finds every lesion (F1 = 1.0) and still only reaches `marginal` |
 
 ## Envelope schema (`schema_version 1.0`)
 
