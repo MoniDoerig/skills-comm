@@ -4,7 +4,7 @@ The frozen reference for this grader is on the Hugging Face Hub:
 
 - **Dataset:** `neurodeskorg/skills-comm-ground-truth`
 - **Path:** `structural_gt/structural-brain-extraction-7t-nodura/<subject>/`
-- **Revision:** `f0229ea2b089`
+- **Revision:** `9a1a95eb47e7`
 - **Files:**
   - `consensus_mask.nii.gz` — binary STAPLE consensus (native T1w grid)
   - `consensus_zones.nii.gz` — 0 = background, 1 = margin, 2 = core

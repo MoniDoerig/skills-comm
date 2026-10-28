@@ -38,7 +38,10 @@ def fetch(task_id, manifest_path, graders_root=None, force=False, revision=None,
     defaults = m["defaults"]
     repo_id = defaults["reference_repo"]
     repo_type = defaults.get("reference_repo_type", "dataset")
-    rev = revision or defaults.get("reference_revision")
+    # A task may pin its own revision. The per-subject references were uploaded in a
+    # later commit than the single-subject ones, and those still resolve at the older
+    # pin, so one default for the whole manifest would move references nobody rebuilt.
+    rev = revision or spec.get("reference_revision") or defaults.get("reference_revision")
     ref_dir = spec["ref_dir"]                        # e.g. clinical_gt/clinical-wmh-segmentation
     # A per-subject task keeps one reference directory per subject, so the subject has to
     # be named. It is checked against the manifest rather than interpolated blindly: a

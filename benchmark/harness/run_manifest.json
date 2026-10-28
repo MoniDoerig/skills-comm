@@ -29,7 +29,8 @@
         "sub-0023",
         "sub-0025",
         "sub-0039"
-      ]
+      ],
+      "reference_revision": "9a1a95eb47e7"
     },
     "structural-brain-extraction-pediatric": {
       "pack_dir": "graders/structural-brain-extraction-pediatric",
@@ -51,7 +52,8 @@
         "sub-pixar012",
         "sub-pixar016",
         "sub-pixar017"
-      ]
+      ],
+      "reference_revision": "9a1a95eb47e7"
     },
     "structural-brain-extraction-motion": {
       "pack_dir": "graders/structural-brain-extraction-motion",
@@ -73,7 +75,8 @@
         "sub-281888",
         "sub-678878",
         "sub-723372"
-      ]
+      ],
+      "reference_revision": "9a1a95eb47e7"
     },
     "structural-brain-extraction-7t": {
       "pack_dir": "graders/structural-brain-extraction-7t",
@@ -93,7 +96,8 @@
         "sub-025",
         "sub-045",
         "sub-075"
-      ]
+      ],
+      "reference_revision": "9a1a95eb47e7"
     },
     "structural-brain-extraction-7t-nodura": {
       "pack_dir": "graders/structural-brain-extraction-7t-nodura",
@@ -114,7 +118,8 @@
         "sub-025",
         "sub-045",
         "sub-075"
-      ]
+      ],
+      "reference_revision": "9a1a95eb47e7"
     },
     "structural-brain-extraction-stroke": {
       "pack_dir": "graders/structural-brain-extraction-stroke",
@@ -137,7 +142,8 @@
         "sub-M2213",
         "sub-M2262",
         "sub-M2282"
-      ]
+      ],
+      "reference_revision": "9a1a95eb47e7"
     },
     "structural-tissue-segmentation-7t": {
       "pack_dir": "graders/structural-tissue-segmentation-7t",
@@ -188,7 +194,8 @@
         "sub-CON05",
         "sub-CON08",
         "sub-CON09"
-      ]
+      ],
+      "reference_revision": "9a1a95eb47e7"
     },
     "clinical-stroke-lesion-segmentation": {
       "pack_dir": "graders/clinical-stroke-lesion-segmentation",
@@ -207,7 +214,8 @@
         "sub-M2213",
         "sub-M2262",
         "sub-M2282"
-      ]
+      ],
+      "reference_revision": "9a1a95eb47e7"
     },
     "clinical-ms-lesion-segmentation": {
       "pack_dir": "graders/clinical-ms-lesion-segmentation",

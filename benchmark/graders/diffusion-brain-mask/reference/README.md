@@ -4,7 +4,7 @@ The frozen reference for this grader is on the Hugging Face Hub:
 
 - **Dataset:** `neurodeskorg/skills-comm-ground-truth`
 - **Path:** `diffusion_gt/diffusion-brain-mask/<subject>/`
-- **Revision:** `f0229ea2b089`
+- **Revision:** `9a1a95eb47e7`
 - **Files:**
   - `consensus_mask.nii.gz` — STAPLE consensus of SynthStrip, HD-BET and AFNI 3dSkullStrip,
     on the diffusion grid of ds001226 sub-CON02 ses-preop acq-AP

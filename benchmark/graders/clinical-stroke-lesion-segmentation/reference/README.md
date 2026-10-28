@@ -4,7 +4,7 @@ The frozen reference for this grader is on the Hugging Face Hub:
 
 - **Dataset:** `neurodeskorg/skills-comm-ground-truth`
 - **Path:** `clinical_gt/clinical-stroke-lesion-segmentation/<subject>/`
-- **Revision:** `f0229ea2b089`
+- **Revision:** `9a1a95eb47e7`
 - **Files:**
   - `lesion_mask.nii.gz` — expert manual lesion tracing (ARC), registered to native T1w space
 
