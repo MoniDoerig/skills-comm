@@ -2,6 +2,7 @@
   "item": "mslesionseg_openms_patient01",
   "prompt": "Segment the white-matter (FLAIR-hyperintense) MS lesions of patient01 of the open_ms_data cross-sectional dataset, producing a binary lesion mask in the FLAIR space of the co-registered resampled images.",
   "reference": "Expert multi-rater consensus lesion mask (three raters) shipped with the Ljubljana MS database, on the co-registered-resampled FLAIR grid the task hands out (voxel data as published; header taken from FLAIR, which the published mask misses by <= 0.4 mm).",
+  "reference_kind": "expert_manual",
   "metric_thresholds": {
     "dice": {
       "full": 0.74,

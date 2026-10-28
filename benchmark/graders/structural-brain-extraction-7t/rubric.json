@@ -1,10 +1,10 @@
 {
   "item": "skullstrip_ds003642_sub-025",
-  "prompt": "Skull-strip the T1-weighted image of sub-025 (ds003642, OpenNeuro), producing a brain-extracted image and a binary brain mask in the native T1w space.",
+  "prompt": "Skull-strip the 7T MP2RAGE image of sub-025 (ds003642, OpenNeuro), producing a brain-extracted image and a binary brain mask in the input's native space.",
   "reference_tools": [
+    "ANTs_INV2",
     "HD_BET",
-    "AFNI",
-    "SynthStrip"
+    "SynthStrip_b2"
   ],
   "grid": {
     "tool": "HD_BET",
@@ -25,20 +25,20 @@
     ],
     "raw_affine": [
       [
-        0.6298619508743286,
+        0.629859983921051,
         0.0015756022185087204,
-        0.012986615300178528,
+        0.012986617162823677,
         -83.15753936767578
       ],
       [
-        -0.0015878641279414296,
-        0.6249979734420776,
-        -3.2741198083385825e-05,
+        -0.0015878590056672692,
+        0.6249980330467224,
+        -3.274120172136463e-05,
         -87.95355224609375
       ],
       [
-        -0.013090550899505615,
-        2.310270197369846e-09,
+        -0.013090509921312332,
+        2.3077004751570485e-09,
         0.6248650550842285,
         -138.12551879882812
       ],
@@ -52,48 +52,41 @@
   },
   "consensus": {
     "method": "STAPLE p>=0.5",
-    "volume_cm3": 1163.9247450966855,
-    "core_cm3": 985.5929105089513,
-    "margin_cm3": 333.5724466939923,
-    "core_vote": 1.0,
-    "background_vote": 0.0
+    "volume_cm3": 1164.67,
+    "core_cm3": 1108.75,
+    "margin_cm3": 161.73
   },
-  "tau_mm": 13.387073516845703,
+  "tau_mm": 3.8536,
   "envelope": {
     "nsd": {
-      "best": 0.9935944028902168,
-      "median": 0.99349101877017,
-      "worst": 0.9243732146323876
+      "best": 0.9599,
+      "median": 0.9569,
+      "worst": 0.9182
     },
     "core_recall": {
-      "best": 0.9999715360282723,
-      "median": 0.9756168205789806,
-      "worst": 0.8651135754141311
-    },
-    "bg_fp_frac_of_ref": {
-      "best": 0.00034113451486305165,
-      "median": 0.0017941182077207635,
-      "worst": 0.13064490035597773
-    },
-    "hd95_mm": {
-      "best": 6.64808988571167,
-      "median": 6.903350830078125,
-      "worst": 17.106874465942383
-    },
-    "abs_volume_err_pct": {
-      "best": 12.821040673254972,
-      "median": 13.571797805019605,
-      "worst": 23.100411937015984
+      "best": 0.9918,
+      "median": 0.988,
+      "worst": 0.9708
     },
     "assd_mm": {
-      "best": 2.533418893814087,
-      "median": 2.9266629219055176,
-      "worst": 5.160636901855469
+      "best": 1.8126,
+      "median": 1.8823,
+      "worst": 2.1676
     },
-    "dice": {
-      "best": 0.9374688735858016,
-      "median": 0.9268349716008822,
-      "worst": 0.8673867144890828
+    "hd95_mm": {
+      "best": 3.6521,
+      "median": 3.6984,
+      "worst": 4.4007
+    },
+    "bg_fp_frac_of_ref": {
+      "best": 0.0067,
+      "median": 0.0141,
+      "worst": 0.0669
+    },
+    "abs_volume_err_pct": {
+      "best": 3.7292,
+      "median": 6.6914,
+      "worst": 9.6916
     }
   },
   "weights": {
@@ -104,20 +97,9 @@
     "abs_volume_err_pct": 0.1
   },
   "slack": 1.5,
-  "focal_max_cm3": 207.87083631728314,
+  "focal_max_cm3": 35.8679,
+  "focal_basis": "max(1.5 x worst held-out focal miss, 5.0 cm3 floor); worst miss 23.91 cm3, on dropping HD_BET",
   "focal_bg_max_cm3": 40.0,
-  "gates": [
-    "binary",
-    "native_grid",
-    "no_catastrophic_core_loss",
-    "no_focal_bg_inclusion",
-    "no_focal_core_loss",
-    "no_internal_holes",
-    "nonempty",
-    "single_component",
-    "stripped_matches_mask",
-    "volume_plausible"
-  ],
   "plausible_volume_cm3": [
     900.0,
     1900.0
@@ -125,5 +107,16 @@
   "verdict_thresholds": {
     "acceptable": 60,
     "marginal": 30
-  }
+  },
+  "gates": [
+    "binary",
+    "native_grid",
+    "no_catastrophic_core_loss",
+    "no_focal_bg_inclusion",
+    "no_focal_core_loss",
+    "single_component",
+    "no_internal_holes",
+    "volume_plausible",
+    "nonempty"
+  ]
 }

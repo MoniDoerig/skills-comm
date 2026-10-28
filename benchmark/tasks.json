@@ -280,22 +280,27 @@
         "structural-brain-extraction": {
           "title": "Brain extraction (skull stripping)",
           "grading": "automated",
-          "description": "Skull-strip the T1w of sub-0004 of OpenNeuro dataset ds002790, producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "description": "Skull-strip the T1w of {subject} of OpenNeuro dataset ds002790, producing a brain-extracted image and a binary brain mask in native T1w space.",
           "prompt": {
-            "goal": "Skull-strip the T1-weighted image of sub-0004, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the T1-weighted image of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.",
             "dataset": {
               "source": "openneuro",
               "id": "ds002790",
               "version_pin": "2.0.0",
               "subjects": [
-                "sub-0004"
+                "sub-0004",
+                "sub-0008",
+                "sub-0023",
+                "sub-0025",
+                "sub-0039"
               ]
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction/`. Only `submissions/structural-brain-extraction/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction/{subject}/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction/{subject}/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction/{subject}/`. Only `submissions/structural-brain-extraction/{subject}/output.nii.gz` is scored.",
+            "subject_note": "This task runs once per subject in `dataset.subjects`. {subject} in the goal and in the output paths is replaced with the subject being run."
           },
           "solution": {
             "ground_truth": "STAPLE consensus of a panel of accepted tools (ANTs, HD-BET, FSL BET, AFNI, SynthStrip), split into core/margin/background zones and calibrated once on this subject; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz, hosted on OSF and fetched into the grader pack reference/ at grade time.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
             "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input image; Brain mask is binary (values 0 and 1 only); Brain mask is anatomically plausible: skull/dura removed, brain retained; No processing errors; logs captured",
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
@@ -332,23 +337,28 @@
         "structural-brain-extraction-motion": {
           "title": "Brain extraction under head motion (skull stripping)",
           "grading": "automated",
-          "description": "Skull-strip the high-motion T1w of sub-000103 of MR-ART (OpenNeuro ds004173), producing a brain-extracted image and a binary brain mask in native T1w space, despite motion artefacts.",
+          "description": "Skull-strip the high-motion T1w of {subject} of MR-ART (OpenNeuro ds004173), producing a brain-extracted image and a binary brain mask in native T1w space, despite motion artefacts.",
           "prompt": {
-            "goal": "Skull-strip the motion-corrupted T1-weighted image (acq-headmotion2) of sub-000103, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the motion-corrupted T1-weighted image (acq-headmotion2) of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.",
             "dataset": {
               "source": "openneuro",
               "id": "ds004173",
               "version_pin": "1.0.2",
               "subjects": [
-                "sub-000103"
+                "sub-000103",
+                "sub-143104",
+                "sub-281888",
+                "sub-678878",
+                "sub-723372"
               ],
               "acquisition": "acq-headmotion2"
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-motion/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-motion/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-motion/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-motion/`. Only `submissions/structural-brain-extraction-motion/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-motion/{subject}/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-motion/{subject}/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-motion/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-motion/{subject}/`. Only `submissions/structural-brain-extraction-motion/{subject}/output.nii.gz` is scored.",
+            "subject_note": "This task runs once per subject in `dataset.subjects`. {subject} in the goal and in the output paths is replaced with the subject being run."
           },
           "solution": {
             "ground_truth": "STAPLE consensus of a panel of accepted tools (ANTs, HD-BET, FSL BET, AFNI, SynthStrip) run on the same high-motion scan, split into core/margin/background zones and calibrated once; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz, hosted on OSF and fetched into the grader pack reference/ at grade time.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction-motion/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction-motion/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
             "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input; Brain mask is binary (0 and 1 only); Brain retained and skull/dura/neck removed despite the motion artefacts; No processing errors; logs captured",
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
@@ -379,22 +389,27 @@
         "structural-brain-extraction-pediatric": {
           "title": "Brain extraction in a young child (skull stripping)",
           "grading": "automated",
-          "description": "Skull-strip the T1w of sub-pixar017 (~3.6 yo) of OpenNeuro dataset ds000228, producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "description": "Skull-strip the T1w of {subject} (~3.6 yo) of OpenNeuro dataset ds000228, producing a brain-extracted image and a binary brain mask in native T1w space.",
           "prompt": {
-            "goal": "Skull-strip the T1-weighted image of sub-pixar017, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the T1-weighted image of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.",
             "dataset": {
               "source": "openneuro",
               "id": "ds000228",
               "version_pin": "1.1.1",
               "subjects": [
+                "sub-pixar005",
+                "sub-pixar008",
+                "sub-pixar012",
+                "sub-pixar016",
                 "sub-pixar017"
               ]
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-pediatric/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-pediatric/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-pediatric/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-pediatric/`. Only `submissions/structural-brain-extraction-pediatric/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-pediatric/{subject}/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-pediatric/{subject}/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-pediatric/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-pediatric/{subject}/`. Only `submissions/structural-brain-extraction-pediatric/{subject}/output.nii.gz` is scored.",
+            "subject_note": "This task runs once per subject in `dataset.subjects`. {subject} in the goal and in the output paths is replaced with the subject being run."
           },
           "solution": {
             "ground_truth": "STAPLE consensus of a panel of accepted tools (HD-BET, AFNI, SynthStrip, FSL BET -R) run on the child T1w, split into core/margin/background zones and calibrated once; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz, hosted on OSF and fetched into the grader pack reference/ at grade time.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction-pediatric/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction-pediatric/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
             "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input; Brain mask is binary (0 and 1 only); Brain (incl. cerebellum and brainstem) retained and skull/dura/neck removed; No processing errors; logs captured",
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
@@ -743,22 +758,25 @@
         "structural-brain-extraction-7t": {
           "title": "Brain extraction at 7 Tesla (MP2RAGE skull stripping)",
           "grading": "automated",
-          "description": "Skull-strip the 7T MP2RAGE UNI image of sub-025 of CEREBRUM-7T (OpenNeuro ds003642), producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "description": "Skull-strip the 7T MP2RAGE UNI image of {subject} of CEREBRUM-7T (OpenNeuro ds003642), producing a brain-extracted image and a binary brain mask in native T1w space.",
           "prompt": {
-            "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of sub-025, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.",
             "dataset": {
               "source": "openneuro",
               "id": "ds003642",
               "version_pin": "1.1.0",
               "subjects": [
-                "sub-025"
+                "sub-025",
+                "sub-045",
+                "sub-075"
               ]
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-7t/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-7t/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-7t/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-7t/`. Only `submissions/structural-brain-extraction-7t/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-7t/{subject}/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-7t/{subject}/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-7t/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-7t/{subject}/`. Only `submissions/structural-brain-extraction-7t/{subject}/output.nii.gz` is scored.",
+            "subject_note": "This task runs once per subject in `dataset.subjects`. {subject} in the goal and in the output paths is replaced with the subject being run."
           },
           "solution": {
             "ground_truth": "STAPLE consensus of a curated panel (HD-BET, AFNI, SynthStrip) run on the 7T MP2RAGE UNI, split into core/margin/background zones and calibrated once; native T1w space. FSL BET -R was dropped from the panel (catastrophic under-extraction at 7T) and kept as a scored candidate. consensus_mask.nii.gz + consensus_zones.nii.gz on OSF, fetched into the grader pack reference/ at grade time.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction-7t/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction-7t/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
             "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input; Brain mask is binary (0 and 1 only); Brain (incl. cerebellum and brainstem) retained and skull/dura/neck removed; No processing errors; logs captured",
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
@@ -786,22 +804,25 @@
         "structural-brain-extraction-7t-nodura": {
           "title": "Brain extraction at 7T with explicit dura removal (skull stripping)",
           "grading": "automated",
-          "description": "Skull-strip the 7T MP2RAGE UNI image of sub-025 of CEREBRUM-7T (OpenNeuro ds003642) AND remove the dura, producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "description": "Skull-strip the 7T MP2RAGE UNI image of {subject} of CEREBRUM-7T (OpenNeuro ds003642) AND remove the dura, producing a brain-extracted image and a binary brain mask in native T1w space.",
           "prompt": {
-            "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of sub-025 AND remove the dura, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of {subject} AND remove the dura, producing a brain-extracted image and a binary brain mask in the native T1w space.",
             "dataset": {
               "source": "openneuro",
               "id": "ds003642",
               "version_pin": "1.1.0",
               "subjects": [
-                "sub-025"
+                "sub-025",
+                "sub-045",
+                "sub-075"
               ]
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-7t-nodura/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-7t-nodura/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-7t-nodura/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-7t-nodura/`. Only `submissions/structural-brain-extraction-7t-nodura/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-7t-nodura/{subject}/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-7t-nodura/{subject}/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-7t-nodura/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-7t-nodura/{subject}/`. Only `submissions/structural-brain-extraction-7t-nodura/{subject}/output.nii.gz` is scored.",
+            "subject_note": "This task runs once per subject in `dataset.subjects`. {subject} in the goal and in the output paths is replaced with the subject being run."
           },
           "solution": {
             "ground_truth": "Same subject and consensus as structural-brain-extraction-7t, plus a dura-out pial envelope (union of the four CEREBRUM-7T tissue segmentations, sulci-filled). The grader adds a one-sided over-inclusion gate: a mask extending past the envelope into the dura fails. consensus_mask.nii.gz + consensus_zones.nii.gz + dura_envelope.nii.gz on OSF.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction-7t-nodura/ (consensus_mask.nii.gz, consensus_zones.nii.gz, dura_envelope.nii.gz)",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction-7t-nodura/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz, dura_envelope.nii.gz)",
             "metric": "consensus-calibrated + no_dura_inclusion gate: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry matches the input; Brain mask is binary; Brain (incl. cerebellum and brainstem) retained; the DURA is removed (mask does not extend past the pial envelope, over-inclusion <= 30 cm3); No processing errors; logs captured",
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass. A dura-retaining mask fails the no_dura_inclusion gate.",
@@ -874,22 +895,27 @@
         "structural-brain-extraction-stroke": {
           "title": "Brain extraction of a lesioned (chronic-stroke) brain",
           "grading": "automated",
-          "description": "Skull-strip the T1w of sub-M2191 (Aphasia Recovery Cohort, ds004884), a chronic-stroke subject whose brain contains an 82.8 cm3 infarct cavity; produce a brain-extracted image and a binary brain mask in native T1w space. The lesion is brain tissue (graded by the lesion_retained gate) but this is NOT disclosed to the agent.",
+          "description": "Skull-strip the T1w of {subject} (Aphasia Recovery Cohort, ds004884), a chronic-stroke subject whose brain contains an 82.8 cm3 infarct cavity; produce a brain-extracted image and a binary brain mask in native T1w space. The lesion is brain tissue (graded by the lesion_retained gate) but this is NOT disclosed to the agent.",
           "prompt": {
-            "goal": "Skull-strip the T1-weighted image of sub-M2191 session ses-681, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the T1-weighted image of {subject} session ses-681, producing a brain-extracted image and a binary brain mask in the native T1w space.",
             "dataset": {
               "source": "openneuro",
               "id": "ds004884",
               "version_pin": "1.0.2",
               "subjects": [
-                "sub-M2191"
+                "sub-M2129",
+                "sub-M2191",
+                "sub-M2213",
+                "sub-M2262",
+                "sub-M2282"
               ]
             },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-stroke/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-stroke/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-stroke/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-stroke/`. Only `submissions/structural-brain-extraction-stroke/output.nii.gz` is scored."
+            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-stroke/{subject}/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-stroke/{subject}/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-stroke/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-stroke/{subject}/`. Only `submissions/structural-brain-extraction-stroke/{subject}/output.nii.gz` is scored.",
+            "subject_note": "This task runs once per subject in `dataset.subjects`. {subject} in the goal and in the output paths is replaced with the subject being run."
           },
           "solution": {
             "ground_truth": "STAPLE consensus of the lesion-retaining tools (HD-BET, AFNI, SynthStrip) run on the lesioned T1w, split into core/margin/background zones; native T1w space. FSL BET dropped from the panel (retains only 52% of the lesion) and kept as a scored candidate. The expert lesion mask (registered T2w->T1w) is shipped for a lesion_retained gate. consensus_mask + consensus_zones + lesion_mask on OSF.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction-stroke/ (consensus_mask.nii.gz, consensus_zones.nii.gz, lesion_mask.nii.gz)",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-brain-extraction-stroke/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz, lesion_mask.nii.gz)",
             "metric": "consensus-calibrated + lesion_retained gate: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; geometry matches the input; mask is binary; brain (incl. the stroke lesion) retained and skull/dura removed; the mask contains >= 85% of the expert lesion (lesion_retained); No processing errors; logs captured",
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass. A mask that carves out the lesion fails the lesion_retained gate.",
@@ -1359,23 +1385,28 @@
         "diffusion-brain-mask": {
           "title": "DWI brain mask",
           "grading": "automated",
-          "description": "Produce a binary brain mask for the AP diffusion series of sub-CON02 (ses-preop) of OpenNeuro ds001226 on the diffusion grid, graded against a STAPLE consensus of three accepted masking tools.",
+          "description": "Produce a binary brain mask for the AP diffusion series of {subject} (ses-preop) of OpenNeuro ds001226 on the diffusion grid, graded against a STAPLE consensus of three accepted masking tools.",
           "prompt": {
-            "goal": "Skull-strip the AP diffusion series of sub-CON02 (session ses-preop), producing a brain-extracted b = 0 image and a binary brain mask on the diffusion grid.\n\nThe mask must have the same shape and affine as the input DWI (96x96x60, 2.5 mm isotropic). Do not resample to any other space.",
+            "goal": "Skull-strip the AP diffusion series of {subject} (session ses-preop), producing a brain-extracted b = 0 image and a binary brain mask on the diffusion grid.\n\nThe mask must have the same shape and affine as the input DWI (96x96x60, 2.5 mm isotropic). Do not resample to any other space.",
             "dataset": {
               "source": "openneuro",
               "id": "ds001226",
               "version_pin": "5.0.1",
               "subjects": [
-                "sub-CON02"
+                "sub-CON02",
+                "sub-CON03",
+                "sub-CON05",
+                "sub-CON08",
+                "sub-CON09"
               ],
               "session": "ses-preop"
             },
-            "required_output": "A brain-extracted b0 image (NIfTI) and a binary brain mask (NIfTI, {0,1}) on the diffusion grid.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/diffusion-brain-mask/` under your working directory - create that folder. Put the binary brain mask at `submissions/diffusion-brain-mask/output.nii.gz` (THIS is the graded file) and the brain-extracted b0 at `submissions/diffusion-brain-mask/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/diffusion-brain-mask/`. Only `submissions/diffusion-brain-mask/output.nii.gz` is scored."
+            "required_output": "A brain-extracted b0 image (NIfTI) and a binary brain mask (NIfTI, {0,1}) on the diffusion grid.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/diffusion-brain-mask/{subject}/` under your working directory - create that folder. Put the binary brain mask at `submissions/diffusion-brain-mask/{subject}/output.nii.gz` (THIS is the graded file) and the brain-extracted b0 at `submissions/diffusion-brain-mask/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/diffusion-brain-mask/{subject}/`. Only `submissions/diffusion-brain-mask/{subject}/output.nii.gz` is scored.",
+            "subject_note": "This task runs once per subject in `dataset.subjects`. {subject} in the goal and in the output paths is replaced with the subject being run."
           },
           "solution": {
             "ground_truth": "STAPLE consensus of a curated three-tool panel (FreeSurfer SynthStrip, HD-BET, AFNI 3dSkullStrip) run on the mean b0, split into core/margin/background zones and calibrated once by leave-one-tool-out; the diffusion grid. On the RAW series the intensity-threshold methods lose the same anatomy - cerebellum, temporal poles, brainstem - to the inferior bias field, so MRtrix dwi2mask (127 cm3 of core missing), FSL BET at its default (411) and AFNI 3dAutomask (704) were dropped from the panel and kept as scored candidates; all come out invalid, which validates the grader. dwi2mask after dwidenoise + dwibiascorrect reaches indistinguishable, so the task is passable with it. consensus_mask.nii.gz + consensus_zones.nii.gz on OSF.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path diffusion_gt/diffusion-brain-mask/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path diffusion_gt/diffusion-brain-mask/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
             "metric": "consensus-calibrated: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
             "pass_criterion": "A b0 is extracted and a binary brain mask produced; mask geometry (shape, voxel size, affine) matches the diffusion series; mask is binary (0 and 1 only); brain retained including cerebellum and brainstem, skull and neck removed; No processing errors; logs captured",
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
@@ -1864,22 +1895,27 @@
         "clinical-stroke-lesion-segmentation": {
           "title": "Stroke lesion segmentation (T1)",
           "grading": "automated",
-          "description": "Segment the chronic stroke lesion in the T1w of sub-M2191 (Aphasia Recovery Cohort, ds004884), producing a binary lesion mask in native T1w space, graded against an expert manual tracing.",
+          "description": "Segment the chronic stroke lesion in the T1w of {subject} (Aphasia Recovery Cohort, ds004884), producing a binary lesion mask in native T1w space, graded against an expert manual tracing.",
           "prompt": {
-            "goal": "Segment the chronic stroke lesion in the T1-weighted image of sub-M2191 session ses-681, producing a binary lesion mask in native T1w space.",
+            "goal": "Segment the chronic stroke lesion in the T1-weighted image of {subject} session ses-681, producing a binary lesion mask in native T1w space.",
             "dataset": {
               "source": "openneuro",
               "id": "ds004884",
               "version_pin": "1.0.2",
               "subjects": [
-                "sub-M2191"
+                "sub-M2129",
+                "sub-M2191",
+                "sub-M2213",
+                "sub-M2262",
+                "sub-M2282"
               ]
             },
-            "required_output": "A binary lesion mask (NIfTI, {0,1}) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write the binary mask to `submissions/clinical-stroke-lesion-segmentation/output.nii.gz` under your working directory — create the `submissions/clinical-stroke-lesion-segmentation/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/clinical-stroke-lesion-segmentation/`. Only `submissions/clinical-stroke-lesion-segmentation/output.nii.gz` is scored."
+            "required_output": "A binary lesion mask (NIfTI, {0,1}) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write the binary mask to `submissions/clinical-stroke-lesion-segmentation/{subject}/output.nii.gz` under your working directory — create the `submissions/clinical-stroke-lesion-segmentation/{subject}/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/clinical-stroke-lesion-segmentation/{subject}/`. Only `submissions/clinical-stroke-lesion-segmentation/{subject}/output.nii.gz` is scored.",
+            "subject_note": "This task runs once per subject in `dataset.subjects`. {subject} in the goal and in the output paths is replaced with the subject being run."
           },
           "solution": {
             "ground_truth": "Expert manual lesion tracing shipped with ARC (drawn in T2w space), rigid-registered into native T1w space. A genuine gold standard — NOT a tool consensus (automated lesion tools disagree too much). lesion_mask.nii.gz on OSF.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path clinical_gt/clinical-stroke-lesion-segmentation/ (lesion_mask.nii.gz)",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path clinical_gt/clinical-stroke-lesion-segmentation/{subject}/ (lesion_mask.nii.gz)",
             "metric": "expert-mask: verdict {indistinguishable|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from Dice + lesion-wise detection F1 + volume error (fixed literature thresholds)",
             "pass_criterion": "A binary lesion mask {0,1} in native T1w space; nonempty and volume-plausible; Dice and lesion-wise overlap with the expert mask above the fixed pass lines; No processing errors; logs captured",
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
