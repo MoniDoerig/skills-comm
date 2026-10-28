@@ -1,0 +1,92 @@
+{
+  "reference_tools": [
+    "HD_BET",
+    "AFNI",
+    "SynthStrip"
+  ],
+  "weights": {
+    "nsd": 0.3,
+    "core_recall": 0.25,
+    "bg_fp_frac_of_ref": 0.2,
+    "hd95_mm": 0.15,
+    "abs_volume_err_pct": 0.1
+  },
+  "slack": 1.5,
+  "focal_bg_max_cm3": 40.0,
+  "gates": [
+    "binary",
+    "native_grid",
+    "no_catastrophic_core_loss",
+    "no_focal_bg_inclusion",
+    "no_focal_core_loss",
+    "no_internal_holes",
+    "nonempty",
+    "single_component",
+    "stripped_matches_mask",
+    "volume_plausible"
+  ],
+  "plausible_volume_cm3": [
+    900.0,
+    1900.0
+  ],
+  "verdict_thresholds": {
+    "acceptable": 60,
+    "marginal": 30
+  },
+  "lesion_retained_min": 0.85,
+  "item": "skullstrip_ds004884_sub-M2282",
+  "prompt": "Skull-strip the T1-weighted image of sub-M2282 (ds004884, OpenNeuro), producing a brain-extracted image and a binary brain mask in the native T1w space.",
+  "grid": {
+    "shape": [
+      192,
+      256,
+      256
+    ],
+    "zooms_mm": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "consensus": {
+    "method": "STAPLE p>=0.5",
+    "volume_cm3": 1553.542,
+    "core_cm3": 1467.472,
+    "margin_cm3": 227.177
+  },
+  "tau_mm": 5.385164807134504,
+  "envelope": {
+    "nsd": {
+      "best": 0.9643,
+      "median": 0.9355,
+      "worst": 0.9306
+    },
+    "core_recall": {
+      "best": 0.999,
+      "median": 0.974,
+      "worst": 0.9699
+    },
+    "assd_mm": {
+      "best": 1.8042,
+      "median": 2.2577,
+      "worst": 2.4126
+    },
+    "hd95_mm": {
+      "best": 4.899,
+      "median": 5.9161,
+      "worst": 6.3246
+    },
+    "bg_fp_frac_of_ref": {
+      "best": 0.0014,
+      "median": 0.004,
+      "worst": 0.0844
+    },
+    "abs_volume_err_pct": {
+      "best": 7.7617,
+      "median": 10.2552,
+      "worst": 10.3634
+    }
+  },
+  "focal_max_cm3": 42.516,
+  "focal_basis": "max(1.5 x worst held-out focal miss, 5.0 cm3 floor); worst 28.34 cm3 on dropping HD_BET"
+}

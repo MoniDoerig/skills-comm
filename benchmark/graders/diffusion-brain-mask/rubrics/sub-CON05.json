@@ -1,0 +1,91 @@
+{
+  "reference_tools": [
+    "SynthStrip",
+    "HD_BET",
+    "AFNI_SS"
+  ],
+  "weights": {
+    "nsd": 0.3,
+    "core_recall": 0.25,
+    "bg_fp_frac_of_ref": 0.2,
+    "hd95_mm": 0.15,
+    "abs_volume_err_pct": 0.1
+  },
+  "slack": 1.5,
+  "focal_bg_max_cm3": 40.0,
+  "gates": [
+    "binary",
+    "native_grid",
+    "no_catastrophic_core_loss",
+    "no_focal_bg_inclusion",
+    "no_focal_core_loss",
+    "no_internal_holes",
+    "nonempty",
+    "single_component",
+    "stripped_matches_mask",
+    "volume_plausible"
+  ],
+  "plausible_volume_cm3": [
+    1020.0,
+    2290.0
+  ],
+  "verdict_thresholds": {
+    "acceptable": 60,
+    "marginal": 30
+  },
+  "item": "dwimask_ds001226_sub-CON05",
+  "prompt": "Extract a b0 volume from the diffusion series of sub-CON05 (ses-preop, ds001226, OpenNeuro) and produce a binary brain mask on the diffusion grid.",
+  "grid": {
+    "shape": [
+      96,
+      96,
+      60
+    ],
+    "zooms_mm": [
+      2.5,
+      2.5,
+      2.5
+    ]
+  },
+  "consensus": {
+    "method": "STAPLE p>=0.5",
+    "volume_cm3": 1561.1719,
+    "core_cm3": 1452.75,
+    "margin_cm3": 196.6406
+  },
+  "tau_mm": 5.5901699437494745,
+  "envelope": {
+    "nsd": {
+      "best": 0.9938,
+      "median": 0.9795,
+      "worst": 0.9497
+    },
+    "core_recall": {
+      "best": 0.991,
+      "median": 0.9712,
+      "worst": 0.9652
+    },
+    "assd_mm": {
+      "best": 1.4776,
+      "median": 1.8654,
+      "worst": 1.9943
+    },
+    "hd95_mm": {
+      "best": 3.5355,
+      "median": 5.0,
+      "worst": 6.1237
+    },
+    "bg_fp_frac_of_ref": {
+      "best": 0.0171,
+      "median": 0.0179,
+      "worst": 0.0195
+    },
+    "abs_volume_err_pct": {
+      "best": 2.8404,
+      "median": 4.531,
+      "worst": 4.7913
+    }
+  },
+  "focal_max_cm3": 44.2031,
+  "focal_basis": "max(1.5 x worst held-out focal miss, 5.0 cm3 floor); worst 29.47 cm3 on dropping AFNI_SS"
+}

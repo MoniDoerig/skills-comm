@@ -194,10 +194,34 @@ def subscore(value, env, key, slack):
     return float(np.clip((value - fail) / max(good - fail, 1e-9), 0, 1))
 
 
+def subject_rubric(pack):
+    """The rubric to grade against.
+
+    `tau_mm`, `focal_max_cm3`, the consensus volumes and the grid all belong to one
+    subject. A pack that holds a rubrics/ directory is graded per subject, and
+    fetch_reference.py --subject selects that subject's rubric into reference/.
+
+    There is deliberately no fallback for such a pack. Quietly grading one subject
+    against another's calibration is the failure this split exists to prevent, and it
+    would be invisible in the result: the run would simply apply the wrong boundary
+    tolerance and the wrong focal cap. A missing selection is an error.
+    """
+    fetched = pack / "reference" / "rubric.json"
+    if fetched.is_file():
+        return fetched
+    if (pack / "rubrics").is_dir():
+        have = sorted(p.stem for p in (pack / "rubrics").glob("*.json"))
+        raise SystemExit(
+            f"ERROR: {pack.name} is graded per subject and no subject rubric has been "
+            f"selected.\nRun: fetch_reference.py --task {pack.name} --subject <subject>\n"
+            f"Subjects: {', '.join(have)}")
+    return pack / "rubric.json"
+
+
 def score(mask_path, pack_dir, stripped_path=None):
     """Grade one submission. Returns a dict with verdict, quality, metrics, gates."""
     pack = Path(pack_dir)
-    rubric = json.load(open(pack / "rubric.json"))
+    rubric = json.load(open(subject_rubric(pack)))
     ref_dir = pack / "reference"
     missing = [f for f in ("consensus_mask.nii.gz", "consensus_zones.nii.gz")
                if not (ref_dir / f).exists()]
@@ -212,6 +236,21 @@ def score(mask_path, pack_dir, stripped_path=None):
     ref_binary = np.asanyarray(ref_img.dataobj) > BIN_TOL
     zooms = np.asarray(ref_img.header.get_zooms()[:3], float)
     vox_cm3 = float(np.prod(zooms) / 1000.0)
+
+    # The rubric must belong to the reference it is grading. Grid shape does not prove it
+    # -- subjects of one task share a matrix -- but the core volume is specific to the
+    # brain, so it is checked against the zones actually loaded. This catches a rubric
+    # selected for the wrong subject, which would otherwise score silently and wrongly.
+    stated_core = (rubric.get("consensus") or {}).get("core_cm3")
+    if stated_core:
+        measured_core = float((zones == 2).sum() * vox_cm3)
+        if abs(measured_core - stated_core) > 0.02 * stated_core:
+            raise SystemExit(
+                f"ERROR: this rubric does not describe this reference. It states a core of "
+                f"{stated_core:.2f} cm3; the loaded consensus_zones.nii.gz has "
+                f"{measured_core:.2f} cm3. The rubric and the reference are for different "
+                f"subjects.")
+
     raw_shape = rubric["grid"].get("raw_shape")
     raw_affine = rubric["grid"].get("raw_affine")
 

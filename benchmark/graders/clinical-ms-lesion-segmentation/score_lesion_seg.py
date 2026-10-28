@@ -111,14 +111,50 @@ def subscore(value, full, pass_, lower_better=False):
     return float(np.clip((value - pass_) / max(full - pass_, 1e-9), 0, 1))
 
 
+def subject_rubric(pack):
+    """The rubric to grade against.
+
+    `tau_mm`, `focal_max_cm3`, the consensus volumes and the grid all belong to one
+    subject. A pack that holds a rubrics/ directory is graded per subject, and
+    fetch_reference.py --subject selects that subject's rubric into reference/.
+
+    There is deliberately no fallback for such a pack. Quietly grading one subject
+    against another's calibration is the failure this split exists to prevent, and it
+    would be invisible in the result: the run would simply apply the wrong boundary
+    tolerance and the wrong focal cap. A missing selection is an error.
+    """
+    fetched = pack / "reference" / "rubric.json"
+    if fetched.is_file():
+        return fetched
+    if (pack / "rubrics").is_dir():
+        have = sorted(p.stem for p in (pack / "rubrics").glob("*.json"))
+        raise SystemExit(
+            f"ERROR: {pack.name} is graded per subject and no subject rubric has been "
+            f"selected.\nRun: fetch_reference.py --task {pack.name} --subject <subject>\n"
+            f"Subjects: {', '.join(have)}")
+    return pack / "rubric.json"
+
+
 def score(pred_path, pack_dir):
-    pack = Path(pack_dir); rubric = json.load(open(pack / "rubric.json"))
+    pack = Path(pack_dir); rubric = json.load(open(subject_rubric(pack)))
     ref_p = pack / "reference" / "lesion_mask.nii.gz"
     if not ref_p.exists():
         raise SystemExit(f"ERROR: reference/lesion_mask.nii.gz not in {pack/'reference'}. "
                          "Fetch it with benchmark/harness/fetch_reference.py.")
     rimg = nib.as_closest_canonical(nib.load(str(ref_p)))
     ref = np.asanyarray(rimg.dataobj) > BIN_TOL
+    # The rubric must belong to the reference it is grading. This task has no consensus
+    # volume to compare, but each subject's scan has its own affine, so that is what is
+    # checked: a rubric selected for another subject is refused rather than applied.
+    want_aff = (rubric.get("grid") or {}).get("raw_affine")
+    if want_aff is not None:
+        have_aff = nib.load(str(ref_p)).affine
+        if not np.allclose(np.asarray(want_aff, float), have_aff, atol=1e-3):
+            raise SystemExit(
+                "ERROR: this rubric does not describe this reference -- its grid affine "
+                "does not match lesion_mask.nii.gz. The rubric and the reference are for "
+                "different subjects.")
+
     zooms = np.asarray(rimg.header.get_zooms()[:3], float)
     vox_cm3 = float(np.prod(zooms) / 1000.0)
 

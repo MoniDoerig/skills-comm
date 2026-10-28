@@ -20,3 +20,8 @@ that was granted access. Gating is what keeps the reference out of the plane whe
 Pinning the revision means a grading run scores against an exact, named reference set.
 
 `rubric.json` carries every calibrated number the grader needs.
+
+The thresholds are not here. Each subject's rubric is tracked in the repo at
+`../rubrics/<subject>.json`, and the fetch command above copies the one being graded
+to `rubric.json` in this directory. Keeping them in git means the grading criteria can
+be read without access to the gated data, and they version with the scorer.

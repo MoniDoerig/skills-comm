@@ -1,0 +1,102 @@
+{
+  "reference_tools": [
+    "HD_BET",
+    "AFNI",
+    "SynthStrip",
+    "BET_R"
+  ],
+  "weights": {
+    "nsd": 0.3,
+    "core_recall": 0.25,
+    "bg_fp_frac_of_ref": 0.2,
+    "hd95_mm": 0.15,
+    "abs_volume_err_pct": 0.1
+  },
+  "slack": 1.5,
+  "focal_bg_max_cm3": 40.0,
+  "gates": [
+    "binary",
+    "no_catastrophic_core_loss",
+    "no_focal_bg_inclusion",
+    "no_focal_core_loss",
+    "no_internal_holes",
+    "nonempty",
+    "single_component",
+    "stripped_matches_mask",
+    "volume_plausible"
+  ],
+  "plausible_volume_cm3": [
+    900.0,
+    1900.0
+  ],
+  "verdict_thresholds": {
+    "acceptable": 60,
+    "marginal": 30
+  },
+  "_pack": {
+    "reference": {
+      "host": "Hugging Face neurodeskorg/skills-comm-ground-truth, path structural_gt/structural-brain-extraction-pediatric/",
+      "files": [
+        "consensus_mask.nii.gz",
+        "consensus_zones.nii.gz (0=bg,1=margin,2=core)"
+      ],
+      "fetch_into": "reference/ before grading - see reference/README.md"
+    },
+    "note": "Frozen once from HD_BET+AFNI+SynthStrip+BET_R on ds000228 sub-pixar017 (~3.6 yo, clean FOV). Scoring never re-calibrates. Reference data on the Hugging Face Hub; code on GitHub."
+  },
+  "item": "skullstrip_ds000228_sub-pixar012",
+  "prompt": "Skull-strip the T1-weighted image of sub-pixar012 (ds000228, OpenNeuro), producing a brain-extracted image and a binary brain mask in the native T1w space.",
+  "grid": {
+    "shape": [
+      176,
+      192,
+      192
+    ],
+    "zooms_mm": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "consensus": {
+    "method": "STAPLE p>=0.5",
+    "volume_cm3": 1309.852,
+    "core_cm3": 1269.134,
+    "margin_cm3": 184.736
+  },
+  "tau_mm": 4.69041575982343,
+  "envelope": {
+    "nsd": {
+      "best": 0.9816,
+      "median": 0.9689,
+      "worst": 0.9244
+    },
+    "core_recall": {
+      "best": 0.9998,
+      "median": 0.9915,
+      "worst": 0.9856
+    },
+    "assd_mm": {
+      "best": 0.9854,
+      "median": 1.082,
+      "worst": 1.8554
+    },
+    "hd95_mm": {
+      "best": 3.0,
+      "median": 3.3708,
+      "worst": 5.3852
+    },
+    "bg_fp_frac_of_ref": {
+      "best": 0.0,
+      "median": 0.0061,
+      "worst": 0.0596
+    },
+    "abs_volume_err_pct": {
+      "best": 0.0597,
+      "median": 2.4962,
+      "worst": 9.2943
+    }
+  },
+  "focal_max_cm3": 6.6705,
+  "focal_basis": "max(1.5 x worst held-out focal miss, 5.0 cm3 floor); worst 4.45 cm3 on dropping HD_BET"
+}

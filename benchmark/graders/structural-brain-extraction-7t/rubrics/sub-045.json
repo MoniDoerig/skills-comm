@@ -1,0 +1,90 @@
+{
+  "reference_tools": [
+    "ANTs_INV2",
+    "HD_BET",
+    "SynthStrip_b2"
+  ],
+  "weights": {
+    "nsd": 0.3,
+    "core_recall": 0.25,
+    "bg_fp_frac_of_ref": 0.2,
+    "hd95_mm": 0.15,
+    "abs_volume_err_pct": 0.1
+  },
+  "slack": 1.5,
+  "focal_basis": "max(1.5 x worst held-out focal miss, 5.0 cm3 floor); worst 84.48 cm3 on dropping HD_BET",
+  "focal_bg_max_cm3": 40.0,
+  "plausible_volume_cm3": [
+    900.0,
+    1900.0
+  ],
+  "verdict_thresholds": {
+    "acceptable": 60,
+    "marginal": 30
+  },
+  "gates": [
+    "binary",
+    "native_grid",
+    "no_catastrophic_core_loss",
+    "no_focal_bg_inclusion",
+    "no_focal_core_loss",
+    "single_component",
+    "no_internal_holes",
+    "volume_plausible",
+    "nonempty"
+  ],
+  "item": "skullstrip_ds003642_sub-045",
+  "prompt": "Skull-strip the 7T MP2RAGE image of sub-045 (ds003642, OpenNeuro), producing a brain-extracted image and a binary brain mask in the input's native space.",
+  "grid": {
+    "shape": [
+      256,
+      352,
+      224
+    ],
+    "zooms_mm": [
+      0.63,
+      0.625,
+      0.625
+    ]
+  },
+  "consensus": {
+    "method": "STAPLE p>=0.5",
+    "volume_cm3": 1227.3072,
+    "core_cm3": 1130.7924,
+    "margin_cm3": 192.8393
+  },
+  "tau_mm": 4.148807057456397,
+  "envelope": {
+    "nsd": {
+      "best": 0.9898,
+      "median": 0.989,
+      "worst": 0.8907
+    },
+    "core_recall": {
+      "best": 0.9971,
+      "median": 0.9933,
+      "worst": 0.9296
+    },
+    "assd_mm": {
+      "best": 1.4813,
+      "median": 1.5128,
+      "worst": 2.6716
+    },
+    "hd95_mm": {
+      "best": 2.7951,
+      "median": 3.066,
+      "worst": 4.9045
+    },
+    "bg_fp_frac_of_ref": {
+      "best": 0.0028,
+      "median": 0.0206,
+      "worst": 0.0524
+    },
+    "abs_volume_err_pct": {
+      "best": 2.2223,
+      "median": 3.5504,
+      "worst": 13.2383
+    }
+  },
+  "focal_max_cm3": 126.7134
+}

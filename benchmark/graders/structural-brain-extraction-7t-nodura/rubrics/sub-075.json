@@ -1,0 +1,93 @@
+{
+  "reference_tools": [
+    "ANTs_INV2",
+    "HD_BET",
+    "SynthStrip_b2"
+  ],
+  "weights": {
+    "nsd": 0.3,
+    "core_recall": 0.25,
+    "bg_fp_frac_of_ref": 0.2,
+    "hd95_mm": 0.15,
+    "abs_volume_err_pct": 0.1
+  },
+  "slack": 1.5,
+  "focal_basis": "max(1.5 x worst held-out focal miss, 5.0 cm3 floor); worst 64.55 cm3 on dropping HD_BET",
+  "focal_bg_max_cm3": 40.0,
+  "plausible_volume_cm3": [
+    900.0,
+    1900.0
+  ],
+  "verdict_thresholds": {
+    "acceptable": 60,
+    "marginal": 30
+  },
+  "gates": [
+    "binary",
+    "native_grid",
+    "no_catastrophic_core_loss",
+    "no_dura_inclusion",
+    "no_focal_bg_inclusion",
+    "no_focal_core_loss",
+    "single_component",
+    "no_internal_holes",
+    "volume_plausible",
+    "nonempty"
+  ],
+  "dura_max_cm3": 50.0,
+  "dura_basis": "Recalibrated for the HD-BET + SynthStrip(-b -2) + ANTs(INV2) panel. The reference consensus reaches 15.2-33.7 cm3 beyond the pial envelope across the three subjects, so the cap must exceed 33.7 for the ground truth to pass its own gate; it must stay below 117.7, the smallest over-envelope volume among masks the gate exists to reject (SynthStrip at its default border, 117.7-194.8 cm3 across subjects). 50 cm3 gives the reference about 48% headroom inside that window. Deliberately tighter than the widest single panel member (ANTs at 33.2-73.1 cm3): a panel member is one opinion used to form the consensus, not a model answer, and the task asks for a mask with the dura removed.",
+  "item": "skullstrip_ds003642_sub-075_nodura",
+  "prompt": "Skull-strip the 7T MP2RAGE image of sub-075 (ds003642, OpenNeuro) AND remove the dura, producing a brain-extracted image and a binary brain mask in the input's native space.",
+  "grid": {
+    "shape": [
+      256,
+      352,
+      224
+    ],
+    "zooms_mm": [
+      0.63,
+      0.625,
+      0.625
+    ]
+  },
+  "consensus": {
+    "method": "STAPLE p>=0.5",
+    "volume_cm3": 1202.0693,
+    "core_cm3": 1120.8283,
+    "margin_cm3": 166.3335
+  },
+  "tau_mm": 3.8535730173437743,
+  "envelope": {
+    "nsd": {
+      "best": 0.9844,
+      "median": 0.9788,
+      "worst": 0.8984
+    },
+    "core_recall": {
+      "best": 0.9961,
+      "median": 0.9911,
+      "worst": 0.9437
+    },
+    "assd_mm": {
+      "best": 1.3362,
+      "median": 1.3906,
+      "worst": 2.2327
+    },
+    "hd95_mm": {
+      "best": 2.9358,
+      "median": 3.1869,
+      "worst": 4.4308
+    },
+    "bg_fp_frac_of_ref": {
+      "best": 0.0061,
+      "median": 0.0224,
+      "worst": 0.0396
+    },
+    "abs_volume_err_pct": {
+      "best": 0.2394,
+      "median": 2.6296,
+      "worst": 10.6458
+    }
+  },
+  "focal_max_cm3": 96.8212
+}

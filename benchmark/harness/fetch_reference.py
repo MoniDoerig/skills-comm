@@ -80,6 +80,17 @@ def fetch(task_id, manifest_path, graders_root=None, force=False, revision=None,
         # Copy out of the shared cache so the pack owns its reference and a later cache sweep
         # cannot empty it mid-run.
         shutil.copyfile(got, local)
+    # The rubric is code, not reference data: thresholds stay in the repo so the grading
+    # criteria can be read without access to the gated dataset, and so they version with
+    # the scorer that applies them. A per-subject task keeps one per subject; the chosen
+    # one is placed where the scorer looks.
+    if subject:
+        src = root / spec["pack_dir"] / "rubrics" / f"{subject}.json"
+        if not src.is_file():
+            raise SystemExit(f"ERROR: no rubric for {subject} at {src}")
+        shutil.copyfile(src, dest / "rubric.json")
+        print(f"  [rubric] {src.name} -> {dest / 'rubric.json'}")
+
     print(f"reference ready: {dest}")
     return dest
 
