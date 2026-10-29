@@ -74,16 +74,16 @@ property of multifocal MS at 1 mm, not a scoring artefact.
 
 ```
 clinical-ms-lesion-segmentation/
-├── rubric.json          # fixed metric thresholds, weights, verdict thresholds, grid
+├── rubrics/<subject>.json  # per-subject fixed metric thresholds, weights, verdict thresholds, grid
 ├── score_lesion_seg.py  # the lesion scorer (shared with the stroke and WMH packs)
-├── reference/           # expert consensus mask — fetched from the Hub
+├── reference/           # expert consensus mask — fetched from the Hub, plus the selected rubric.json
 │   ├── README.md
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `clinical_gt/clinical-ms-lesion-segmentation/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `clinical_gt/clinical-ms-lesion-segmentation/<subject>/`.
 
 ## Verdicts
 

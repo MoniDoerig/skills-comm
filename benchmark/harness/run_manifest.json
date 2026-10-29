@@ -223,9 +223,17 @@
       "pred_flag": "--pred",
       "detail_kind": "binary",
       "optional_inputs": {},
-      "ref_dir": "clinical_gt/clinical-ms-lesion-segmentation",
+      "ref_dir": "clinical_gt/clinical-ms-lesion-segmentation/{subject}",
       "reference_files": [
         "lesion_mask.nii.gz"
+      ],
+      "per_subject": true,
+      "subjects": [
+        "patient01",
+        "patient03",
+        "patient08",
+        "patient12",
+        "patient14"
       ]
     },
     "clinical-wmh-segmentation": {

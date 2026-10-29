@@ -117,7 +117,7 @@ harness decides what to do with a flagged run.
 ## Reference data
 
 `reference/lesion_mask.nii.gz` is **not** in git — it lives on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
-`clinical_gt/clinical-ms-lesion-segmentation/`). Fetch it before grading; see
+`clinical_gt/clinical-ms-lesion-segmentation/<subject>/`). Fetch it before grading; see
 `reference/README.md`. Everything else the grader needs is in `rubric.json`. The Ljubljana database
 is CC-BY, so the mask is redistributable with attribution.
 

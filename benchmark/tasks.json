@@ -1787,22 +1787,27 @@
         "clinical-ms-lesion-segmentation": {
           "title": "MS white-matter lesion segmentation",
           "grading": "automated",
-          "description": "Segment the multiple-sclerosis white-matter lesions of patient01 of the open_ms_data cross-sectional dataset (Ljubljana MS database) on FLAIR, producing a binary lesion mask in the supplied co-registered 1 mm FLAIR space, graded against the expert multi-rater consensus mask.",
+          "description": "Segment the multiple-sclerosis white-matter lesions of {subject} of the open_ms_data cross-sectional dataset (Ljubljana MS database) on FLAIR, producing a binary lesion mask in the supplied co-registered 1 mm FLAIR space, graded against the expert multi-rater consensus mask.",
           "prompt": {
-            "goal": "Segment the multiple-sclerosis white-matter lesions of patient01 of the open_ms_data cross-sectional dataset (Ljubljana MS database) on the FLAIR image.\n\nDATA - open, no login (CC-BY). This dataset is NOT on OpenNeuro; do not use datalad. Download the three input files with:\n  mkdir -p ms_input\n  for f in FLAIR T1W brainmask; do curl -sSL --retry 3 https://raw.githubusercontent.com/muschellij2/open_ms_data/65704901f60650824565aa5a4818611aa89716f4/cross_sectional/coregistered_resampled/patient01/$f.nii.gz -o ms_input/$f.nii.gz; done\nms_input/FLAIR.nii.gz is the segmentation input; ms_input/T1W.nii.gz is the co-registered T1 (optional to use); ms_input/brainmask.nii.gz bounds the brain. All three share one grid.\n\nOUTPUT - a single binary lesion mask (NIfTI, values {0,1}) restricted to the brain mask, on the grid of ms_input/FLAIR.nii.gz: the same shape and affine (154x240x240, 1 mm isotropic). Do not resample to any other space.",
+            "goal": "Segment the multiple-sclerosis white-matter lesions of {subject} of the open_ms_data cross-sectional dataset (Ljubljana MS database) on the FLAIR image.\n\nDATA - open, no login (CC-BY). This dataset is NOT on OpenNeuro; do not use datalad. Download the three input files with:\n  mkdir -p ms_input\n  for f in FLAIR T1W brainmask; do curl -sSL --retry 3 https://raw.githubusercontent.com/muschellij2/open_ms_data/65704901f60650824565aa5a4818611aa89716f4/cross_sectional/coregistered_resampled/{subject}/$f.nii.gz -o ms_input/$f.nii.gz; done\nms_input/FLAIR.nii.gz is the segmentation input; ms_input/T1W.nii.gz is the co-registered T1 (optional to use); ms_input/brainmask.nii.gz bounds the brain. All three share one grid.\n\nOUTPUT - a single binary lesion mask (NIfTI, values {0,1}) restricted to the brain mask, on the grid of ms_input/FLAIR.nii.gz: the same shape and affine (154x240x240, 1 mm isotropic). Do not resample to any other space.",
             "dataset": {
               "source": "github",
               "id": "muschellij2/open_ms_data",
               "version_pin": "65704901f60650824565aa5a4818611aa89716f4",
               "subjects": [
-                "patient01"
+                "patient01",
+                "patient03",
+                "patient08",
+                "patient12",
+                "patient14"
               ]
             },
-            "required_output": "A binary lesion mask (NIfTI, {0,1}) on the grid of the supplied FLAIR - same shape and affine. Do not resample to any other space.\n\nOUTPUT LOCATION (exact, mandatory): write the binary mask to `submissions/clinical-ms-lesion-segmentation/output.nii.gz` under your working directory - create the `submissions/clinical-ms-lesion-segmentation/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/clinical-ms-lesion-segmentation/`. Only `submissions/clinical-ms-lesion-segmentation/output.nii.gz` is scored."
+            "required_output": "A binary lesion mask (NIfTI, {0,1}) on the grid of the supplied FLAIR - same shape and affine. Do not resample to any other space.\n\nOUTPUT LOCATION (exact, mandatory): write the binary mask to `submissions/clinical-ms-lesion-segmentation/{subject}/output.nii.gz` under your working directory - create the `submissions/clinical-ms-lesion-segmentation/{subject}/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/clinical-ms-lesion-segmentation/{subject}/`. Only `submissions/clinical-ms-lesion-segmentation/{subject}/output.nii.gz` is scored.",
+            "subject_note": "This task runs once per subject in `dataset.subjects`. {subject} in the goal and in the output paths is replaced with the subject being run."
           },
           "solution": {
             "ground_truth": "Expert multi-rater consensus lesion mask shipped with the Ljubljana MS database - three expert raters segmented the patient independently and the released mask is their consensus. A genuine gold standard, NOT a tool consensus (automated MS lesion tools span Dice 0.50-0.74 on this cohort). Voxel data as published, on the header of the FLAIR handed to the agent (the published mask's own header misses it by <= 0.4 mm). lesion_mask.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path clinical_gt/clinical-ms-lesion-segmentation/ (lesion_mask.nii.gz)",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path clinical_gt/clinical-ms-lesion-segmentation/{subject}/ (lesion_mask.nii.gz)",
             "metric": "expert-mask: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from Dice + lesion-wise detection F1 + volume error (thresholds fixed from published results on this same cohort)",
             "pass_criterion": "A binary lesion mask {0,1} on the supplied FLAIR grid; nonempty and volume-plausible (0.5-150 cm3); Dice and lesion-wise overlap with the expert consensus above the fixed lines; No processing errors; logs captured",
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
