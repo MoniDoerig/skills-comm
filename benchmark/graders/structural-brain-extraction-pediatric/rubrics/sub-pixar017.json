@@ -47,15 +47,47 @@
   "item": "skullstrip_ds000228_sub-pixar017",
   "prompt": "Skull-strip the T1-weighted image of sub-pixar017 (ds000228, OpenNeuro), producing a brain-extracted image and a binary brain mask in the native T1w space.",
   "grid": {
+    "tool": "HD_BET",
     "shape": [
       176,
       192,
       192
     ],
     "zooms_mm": [
-      1.0,
+      0.9999982714653015,
       1.0,
       1.0
+    ],
+    "raw_shape": [
+      176,
+      192,
+      192
+    ],
+    "raw_affine": [
+      [
+        0.9833299517631531,
+        -0.1622697114944458,
+        -0.08202079683542252,
+        -61.68656921386719
+      ],
+      [
+        0.15160976350307465,
+        0.9807872176170349,
+        -0.12276314198970795,
+        -50.217987060546875
+      ],
+      [
+        0.10036550462245941,
+        0.108281709253788,
+        0.9890408515930176,
+        -141.1464080810547
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     ]
   },
   "consensus": {

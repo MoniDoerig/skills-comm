@@ -36,6 +36,7 @@
   "item": "dwimask_ds001226_sub-CON03",
   "prompt": "Extract a b0 volume from the diffusion series of sub-CON03 (ses-preop, ds001226, OpenNeuro) and produce a binary brain mask on the diffusion grid.",
   "grid": {
+    "tool": "SynthStrip",
     "shape": [
       96,
       96,
@@ -45,6 +46,37 @@
       2.5,
       2.5,
       2.5
+    ],
+    "raw_shape": [
+      96,
+      96,
+      60
+    ],
+    "raw_affine": [
+      [
+        2.4994916915893555,
+        -1.2045921948811156e-07,
+        0.05041082948446274,
+        -116.99181365966797
+      ],
+      [
+        0.004988736938685179,
+        2.4877288341522217,
+        -0.24734780192375183,
+        -94.88282012939453
+      ],
+      [
+        -0.050163377076387405,
+        0.24739806354045868,
+        2.487222909927368,
+        -60.08492660522461
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     ]
   },
   "consensus": {

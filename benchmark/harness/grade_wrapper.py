@@ -92,8 +92,12 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
     pack = root / spec["pack_dir"]
     if not scorer.exists():
         raise SystemExit(f"ERROR: scorer not found: {scorer}")
-    if not (pack / "rubric.json").exists():
-        raise SystemExit(f"ERROR: rubric.json missing in pack: {pack}")
+    # A pack carries either one rubric, or a rubrics/ directory with one per subject that
+    # fetch_reference.py --subject selects into reference/. Requiring rubric.json of a
+    # per-subject pack would mean keeping a copy of one subject's calibration at the pack
+    # root, where nothing reads it and nothing says which subject it describes.
+    if not ((pack / "rubric.json").exists() or (pack / "rubrics").is_dir()):
+        raise SystemExit(f"ERROR: no rubric.json and no rubrics/ in pack: {pack}")
 
     out_rel = (spec.get("submission_output_path")
                or manifest["defaults"]["submission_output_path"]).format(task_id=task_id)

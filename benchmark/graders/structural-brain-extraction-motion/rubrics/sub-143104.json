@@ -47,6 +47,7 @@
   "item": "skullstrip_ds004173_sub-143104",
   "prompt": "Skull-strip the acq-headmotion2 T1-weighted image of sub-143104 (ds004173, OpenNeuro), producing a brain-extracted image and a binary brain mask in the native T1w space.",
   "grid": {
+    "tool": "HD_BET",
     "shape": [
       192,
       256,
@@ -56,6 +57,37 @@
       1.0,
       1.0,
       1.0
+    ],
+    "raw_shape": [
+      192,
+      256,
+      256
+    ],
+    "raw_affine": [
+      [
+        0.9955159425735474,
+        -0.06428663432598114,
+        0.06939204037189484,
+        -96.71096801757812
+      ],
+      [
+        0.07864654809236526,
+        0.9701160192489624,
+        -0.2295420914888382,
+        -79.58770751953125
+      ],
+      [
+        -0.052561841905117035,
+        0.2339702546596527,
+        0.9708219170570374,
+        -181.240478515625
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
     ]
   },
   "consensus": {
