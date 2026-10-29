@@ -111,8 +111,28 @@ def subscore(value, full, pass_, lower_better=False):
     return float(np.clip((value - pass_) / max(full - pass_, 1e-9), 0, 1))
 
 
+def subject_rubric(pack):
+    """The rubric to grade against.
+
+    A pack that holds a rubrics/ directory is graded per subject, and
+    fetch_reference.py --subject selects that subject's rubric into reference/. There is
+    deliberately no fallback for such a pack: grading one subject against another's
+    calibration would produce a plausible wrong number rather than an error.
+    """
+    fetched = pack / "reference" / "rubric.json"
+    if fetched.is_file():
+        return fetched
+    if (pack / "rubrics").is_dir():
+        have = sorted(p.stem for p in (pack / "rubrics").glob("*.json"))
+        raise SystemExit(
+            f"ERROR: {pack.name} is graded per subject and no subject rubric has been "
+            f"selected.\nRun: fetch_reference.py --task {pack.name} --subject <subject>\n"
+            f"Subjects: {', '.join(have)}")
+    return pack / "rubric.json"
+
+
 def score(pred_path, pack_dir):
-    pack = Path(pack_dir); rubric = json.load(open(pack / "rubric.json"))
+    pack = Path(pack_dir); rubric = json.load(open(subject_rubric(pack)))
     ref_p = pack / "reference" / "lesion_mask.nii.gz"
     if not ref_p.exists():
         raise SystemExit(f"ERROR: reference/lesion_mask.nii.gz not in {pack/'reference'}. "

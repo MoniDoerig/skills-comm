@@ -1,0 +1,209 @@
+{
+  "panel": [
+    "CEREBRUM7T",
+    "FreeSurfer_v6",
+    "FreeSurfer_v7"
+  ],
+  "labels": {
+    "1": "GM",
+    "2": "basal_ganglia",
+    "3": "WM",
+    "4": "ventricles",
+    "5": "cerebellum",
+    "6": "brainstem"
+  },
+  "weights": {
+    "dice": 0.5,
+    "nsd": 0.3,
+    "core_recall": 0.2
+  },
+  "slack": 1.5,
+  "core_recall_floor": 0.5,
+  "gates": [
+    "native_grid",
+    "no_class_collapse",
+    "valid_labels"
+  ],
+  "verdict_thresholds": {
+    "acceptable": 60,
+    "marginal": 30
+  },
+  "label_definitions": {
+    "1": "grey matter \u2014 cortical grey matter",
+    "2": "basal ganglia \u2014 deep grey nuclei (caudate, putamen, pallidum)",
+    "3": "white matter \u2014 cerebral white matter",
+    "4": "ventricles \u2014 ventricular CSF only (lateral/3rd/4th ventricles); NOT sulcal CSF",
+    "5": "cerebellum \u2014 entire cerebellum (grey + white)",
+    "6": "brainstem \u2014 midbrain, pons, medulla"
+  },
+  "collapse_margin": 0.2,
+  "item": "tissueseg_ds003642_sub-045",
+  "prompt": "Parcellate the 7T MP2RAGE image of sub-045 (ds003642, OpenNeuro) into an integer label map of six brain structures in native T1w space: 1=grey matter (cortical grey matter), 2=basal ganglia (deep grey nuclei: caudate, putamen, pallidum), 3=white matter (cerebral white matter), 4=ventricles (ventricular CSF only \u2014 lateral/3rd/4th ventricles, NOT sulcal CSF), 5=cerebellum (entire cerebellum, grey+white), 6=brainstem (midbrain, pons, medulla).",
+  "grid": {
+    "tool": "CEREBRUM7T",
+    "shape": [
+      256,
+      352,
+      224
+    ],
+    "zooms_mm": [
+      0.6299999952316284,
+      0.625,
+      0.625
+    ],
+    "raw_shape": [
+      256,
+      352,
+      224
+    ],
+    "raw_affine": [
+      [
+        0.6299972534179688,
+        0.0,
+        0.0,
+        -78.59728240966797
+      ],
+      [
+        0.0,
+        0.587307870388031,
+        -0.21376261115074158,
+        -45.58379364013672
+      ],
+      [
+        0.0,
+        0.21376261115074158,
+        0.587307870388031,
+        -167.41104125976562
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "consensus": {
+    "method": "majority vote (>=2/3) over 7 classes",
+    "class_volume_cm3": {
+      "1": 466.5393597500865,
+      "2": 43.52537076431327,
+      "3": 357.31606370178054,
+      "4": 15.410882695857437,
+      "5": 105.37291326494888,
+      "6": 16.216839721007275
+    }
+  },
+  "tau_mm": {
+    "1": 1.406493859200035,
+    "2": 1.5329791237951846,
+    "3": 0.8874260498722425,
+    "4": 1.0854261808118744,
+    "5": 4.3417047232474975,
+    "6": 2.5963483787561388
+  },
+  "envelope": {
+    "1": {
+      "dice": {
+        "median": 0.7459849862237007,
+        "worst": 0.7195649247706244,
+        "best": 0.7499382804123638
+      },
+      "nsd": {
+        "median": 0.9654259878865211,
+        "worst": 0.9359415904586613,
+        "best": 0.9712977533027449
+      },
+      "core_recall": {
+        "median": 0.9035083145318887,
+        "worst": 0.6735258762128206,
+        "best": 0.9638986861682343
+      }
+    },
+    "2": {
+      "dice": {
+        "median": 0.8898805796217538,
+        "worst": 0.8887353257692875,
+        "best": 0.9013015096649294
+      },
+      "nsd": {
+        "median": 0.9507347254447023,
+        "worst": 0.9484282581245431,
+        "best": 0.9537907526527022
+      },
+      "core_recall": {
+        "median": 0.9339136122361702,
+        "worst": 0.9323363030771066,
+        "best": 0.9572605494888027
+      }
+    },
+    "3": {
+      "dice": {
+        "median": 0.8986791155811188,
+        "worst": 0.8965700798117406,
+        "best": 0.9157271546076774
+      },
+      "nsd": {
+        "median": 0.948357825882524,
+        "worst": 0.9445964555528386,
+        "best": 0.9561089288384145
+      },
+      "core_recall": {
+        "median": 0.9400816476076149,
+        "worst": 0.9335681582709233,
+        "best": 0.984959349593496
+      }
+    },
+    "4": {
+      "dice": {
+        "median": 0.8807707013781524,
+        "worst": 0.8703963550522476,
+        "best": 0.8935212122745326
+      },
+      "nsd": {
+        "median": 0.9606405306661829,
+        "worst": 0.9452080499132148,
+        "best": 0.9656990771832947
+      },
+      "core_recall": {
+        "median": 0.9278618857901726,
+        "worst": 0.9217414248021109,
+        "best": 0.9693118756936737
+      }
+    },
+    "5": {
+      "dice": {
+        "median": 0.8863777008502451,
+        "worst": 0.8614014331045948,
+        "best": 0.8985061037852725
+      },
+      "nsd": {
+        "median": 0.9569029247331701,
+        "worst": 0.8909335668448499,
+        "best": 0.9669631049585674
+      },
+      "core_recall": {
+        "median": 0.9715768388381999,
+        "worst": 0.8535397973391089,
+        "best": 0.9883670807418645
+      }
+    },
+    "6": {
+      "dice": {
+        "median": 0.8752499918035475,
+        "worst": 0.8730317052831238,
+        "best": 0.8787721680450973
+      },
+      "nsd": {
+        "median": 0.9303542673107891,
+        "worst": 0.9175141242937853,
+        "best": 0.932544772219847
+      },
+      "core_recall": {
+        "median": 0.9518987341772152,
+        "worst": 0.8551750648685011,
+        "best": 0.9858744022010082
+      }
+    }
+  }
+}
