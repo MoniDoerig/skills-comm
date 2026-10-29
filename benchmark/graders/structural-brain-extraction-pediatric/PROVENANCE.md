@@ -36,7 +36,7 @@ Four tools were run on the T1w and were all mutually coherent (pairwise Dice ~0.
 ## Reference data
 
 The `reference/` NIfTIs are on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
-`structural_gt/structural-brain-extraction-pediatric/`). Fetch them before grading; see
+`structural_gt/structural-brain-extraction-pediatric/<subject>/`). Fetch them before grading; see
 `reference/README.md`. Everything else the grader needs is in `rubric.json`.
 
 ## Caveats

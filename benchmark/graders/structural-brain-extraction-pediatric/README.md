@@ -10,7 +10,7 @@ See [`PROVENANCE.md`](PROVENANCE.md).
 
 ## Shared scorer (no duplication)
 
-This pack ships only the calibration (`rubric.json`) + the reference pointer — **not** its own scorer.
+This pack ships only the calibration (`rubrics/<subject>.json`) + the reference pointer — **not** its own scorer.
 Grade with the shared scorer from the sibling pack, pointing `--pack` here:
 
 ```bash
@@ -37,15 +37,15 @@ python3 ../structural-brain-extraction/score_brain_mask.py \
 
 ```
 structural-brain-extraction-pediatric/
-├── rubric.json          # frozen calibration: τ, envelope, weights, gate caps
-├── reference/           # consensus NIfTIs — fetched from the Hub
+├── rubrics/<subject>.json  # per-subject frozen calibration: τ, envelope, weights, gate caps
+├── reference/           # consensus NIfTIs — fetched from the Hub, plus the selected rubric.json
 │   ├── README.md        #   dataset path + fetch command
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-pediatric/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-pediatric/<subject>/`.
 
 ## Verdicts
 

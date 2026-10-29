@@ -29,7 +29,7 @@ Every threshold (the surface tolerance τ, the per-metric pass/fail envelope, th
 structural-brain-extraction/
 ├── rubrics/<subject>.json            # per-subject calibration: τ, envelope, weights, gate caps, grid
 ├── score_brain_mask.py               # the grader — importable score() + CLI
-├── reference/                        # consensus NIfTIs — fetched from the Hub
+├── reference/                        # consensus NIfTIs — fetched from the Hub, plus the selected rubric.json
 │   ├── README.md                     #   dataset path + fetch command
 │   └── .gitignore                    #   keeps *.nii.gz out of git
 ├── brain_extraction_grading.png     # the explainer figure above
@@ -38,7 +38,7 @@ structural-brain-extraction/
 ```
 
 The consensus reference (`consensus_mask.nii.gz`, `consensus_zones.nii.gz`) is on the Hugging Face
-Hub — `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction/`.
+Hub — `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction/<subject>/`.
 Fetch it into `reference/` before grading:
 
 ```bash

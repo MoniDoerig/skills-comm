@@ -48,15 +48,15 @@ space. See PROVENANCE.
 
 ```
 structural-brain-extraction-stroke/
-├── rubric.json          # τ, envelope, weights, gate caps, lesion_retained_min, grid.raw_affine
-├── reference/           # consensus + lesion NIfTIs — fetched from the Hub
+├── rubrics/<subject>.json  # per-subject τ, envelope, weights, gate caps, lesion_retained_min, grid.raw_affine
+├── reference/           # consensus + lesion NIfTIs — fetched from the Hub, plus the selected rubric.json
 │   ├── README.md
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-stroke/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-stroke/<subject>/`.
 Companion lesion-segmentation task: `clinical-stroke-lesion-segmentation` (same subject).
 
 ## Verdicts

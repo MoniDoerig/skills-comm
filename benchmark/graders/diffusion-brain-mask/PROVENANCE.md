@@ -162,5 +162,5 @@ dilation on retained background.
 
 `reference/consensus_mask.nii.gz` and `consensus_zones.nii.gz` are **not** in git — they belong
 on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
-`diffusion_gt/diffusion-brain-mask/`). Fetch them before grading; see
+`diffusion_gt/diffusion-brain-mask/<subject>/`). Fetch them before grading; see
 `reference/README.md`. Everything else the grader needs is in `rubric.json`.

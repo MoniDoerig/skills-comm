@@ -40,7 +40,7 @@ is a fluid-filled cavity, dark and CSF-like on T1 — a natural failure point:
 ## Reference data
 
 `consensus_mask.nii.gz`, `consensus_zones.nii.gz`, `lesion_mask.nii.gz` are on the Hugging Face Hub
-(`neurodeskorg/skills-comm-ground-truth`, `structural_gt/structural-brain-extraction-stroke/`). Fetch before grading; see
+(`neurodeskorg/skills-comm-ground-truth`, `structural_gt/structural-brain-extraction-stroke/<subject>/`). Fetch before grading; see
 `reference/README.md`.
 
 ## Caveats

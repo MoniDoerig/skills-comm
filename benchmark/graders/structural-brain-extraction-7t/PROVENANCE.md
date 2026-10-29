@@ -56,7 +56,7 @@ a missed denoising step.
 ## Reference data
 
 The `reference/` NIfTIs are **not** in git — they live on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
-`structural_gt/structural-brain-extraction-7t/`). Fetch them before grading; see
+`structural_gt/structural-brain-extraction-7t/<subject>/`). Fetch them before grading; see
 `reference/README.md`. Everything else the grader needs is in `rubric.json`.
 
 ## Caveats

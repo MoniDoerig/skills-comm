@@ -10,7 +10,7 @@ calibrated from the tools' own disagreement. See [`PROVENANCE.md`](PROVENANCE.md
 
 ## Shared scorer (no duplication)
 
-This pack carries **only the calibration** (`rubric.json`) and the reference pointer — it does
+This pack carries **only the calibration** (`rubrics/<subject>.json`) and the reference pointer — it does
 **not** ship its own scorer. Grade with the shared scorer from the baseline pack, pointing `--pack`
 here:
 
@@ -50,15 +50,15 @@ Run on the cleaned UNI, then curated by the coherence check:
 
 ```
 structural-brain-extraction-7t/
-├── rubric.json          # frozen calibration: τ, envelope, weights, gate caps, grid.raw_affine
-├── reference/           # consensus NIfTIs — fetched from the Hub
+├── rubrics/<subject>.json  # per-subject frozen calibration: τ, envelope, weights, gate caps, grid.raw_affine
+├── reference/           # consensus NIfTIs — fetched from the Hub, plus the selected rubric.json
 │   ├── README.md        #   dataset path + fetch command
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-7t/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-7t/<subject>/`.
 The pack is frozen once; scoring never re-calibrates.
 
 ## Verdicts

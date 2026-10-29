@@ -19,7 +19,8 @@ Access is gated: request it on the dataset page, then set `HF_TOKEN` to a token 
 that was granted access. Gating is what keeps the reference out of the plane where the agent works.
 Pinning the revision means a grading run scores against an exact, named reference set.
 
-`rubric.json` carries every calibrated number the grader needs.
+`rubric.json` here is the subject's rubric, copied from `../rubrics/` by the
+fetch command above; it carries every calibrated number the grader needs.
 
 The thresholds are not here. Each subject's rubric is tracked in the repo at
 `../rubrics/<subject>.json`, and the fetch command above copies the one being graded

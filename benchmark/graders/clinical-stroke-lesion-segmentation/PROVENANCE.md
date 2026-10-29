@@ -33,7 +33,7 @@ empty → `invalid` (nonempty gate).
 ## Reference data
 
 `lesion_mask.nii.gz` is on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
-`clinical_gt/clinical-stroke-lesion-segmentation/`). Fetch before grading; see
+`clinical_gt/clinical-stroke-lesion-segmentation/<subject>/`). Fetch before grading; see
 `reference/README.md`.
 
 ## Caveats

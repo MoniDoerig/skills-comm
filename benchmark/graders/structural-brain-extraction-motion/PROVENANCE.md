@@ -40,7 +40,7 @@ ANTs and BET remain as scored **candidates** (they come out `invalid`), which va
 ## Reference data
 
 The `reference/` NIfTIs are **not** stored in git — they live on the Hugging Face Hub (`neurodeskorg/skills-comm-ground-truth`,
-`structural_gt/structural-brain-extraction-motion/`). Fetch them before grading; see
+`structural_gt/structural-brain-extraction-motion/<subject>/`). Fetch them before grading; see
 `reference/README.md`. Everything else the grader needs is in `rubric.json`.
 
 ## Caveats

@@ -69,16 +69,16 @@ monotonically and both two-voxel failures are caught. Full tables in `PROVENANCE
 
 ```
 diffusion-brain-mask/
-├── rubric.json           # calibrated numbers (tau, envelope, weights, gate caps, grid)
+├── rubrics/<subject>.json   # per-subject calibrated numbers (tau, envelope, weights, gate caps, grid)
 ├── score_brain_mask.py   # shared scorer, unmodified
-├── reference/            # consensus NIfTIs — fetched from the Hub
+├── reference/            # consensus NIfTIs — fetched from the Hub, plus the selected rubric.json
 │   ├── README.md
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `diffusion_gt/diffusion-brain-mask/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `diffusion_gt/diffusion-brain-mask/<subject>/`.
 
 ## Verdicts
 

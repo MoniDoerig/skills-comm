@@ -47,7 +47,7 @@ subject reproduces this pack exactly; all numbers a grader needs are in `rubric.
 
 The `reference/` NIfTIs are on the Hugging Face Hub with the other task ground truth:
 
-- Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction/`
+- Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction/<subject>/`
 - `consensus_mask.nii.gz`, `consensus_zones.nii.gz` (native T1w space)
 
 Fetch them before grading — see `reference/README.md` for the fetch command. Everything else
