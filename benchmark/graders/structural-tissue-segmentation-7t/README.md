@@ -49,16 +49,16 @@ segmentations, fused by majority vote.
 
 ```
 structural-tissue-segmentation-7t/
-├── rubric.json              # per-class τ, LOTO envelope, weights, gates
+├── rubrics/<subject>.json      # per-subject per-class τ, LOTO envelope, weights, gates
 ├── score_tissue_seg.py      # the multi-class scorer
-├── reference/               # consensus NIfTIs — fetched from the Hub
+├── reference/               # consensus NIfTIs — fetched from the Hub, plus the selected rubric.json
 │   ├── README.md
 │   └── .gitignore
 ├── README.md
 └── PROVENANCE.md
 ```
 
-Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-tissue-segmentation-7t/`.
+Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-tissue-segmentation-7t/<subject>/`.
 The pack is frozen once; scoring never re-calibrates.
 
 ## Verdicts

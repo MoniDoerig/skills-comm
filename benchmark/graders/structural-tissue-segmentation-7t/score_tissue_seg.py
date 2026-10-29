@@ -143,6 +143,20 @@ def subject_rubric(pack):
 def score(seg_path, pack_dir):
     pack = Path(pack_dir)
     rubric = json.load(open(subject_rubric(pack)))
+
+    # The rubric must belong to the reference beside it. Subjects of one task share a
+    # matrix and their class volumes sit within a few percent, so neither identifies a
+    # subject; the scan affine does, and is unique across every subject of every task.
+    want_aff = (rubric.get("grid") or {}).get("raw_affine")
+    if want_aff is not None:
+        ref_p = pack / "reference" / "consensus_seg.nii.gz"
+        if ref_p.is_file():
+            have_aff = nib.load(str(ref_p)).affine
+            if not np.allclose(np.asarray(want_aff, float), have_aff, atol=1e-3):
+                raise SystemExit(
+                    "ERROR: this rubric does not describe this reference -- its grid "
+                    "affine does not match consensus_seg.nii.gz. The rubric and the "
+                    "reference are for different subjects.")
     refd = pack / "reference"
     for f in ("consensus_seg.nii.gz", "consensus_agreement.nii.gz"):
         if not (refd / f).exists():

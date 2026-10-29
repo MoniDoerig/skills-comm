@@ -1,6 +1,4 @@
 {
-  "item": "tissueseg_ds003642_sub-025",
-  "prompt": "Parcellate the 7T MP2RAGE image of sub-025 (ds003642, OpenNeuro) into an integer label map of six brain structures in native T1w space: 1=grey matter (cortical grey matter), 2=basal ganglia (deep grey nuclei: caudate, putamen, pallidum), 3=white matter (cerebral white matter), 4=ventricles (ventricular CSF only \u2014 lateral/3rd/4th ventricles, NOT sulcal CSF), 5=cerebellum (entire cerebellum, grey+white), 6=brainstem (midbrain, pons, medulla).",
   "panel": [
     "CEREBRUM7T",
     "FreeSurfer_v6",
@@ -14,6 +12,33 @@
     "5": "cerebellum",
     "6": "brainstem"
   },
+  "weights": {
+    "dice": 0.5,
+    "nsd": 0.3,
+    "core_recall": 0.2
+  },
+  "slack": 1.5,
+  "core_recall_floor": 0.5,
+  "gates": [
+    "native_grid",
+    "no_class_collapse",
+    "valid_labels"
+  ],
+  "verdict_thresholds": {
+    "acceptable": 60,
+    "marginal": 30
+  },
+  "label_definitions": {
+    "1": "grey matter \u2014 cortical grey matter",
+    "2": "basal ganglia \u2014 deep grey nuclei (caudate, putamen, pallidum)",
+    "3": "white matter \u2014 cerebral white matter",
+    "4": "ventricles \u2014 ventricular CSF only (lateral/3rd/4th ventricles); NOT sulcal CSF",
+    "5": "cerebellum \u2014 entire cerebellum (grey + white)",
+    "6": "brainstem \u2014 midbrain, pons, medulla"
+  },
+  "collapse_margin": 0.2,
+  "item": "tissueseg_ds003642_sub-025",
+  "prompt": "Parcellate the 7T MP2RAGE image of sub-025 (ds003642, OpenNeuro) into an integer label map of six brain structures in native T1w space: 1=grey matter (cortical grey matter), 2=basal ganglia (deep grey nuclei: caudate, putamen, pallidum), 3=white matter (cerebral white matter), 4=ventricles (ventricular CSF only \u2014 lateral/3rd/4th ventricles, NOT sulcal CSF), 5=cerebellum (entire cerebellum, grey+white), 6=brainstem (midbrain, pons, medulla).",
   "grid": {
     "tool": "CEREBRUM7T",
     "shape": [
@@ -25,6 +50,11 @@
       0.6299999952316284,
       0.625,
       0.625
+    ],
+    "raw_shape": [
+      256,
+      352,
+      224
     ],
     "raw_affine": [
       [
@@ -56,10 +86,10 @@
   "consensus": {
     "method": "majority vote (>=2/3) over 7 classes",
     "class_volume_cm3": {
-      "1": 485.2353478898294,
-      "2": 41.69271062193438,
-      "3": 359.6633058715146,
-      "4": 10.161703048087656,
+      "1": 485.2353478898295,
+      "2": 41.69271062193439,
+      "3": 359.66330587151464,
+      "4": 10.161703048087658,
       "5": 75.6849017709028,
       "6": 13.640730365505442
     }
@@ -175,30 +205,5 @@
         "best": 0.9677511603862822
       }
     }
-  },
-  "weights": {
-    "dice": 0.5,
-    "nsd": 0.3,
-    "core_recall": 0.2
-  },
-  "slack": 1.5,
-  "core_recall_floor": 0.5,
-  "gates": [
-    "native_grid",
-    "no_class_collapse",
-    "valid_labels"
-  ],
-  "verdict_thresholds": {
-    "acceptable": 60,
-    "marginal": 30
-  },
-  "label_definitions": {
-    "1": "grey matter \u2014 cortical grey matter",
-    "2": "basal ganglia \u2014 deep grey nuclei (caudate, putamen, pallidum)",
-    "3": "white matter \u2014 cerebral white matter",
-    "4": "ventricles \u2014 ventricular CSF only (lateral/3rd/4th ventricles); NOT sulcal CSF",
-    "5": "cerebellum \u2014 entire cerebellum (grey + white)",
-    "6": "brainstem \u2014 midbrain, pons, medulla"
-  },
-  "collapse_margin": 0.2
+  }
 }

@@ -820,22 +820,25 @@
         "structural-tissue-segmentation-7t": {
           "title": "Tissue parcellation at 7 Tesla (six structures)",
           "grading": "automated",
-          "description": "Parcellate the 7T MP2RAGE image of sub-025 (CEREBRUM-7T, OpenNeuro ds003642) into six brain structures (GM, basal ganglia, WM, ventricles/CSF, cerebellum, brainstem) in native T1w space.",
+          "description": "Parcellate the 7T MP2RAGE image of {subject} (CEREBRUM-7T, OpenNeuro ds003642) into six brain structures (GM, basal ganglia, WM, ventricles/CSF, cerebellum, brainstem) in native T1w space.",
           "prompt": {
-            "goal": "Parcellate the 7T MP2RAGE image of sub-025 into an integer label map of six brain structures in native T1w space: 1=grey matter (cortical grey matter), 2=basal ganglia (deep grey nuclei: caudate, putamen, pallidum), 3=white matter (cerebral white matter), 4=ventricles (ventricular CSF only — lateral/3rd/4th ventricles, NOT sulcal CSF), 5=cerebellum (entire cerebellum, grey+white), 6=brainstem (midbrain, pons, medulla).",
+            "goal": "Parcellate the 7T MP2RAGE image of {subject} into an integer label map of six brain structures in native T1w space: 1=grey matter (cortical grey matter), 2=basal ganglia (deep grey nuclei: caudate, putamen, pallidum), 3=white matter (cerebral white matter), 4=ventricles (ventricular CSF only — lateral/3rd/4th ventricles, NOT sulcal CSF), 5=cerebellum (entire cerebellum, grey+white), 6=brainstem (midbrain, pons, medulla).",
             "dataset": {
               "source": "openneuro",
               "id": "ds003642",
               "version_pin": "1.1.0",
               "subjects": [
-                "sub-025"
+                "sub-025",
+                "sub-045",
+                "sub-075"
               ]
             },
-            "required_output": "An integer label map (NIfTI) with labels 1..6 as specified, in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write the integer label map to `submissions/structural-tissue-segmentation-7t/output.nii.gz` under your working directory — create the `submissions/structural-tissue-segmentation-7t/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/structural-tissue-segmentation-7t/`. Only `submissions/structural-tissue-segmentation-7t/output.nii.gz` is scored."
+            "required_output": "An integer label map (NIfTI) with labels 1..6 as specified, in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write the integer label map to `submissions/structural-tissue-segmentation-7t/{subject}/output.nii.gz` under your working directory — create the `submissions/structural-tissue-segmentation-7t/{subject}/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/structural-tissue-segmentation-7t/{subject}/`. Only `submissions/structural-tissue-segmentation-7t/{subject}/output.nii.gz` is scored.",
+            "subject_note": "This task runs once per subject in `dataset.subjects`. {subject} in the goal and in the output paths is replaced with the subject being run."
           },
           "solution": {
             "ground_truth": "Majority-vote consensus of three whole-brain segmentations shipped with CEREBRUM-7T (CEREBRUM7T, FreeSurfer v6, FreeSurfer v7; nighres dropped as a label-scheme outlier), fused into a 6-class label map with a per-voxel agreement map (unanimous-core / majority-boundary zones), calibrated once by leave-one-tool-out. consensus_seg.nii.gz + consensus_agreement.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path structural_gt/structural-tissue-segmentation-7t/ (consensus_seg.nii.gz, consensus_agreement.nii.gz)",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision 5895f1b71e1d), path structural_gt/structural-tissue-segmentation-7t/{subject}/ (consensus_seg.nii.gz, consensus_agreement.nii.gz)",
             "metric": "consensus-calibrated per-class: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (mean of six per-class Dice/NSD/core-recall envelopes)",
             "pass_criterion": "An integer label map with the six specified classes present; Geometry (dimensions, voxel size, affine) matches the input; Each class recovers the majority of its unanimous consensus core (no class collapse/confusion); No processing errors; logs captured",
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",

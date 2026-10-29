@@ -55,7 +55,7 @@ Scored against the frozen pack: CEREBRUM7T `within_reference_variability` (q99.4
 ## Reference data
 
 `reference/consensus_seg.nii.gz` + `consensus_agreement.nii.gz` are on the Hugging Face Hub
-(`neurodeskorg/skills-comm-ground-truth`, `structural_gt/structural-tissue-segmentation-7t/`). Fetch them before grading;
+(`neurodeskorg/skills-comm-ground-truth`, `structural_gt/structural-tissue-segmentation-7t/<subject>/`). Fetch them before grading;
 see `reference/README.md`. Everything else is in `rubric.json`.
 
 ## Caveats
