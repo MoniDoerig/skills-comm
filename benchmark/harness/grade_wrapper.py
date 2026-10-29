@@ -20,6 +20,7 @@ Envelope schema (schema_version 1.0):
     {
       "schema_version": "1.0",
       "task_id": str,
+      "subject": str | null,        # the subject graded, for a task graded per subject
       "model": str,                 # e.g. "qwen"           (runner-supplied)
       "condition": str,             # "baseline" | "skill"  (runner-supplied)
       "timestamp": str,             # ISO-8601 UTC          (runner-supplied or now)
@@ -79,13 +80,28 @@ def _normalise_detail(raw: dict, detail_kind: str) -> dict:
 
 
 def grade(task_id, submission_dir, manifest_path, graders_root=None,
-          model="unknown", condition="baseline", timestamp=None):
+          model="unknown", condition="baseline", timestamp=None, subject=None):
     manifest_path = Path(manifest_path)
     manifest = json.loads(manifest_path.read_text())
     if task_id not in manifest["tasks"]:
         raise SystemExit(f"ERROR: task '{task_id}' not in {manifest_path}. "
                          f"Known: {', '.join(sorted(manifest['tasks']))}")
     spec = manifest["tasks"][task_id]
+    # A task graded per subject needs the subject named, and it has to be one of its
+    # own; a task with one reference takes none. Checked here, not left to str.format,
+    # where a missing subject is a KeyError and a wrong one a quiet path to nothing.
+    allowed = spec.get("subjects") or []
+    if spec.get("per_subject"):
+        if subject is None:
+            raise SystemExit(f"ERROR: '{task_id}' is graded per subject; pass --subject.\n"
+                             f"Available: {', '.join(allowed) if allowed else '(none listed)'}")
+        if allowed and subject not in allowed:
+            raise SystemExit(f"ERROR: '{subject}' is not a subject of '{task_id}'.\n"
+                             f"Available: {', '.join(allowed)}")
+    elif subject:
+        raise SystemExit(f"ERROR: '{task_id}' has a single reference; --subject does not "
+                         "apply to it")
+    fields = {"task_id": task_id, "subject": subject or ""}
     root = _resolve_root(manifest_path, graders_root)
 
     scorer = root / spec["scorer"]
@@ -99,8 +115,12 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
     if not ((pack / "rubric.json").exists() or (pack / "rubrics").is_dir()):
         raise SystemExit(f"ERROR: no rubric.json and no rubrics/ in pack: {pack}")
 
+    # The contracted path: the task's own, else the manifest default for a task graded
+    # per subject (submission_path, one level deeper) or for one with a single reference.
+    defaults = manifest["defaults"]
     out_rel = (spec.get("submission_output_path")
-               or manifest["defaults"]["submission_output_path"]).format(task_id=task_id)
+               or defaults["submission_path" if subject else "submission_output_path"]
+               ).format(**fields)
     pred = Path(submission_dir) / out_rel
     if not pred.exists():
         # A missing contracted output is a submission failure, not a harness crash:
@@ -108,24 +128,26 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
         return _envelope(task_id, spec, model, condition, timestamp,
                          raw={"verdict": "invalid", "quality": 0.0,
                               "gate_failures": ["missing_output"],
-                              "load_notes": [f"no submission at {out_rel}"]})
+                              "load_notes": [f"no submission at {out_rel}"]},
+                         subject=subject)
 
     # Build: python <scorer> <pred_flag> <pred> --pack <pack> --json <tmp> [extra inputs]
     result_json = Path(submission_dir) / f".grade_{task_id}.json"
     cmd = [sys.executable, str(scorer), spec["pred_flag"], str(pred),
            "--pack", str(pack), "--json", str(result_json)]
     for flag, rel in (spec.get("required_inputs") or {}).items():
-        cand = Path(submission_dir) / rel.format(task_id=task_id)
+        cand = Path(submission_dir) / rel.format(**fields)
         if not cand.exists():
             return _envelope(
                 task_id, spec, model, condition, timestamp,
                 raw={"verdict": "invalid", "quality": 0.0,
                      "gate_failures": [f"missing_required_output:{cand.name}"],
-                     "load_notes": [f"no submission at {rel.format(task_id=task_id)}"]},
+                     "load_notes": [f"no submission at {rel.format(**fields)}"]},
+                subject=subject,
             )
         cmd += [flag, str(cand)]
     for flag, rel in (spec.get("optional_inputs") or {}).items():
-        cand = Path(submission_dir) / rel.format(task_id=task_id)
+        cand = Path(submission_dir) / rel.format(**fields)
         if cand.exists():
             cmd += [flag, str(cand)]
 
@@ -137,15 +159,16 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
                          f"cmd: {' '.join(cmd)}\nstderr:\n{proc.stderr}")
     raw = json.load(open(result_json))
     result_json.unlink(missing_ok=True)
-    return _envelope(task_id, spec, model, condition, timestamp, raw)
+    return _envelope(task_id, spec, model, condition, timestamp, raw, subject=subject)
 
 
-def _envelope(task_id, spec, model, condition, timestamp, raw):
+def _envelope(task_id, spec, model, condition, timestamp, raw, subject=None):
     detail_kind = spec["detail_kind"]
     gate_failures = raw.get("gate_failures", [])
     return {
         "schema_version": SCHEMA_VERSION,
         "task_id": task_id,
+        "subject": subject,
         "model": model,
         "condition": condition,
         "timestamp": timestamp or _utcnow_iso(),
@@ -212,6 +235,9 @@ def main(argv=None):
 
     g = sub.add_parser("grade", help="grade one submission -> envelope JSON")
     g.add_argument("--task", required=True, help="task_id (must be in the manifest)")
+    g.add_argument("--subject", help="the subject graded, for a task graded per subject "
+                                     "(per_subject in the manifest); its output is read at "
+                                     "submissions/<task_id>/<subject>/")
     g.add_argument("--submission-dir", required=True, help="dir holding submission/output.nii.gz")
     g.add_argument("--manifest", default=str(Path(__file__).parent / "run_manifest.json"))
     g.add_argument("--graders-root", help="override; default = parent of the manifest's dir")
@@ -240,7 +266,7 @@ def main(argv=None):
         return 0
     if args.cmd == "grade":
         env = grade(args.task, args.submission_dir, args.manifest, args.graders_root,
-                    args.model, args.condition, args.timestamp)
+                    args.model, args.condition, args.timestamp, args.subject)
         print(json.dumps(env, indent=2))
         if args.out:
             json.dump(env, open(args.out, "w"), indent=2)
