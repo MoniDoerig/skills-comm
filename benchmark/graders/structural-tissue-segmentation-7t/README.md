@@ -3,12 +3,12 @@
 A **consensus-calibrated grader** for multi-class brain **parcellation** of a 7T MP2RAGE scan
 (CEREBRUM-7T `ds003642`, `sub-025`, 0.63 mm isotropic). It grades a six-structure label map —
 grey matter, basal ganglia, white matter, ventricles/CSF, cerebellum, brainstem — against a
-consensus of accepted segmentations. Companion to the binary `structural-brain-extraction-7t`
+consensus of the panel's segmentations. Companion to the binary `structural-brain-extraction-7t`
 tasks on the same subject.
 
 It is the multi-class analogue of the brain-extraction grader: instead of one binary mask scored
 against a STAPLE consensus, each of six classes is scored against a **majority-vote consensus** of
-accepted tools, split into per-class **unanimous-core** (all tools agree) and **majority-boundary**
+the panel's tools, split into per-class **unanimous-core** (all tools agree) and **majority-boundary**
 (partial-volume disagreement) zones. Every threshold is calibrated by leave-one-tool-out. See
 [`PROVENANCE.md`](PROVENANCE.md).
 
@@ -60,3 +60,20 @@ structural-tissue-segmentation-7t/
 
 Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-tissue-segmentation-7t/`.
 The pack is frozen once; scoring never re-calibrates.
+
+## Verdicts
+
+Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubrics/<subject>.json`.
+
+| verdict | meaning |
+|---|---|
+| `within_reference_variability` | inside the panel's own leave-one-tool-out spread — every metric is at least as good as the weakest the reference tools themselves achieve, so the submission cannot be told apart from a panel member |
+| `acceptable` | `quality >= 60` |
+| `marginal` | `quality >= 30` |
+| `unacceptable` | below that |
+| `invalid` | a validity gate failed; `quality` is forced to 0 |
+
+A submission passes when the verdict is `within_reference_variability` or `acceptable`.
+`within_reference_variability` is the top grade, not a hedge: it says the answer sits
+inside the disagreement the reference itself carries, which is as close as this task can
+measure.

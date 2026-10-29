@@ -24,8 +24,8 @@ displaced, so an outline metric cannot see the error this task is about.
 
 **Edge correlation** — agreement of gradient magnitudes inside the brain — ranks the arms in the
 right order but conflates registration *fineness* with registration *correctness*. FNIRT's warp is
-smoother than SyN's, so the accepted FSL chain scores 0.5601 against the reversed-composition
-arm's 0.5576: indistinguishable. Raising the smoothing kernel closes that gap only by collapsing
+smoother than SyN's, so the FSL chain scores 0.5601 against the reversed-composition
+arm's 0.5576: within_reference_variability. Raising the smoothing kernel closes that gap only by collapsing
 every arm into 0.78–0.81. It is reported as a diagnostic, never scored.
 
 What survives measures image content inside the brain and where the brain physically landed.
@@ -33,7 +33,7 @@ What survives measures image content inside the brain and where the brain physic
 ## Preparation and distortion
 
 The agent receives the **unpreprocessed** 4D series, and susceptibility distortion is handled
-unevenly across the accepted band: fMRIPrep applies fieldmap-less (SyN-based) correction, while the
+unevenly across the panel's band: fMRIPrep applies fieldmap-less (SyN-based) correction, while the
 ANTs and FSL chains apply none. Standard fieldmap correction is not practically available here —
 the dataset's phase-difference fieldmap names this run in `IntendedFor`, but the BOLD sidecar
 carries no `TotalReadoutTime` or `EffectiveEchoSpacing`, so `fugue` cannot be scaled without
@@ -49,7 +49,7 @@ out of the wrong route.
 Residual distortion is common to accepted and candidate chains, so it caps achievable NMI for
 everyone rather than favouring any arm. That three chains treating distortion differently — none,
 fieldmap-less nonlinear, and BBR-affine — still agree to within 0.0042 NMI is what licenses the
-accepted band. Full numbers in `PROVENANCE.md`.
+panel band. Full numbers in `PROVENANCE.md`.
 
 ## Scorer (ships in this pack)
 
@@ -65,7 +65,7 @@ brain mask here rather than a tissue segmentation; the scorer runs in `cross_mod
 
 ## Scale
 
-Full marks at the median of three accepted chains; zero credit at registering the BOLD straight to
+Full marks at the median of the three chains; zero credit at registering the BOLD straight to
 the template with a 12-DOF affine, ignoring the subject's anatomy. The score reads as *how far
 between the direct shortcut and a typical anatomy-mediated normalisation this is*.
 
@@ -79,7 +79,7 @@ structure but no intensity relationship. It is measured inside the template brai
 retained skull cannot dominate it. Centre-of-mass offset is measured on the propagated brain mask
 and catches a chain that is globally displaced while still overlapping.
 
-Verdict: `indistinguishable` when both metrics are at least as good as the weakest accepted chain;
+Verdict: `within_reference_variability` when both metrics are at least as good as the weakest chain in the panel;
 else `acceptable`/`marginal`/`unacceptable` by weighted quality; `invalid` on a gate failure.
 
 ## Gates
@@ -93,8 +93,8 @@ view by convention. Non-finite values are zeroed on load and judged only inside 
 
 ## Validation
 
-Three independent accepted chains — ANTs, FSL, and fMRIPrep's own output — all score
-`indistinguishable` (93.7–100). Reversing the transform composition scores `unacceptable` (16.7).
+Three independent panel chains — ANTs, FSL, and fMRIPrep's own output — all score
+`within_reference_variability` (93.7–100). Reversing the transform composition scores `unacceptable` (16.7).
 Registering straight to the template scores `unacceptable` (0.0) by affine and `invalid` by SyN,
 which inflates the brain to 4488 cm³ and fails two gates. A chain that skips only the
 EPI-to-anatomical stage scores `marginal` (54.1): for same-session data that stage is
@@ -115,3 +115,20 @@ functional-bold-to-mni/
 ```
 
 Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `fmri_gt/functional-bold-to-mni/`.
+
+## Verdicts
+
+Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubric.json`.
+
+| verdict | meaning |
+|---|---|
+| `within_reference_variability` | inside the panel's own leave-one-tool-out spread — every metric is at least as good as the weakest the reference tools themselves achieve, so the submission cannot be told apart from a panel member |
+| `acceptable` | `quality >= 60` |
+| `marginal` | `quality >= 30` |
+| `unacceptable` | below that |
+| `invalid` | a validity gate failed; `quality` is forced to 0 |
+
+A submission passes when the verdict is `within_reference_variability` or `acceptable`.
+`within_reference_variability` is the top grade, not a hedge: it says the answer sits
+inside the disagreement the reference itself carries, which is as close as this task can
+measure.

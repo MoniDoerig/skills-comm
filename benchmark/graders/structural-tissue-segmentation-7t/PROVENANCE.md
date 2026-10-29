@@ -7,7 +7,7 @@ MP2RAGE, 0.63 mm isotropic, native T1w space). Not re-derived at grade time.
 
 Every tissue/structure segmenter draws slightly different boundaries, especially at the fuzzy
 partial-volume interfaces (GM↔WM, GM↔CSF). Grading against one tool's output would bake in that
-tool's idiosyncrasies. Instead the reference is a **majority vote of accepted segmentations**, split
+tool's idiosyncrasies. Instead the reference is a **majority vote of the panel's segmentations**, split
 into per-class zones — unanimous core (must match) and majority boundary (partial-volume, softly
 scored) — and only the calibrated envelope decides pass/fail.
 
@@ -48,8 +48,8 @@ Overall quality = mean of the six class qualities. Gates → `invalid`: `valid_l
 
 ## Validation
 
-Scored against the frozen pack: CEREBRUM7T `indistinguishable` (q99.4), FreeSurfer v6 / v7
-`indistinguishable` (q100), and the dropped **nighres `invalid`** (WM Dice 0.09 →
+Scored against the frozen pack: CEREBRUM7T `within_reference_variability` (q99.4), FreeSurfer v6 / v7
+`within_reference_variability` (q100), and the dropped **nighres `invalid`** (WM Dice 0.09 →
 `no_class_collapse`) — the outlier is rejected, confirming the grader discriminates.
 
 ## Reference data

@@ -4,7 +4,7 @@ A **consensus-calibrated grader** for skull-stripping a **7 Tesla MP2RAGE** scan
 (CEREBRUM-7T `ds003642`, `sub-025`, 0.63 mm isotropic). It is the companion to
 `structural-brain-extraction` (healthy 3T baseline) on the **field-strength / sequence axis**.
 
-Same design as the baseline: score a submission against a STAPLE consensus of accepted tools split
+Same design as the baseline: score a submission against a STAPLE consensus of a tool panel split
 into core (must keep) / margin (free, not scored) / background (must exclude), with all thresholds
 calibrated from the tools' own disagreement. See [`PROVENANCE.md`](PROVENANCE.md).
 
@@ -30,7 +30,7 @@ intensity-based extraction. The result:
   tripping `volume_plausible` + `no_catastrophic_core_loss` → `invalid`. This holds whether or not
   the background is cleaned first, so it is a genuine tool-choice failure, not a preprocessing slip.
 - **Contrast-robust deep-learning tools succeed on the raw image** — SynthStrip and HD-BET both
-  score `indistinguishable` on the uncleaned UNI. A competent agent reaches for one of these (or
+  score `within_reference_variability` on the uncleaned UNI. A competent agent reaches for one of these (or
   denoises the UNI via the INV2 image first).
 
 So this task discriminates on **tool choice for a high-field sequence**, where the common `bet`
@@ -60,3 +60,20 @@ structural-brain-extraction-7t/
 
 Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-7t/`.
 The pack is frozen once; scoring never re-calibrates.
+
+## Verdicts
+
+Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubrics/<subject>.json`.
+
+| verdict | meaning |
+|---|---|
+| `within_reference_variability` | inside the panel's own leave-one-tool-out spread — every metric is at least as good as the weakest the reference tools themselves achieve, so the submission cannot be told apart from a panel member |
+| `acceptable` | `quality >= 60` |
+| `marginal` | `quality >= 30` |
+| `unacceptable` | below that |
+| `invalid` | a validity gate failed; `quality` is forced to 0 |
+
+A submission passes when the verdict is `within_reference_variability` or `acceptable`.
+`within_reference_variability` is the top grade, not a hedge: it says the answer sits
+inside the disagreement the reference itself carries, which is as close as this task can
+measure.

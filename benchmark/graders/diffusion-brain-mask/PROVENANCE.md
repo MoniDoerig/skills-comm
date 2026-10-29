@@ -33,10 +33,10 @@ the inferior receive-coil bias field drops those structures below threshold:
 There are two correct routes, and the task admits both:
 
 1. **Use a contrast-agnostic stripper** — SynthStrip, HD-BET or `3dSkullStrip` all reach the
-   accepted band directly on the raw mean b0.
+   panel band directly on the raw mean b0.
 2. **Preprocess, then mask.** `dwidenoise` + `dwibiascorrect ants` before `dwi2mask` takes it
    from 1399 cm³ with 127 cm³ of missing cerebellum (**invalid**) to 1495 cm³ with 11 cm³
-   (**indistinguishable**, quality 90.5, Dice 0.959). `dwi2mask` is not a bad tool; it is a
+   (**within_reference_variability**, quality 90.5, Dice 0.959). `dwi2mask` is not a bad tool; it is a
    bias-sensitive one, used here on input MRtrix does not intend it for.
 
 That second row is why the task is fair rather than merely strict: the obvious DWI-native tool
@@ -130,10 +130,10 @@ skull-stripped image with 7375 distinct intensities, so submitting that file unm
 
 | tool | role | verdict | quality | Dice | gates failed |
 |---|---|---|---|---|---|
-| SynthStrip | reference | indistinguishable | 100.0 | 0.986 | — |
-| HD-BET | reference | indistinguishable | 100.0 | 0.981 | — |
-| AFNI 3dSkullStrip | reference | indistinguishable | 92.1 | 0.967 | — |
-| **dwi2mask, preprocessed** | candidate | **indistinguishable** | **90.5** | 0.959 | — |
+| SynthStrip | reference | within_reference_variability | 100.0 | 0.986 | — |
+| HD-BET | reference | within_reference_variability | 100.0 | 0.981 | — |
+| AFNI 3dSkullStrip | reference | within_reference_variability | 92.1 | 0.967 | — |
+| **dwi2mask, preprocessed** | candidate | **within_reference_variability** | **90.5** | 0.959 | — |
 | dwi2mask, raw | candidate | **invalid** | 0 | 0.924 | core loss, focal core loss |
 | BET -f 0.2 / -f 0.3 | candidate | **invalid** | 0 | 0.93 | focal bg inclusion |
 | BET -f 0.5 / -R | candidate | **invalid** | 0 | 0.79 | core loss, focal core loss, focal bg |
@@ -147,7 +147,7 @@ apart, and they name the failure.
 
 | perturbation | verdict | quality | Dice |
 |---|---|---|---|
-| self | indistinguishable | 100.0 | 1.000 |
+| self | within_reference_variability | 100.0 | 1.000 |
 | erode 1 vox | acceptable | 73.9 | 0.950 |
 | dilate 1 vox | acceptable | 71.4 | 0.953 |
 | erode 2 vox | **invalid** | 0 | 0.898 |

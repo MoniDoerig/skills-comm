@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """score_tissue_seg.py — grade a multi-class brain parcellation submission against a frozen
-consensus pack (STAPLE-style majority vote of accepted segmentations, split into per-class
+consensus pack (STAPLE-style majority vote of the panel's segmentations, split into per-class
 unanimous-core / majority-boundary zones). Sibling of the binary score_brain_mask.py.
 
 Reference pack (--pack DIR):
@@ -154,7 +154,7 @@ def score(seg_path, pack_dir):
     if failures:
         verdict, quality = "invalid", 0.0
     elif within:
-        verdict = "indistinguishable"
+        verdict = "within_reference_variability"
     elif quality >= vt["acceptable"]:
         verdict = "acceptable"
     elif quality >= vt["marginal"]:

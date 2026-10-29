@@ -14,7 +14,7 @@ registration package can apply its own transform to a second image.
 The reference is not another tool's warp. It is the **template's own tissue priors**, which state
 where CSF, grey matter and white matter belong in MNI space independently of any registration
 software. A population prior is not a per-subject truth, so the thresholds are not absolute:
-`rubric.json` carries the envelope actually achieved by a panel of accepted nonlinear
+`rubric.json` carries the envelope actually achieved by a panel of independent nonlinear
 registrations on this subject (see PROVENANCE.md), and scoring is relative to that.
 
 Pack layout (--pack DIR):
@@ -199,12 +199,12 @@ def validity_gates(warped, seg, notes_w, notes_s, rubric, m, nonfinite_w, brain,
 
 
 def subscore(value, env, key, slack):
-    """Full marks at the median accepted nonlinear registration, zero credit at `floor`.
+    """Full marks at the median independent nonlinear registration, zero credit at `floor`.
 
     `floor` is the median of the affine-only arms, so the scale reads directly: 0 means the
     submission did no better than a 12-DOF affine, 100 means it matched a typical nonlinear
-    registration. Anchoring on the affine rather than on a slack multiple of the accepted spread
-    matters here because the accepted tools agree very closely (WM Dice within 0.015 of each
+    registration. Anchoring on the affine rather than on a slack multiple of the panel spread
+    matters here because the panel tools agree very closely (WM Dice within 0.015 of each
     other) — a slack-based floor would sit inside that spread and make the score brittle.
     """
     lo_better = key in LOWER_BETTER
@@ -261,7 +261,7 @@ def score(warped_path, dseg_path, pack_dir):
     if failures:
         verdict, quality = "invalid", 0.0
     elif within:
-        verdict = "indistinguishable"
+        verdict = "within_reference_variability"
     elif quality >= vt["acceptable"]:
         verdict = "acceptable"
     elif quality >= vt["marginal"]:

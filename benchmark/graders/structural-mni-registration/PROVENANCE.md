@@ -29,12 +29,12 @@ each tissue belongs in MNI space independently of any registration software.
 A population prior is not a per-subject truth, so no absolute Dice threshold would be defensible.
 The scale is therefore relative and data-derived:
 
-- **full marks** = the median of four accepted nonlinear registrations on this subject;
+- **full marks** = the median of four independent nonlinear registrations on this subject;
 - **zero credit** = the median of three affine-only registrations.
 
 The score reads directly as *"how far between a 12-DOF affine and a typical nonlinear warp is
 this?"* Anchoring the floor on the affine rather than on a slack multiple of the accepted spread
-matters here, because the accepted tools agree closely — WM Dice within 0.065 of each other — and
+matters here, because the panel tools agree closely — WM Dice within 0.065 of each other — and
 a slack-based floor would sit inside that spread and make scoring brittle.
 
 ## Label convention
@@ -72,7 +72,7 @@ answer a reader would expect to see, not because it adds independence.
 at ≤ 0.701, and the three affine implementations agree with each other to within 0.006. That
 tight affine cluster is what makes it a trustworthy zero point.
 
-FSL FNIRT is the weakest accepted arm (0.791, quality 61). It is run without a `--config`,
+FSL FNIRT is the weakest panel member arm (0.791, quality 61). It is run without a `--config`,
 because the shipped configs are tuned for FSL's own MNI152 (MNI152NLin6Asym) and the reference
 space here is MNI152NLin2009cAsym. Including it widens the accepted envelope and makes the task
 *more* forgiving of an FSL-based answer, which is the right direction for fairness.
@@ -113,11 +113,11 @@ An agent that resamples onto the template grid without registering at all scores
 and is rejected by `brain_in_place`. This is the control that matters most, because the template
 grid can be reached by resampling alone.
 
-### Perturbing the best accepted registration
+### Perturbing the best panel registration
 
 | perturbation | verdict | quality |
 |---|---|---|
-| self | indistinguishable | 100.0 |
+| self | within_reference_variability | 100.0 |
 | blur 4 mm (image only) | acceptable | 86.5 |
 | shift 2 mm | marginal | 41.4 |
 | shift 5 mm | **invalid** (`brain_in_place`) | 0 |

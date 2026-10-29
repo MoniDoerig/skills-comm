@@ -30,7 +30,7 @@ Both submissions must be on the template grid: 193 × 229 × 193 at 1 mm.
 
 ## Scale
 
-Full marks at the median of four accepted nonlinear registrations; zero credit at the median of
+Full marks at the median of four independent nonlinear registrations; zero credit at the median of
 three affine-only ones. The score reads as *how far between a 12-DOF affine and a typical
 nonlinear warp this is*.
 
@@ -46,7 +46,7 @@ Correlation is measured inside the template brain mask, so leaving the skull on 
 CSF is weighted least because the template prior and the subject's CSF differ in definition,
 capping Dice for everyone.
 
-Verdict: `indistinguishable` when every metric is at least as good as the weakest accepted
+Verdict: `within_reference_variability` when every metric is at least as good as the weakest panel member
 nonlinear registration; else `acceptable`/`marginal`/`unacceptable` by weighted quality;
 `invalid` on a gate failure.
 
@@ -68,7 +68,7 @@ different convention instead of warping the file it was given.
 
 ## Validation
 
-All four nonlinear arms score `indistinguishable` (61–100). All three affine arms score
+All four nonlinear arms score `within_reference_variability` (61–100). All three affine arms score
 `unacceptable` (0–3.6). An agent that resamples onto the template grid without registering is
 `invalid`. Perturbations rank monotonically and malformed submissions are gated out. Full tables
 in `PROVENANCE.md`.
@@ -87,3 +87,20 @@ structural-mni-registration/
 ```
 
 Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-mni-registration/`.
+
+## Verdicts
+
+Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubric.json`.
+
+| verdict | meaning |
+|---|---|
+| `within_reference_variability` | inside the panel's own leave-one-tool-out spread — every metric is at least as good as the weakest the reference tools themselves achieve, so the submission cannot be told apart from a panel member |
+| `acceptable` | `quality >= 60` |
+| `marginal` | `quality >= 30` |
+| `unacceptable` | below that |
+| `invalid` | a validity gate failed; `quality` is forced to 0 |
+
+A submission passes when the verdict is `within_reference_variability` or `acceptable`.
+`within_reference_variability` is the top grade, not a hedge: it says the answer sits
+inside the disagreement the reference itself carries, which is as close as this task can
+measure.

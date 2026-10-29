@@ -4,15 +4,15 @@
 
 This is the GRADER-side scorer, not an agent-facing skill: it decides whether a
 produced brain mask is competent, against a *frozen reference pack* that was
-calibrated once from a panel of accepted tools (see PROVENANCE.md).
+calibrated once from a panel of tools (see PROVENANCE.md).
 
 Why not a single Dice-vs-one-mask check: every skull-stripper draws a slightly
 different boundary, and they disagree in a few predictable places. So the pack
-carries a STAPLE consensus of accepted tools split into three zones —
+carries a STAPLE consensus of a tool panel split into three zones —
 
-    core (2)        every accepted tool includes it  -> must be kept  (scored)
+    core (2)        every panel tool includes it  -> must be kept  (scored)
     margin (1)      the tools legitimately disagree   -> free         (never scored)
-    background (0)  no accepted tool includes it      -> must be out   (scored)
+    background (0)  no panel tool includes it      -> must be out   (scored)
 
 and scores only the two unambiguous zones. Every threshold — the surface
 tolerance tau, the per-metric pass/fail envelope, the gate caps — is read from
@@ -297,7 +297,7 @@ def score(mask_path, pack_dir, stripped_path=None):
     if failures:
         verdict, quality = "invalid", 0.0
     elif within:
-        verdict = "indistinguishable"
+        verdict = "within_reference_variability"
     elif quality >= vt["acceptable"]:
         verdict = "acceptable"
     elif quality >= vt["marginal"]:

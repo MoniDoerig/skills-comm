@@ -49,9 +49,9 @@ The point of the task, scored on this subject's tools:
 
 | tool       | dura beyond envelope | `-7t` (standard) | `-7t-nodura` (this pack) |
 |------------|----------------------|------------------|--------------------------|
-| AFNI       | 7 cm³                | indistinguishable | indistinguishable        |
-| HD-BET     | 18 cm³               | indistinguishable | indistinguishable        |
-| SynthStrip | **118 cm³**          | indistinguishable | **invalid** (`no_dura_inclusion`) |
+| AFNI       | 7 cm³                | within_reference_variability | within_reference_variability        |
+| HD-BET     | 18 cm³               | within_reference_variability | within_reference_variability        |
+| SynthStrip | **118 cm³**          | within_reference_variability | **invalid** (`no_dura_inclusion`) |
 
 SynthStrip's identical mask passes the standard task and fails the no-dura task — the
 instruction-following signal.
@@ -70,3 +70,20 @@ structural-brain-extraction-7t-nodura/
 
 Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-7t-nodura/`.
 The pack is frozen once; scoring never re-calibrates.
+
+## Verdicts
+
+Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubrics/<subject>.json`.
+
+| verdict | meaning |
+|---|---|
+| `within_reference_variability` | inside the panel's own leave-one-tool-out spread — every metric is at least as good as the weakest the reference tools themselves achieve, so the submission cannot be told apart from a panel member |
+| `acceptable` | `quality >= 60` |
+| `marginal` | `quality >= 30` |
+| `unacceptable` | below that |
+| `invalid` | a validity gate failed; `quality` is forced to 0 |
+
+A submission passes when the verdict is `within_reference_variability` or `acceptable`.
+`within_reference_variability` is the top grade, not a hedge: it says the answer sits
+inside the disagreement the reference itself carries, which is as close as this task can
+measure.

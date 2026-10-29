@@ -60,7 +60,7 @@ on the full masks.
 
 | perturbation | verdict | quality | Dice | lesion F1 | volume |
 |---|---|---|---|---|---|
-| self | indistinguishable | 100.0 | 1.000 | 1.000 | 31.4 cm³ |
+| self | within_reference_variability | 100.0 | 1.000 | 1.000 | 31.4 cm³ |
 | largest quarter of foci only | acceptable | 82.4 | 0.946 | 0.537 | 28.2 cm³ |
 | dilate 1 vox | marginal | 56.2 | 0.615 | 1.000 | 70.7 cm³ |
 | dilate 2 vox | marginal | 40.0 | 0.410 | 1.000 | 121.9 cm³ |

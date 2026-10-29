@@ -32,13 +32,13 @@ combines three:
   false negative. Full 1.0, pass 0.5.
 - **absolute volume error %** (0.2) — full ≤ 15 %, pass ≤ 50 %.
 
-Verdict: `indistinguishable` when all three hit full marks; else `acceptable`/`marginal`/
+Verdict: `within_reference_variability` when all three hit full marks; else `acceptable`/`marginal`/
 `unacceptable` by weighted quality; `invalid` on a gate failure (`binary`, `native_grid`, `nonempty`,
 `volume_plausible`).
 
 ## Validation
 
-Perturbing the expert mask: self → `indistinguishable` (q100); dilated 3 vox → `acceptable` (q80,
+Perturbing the expert mask: self → `within_reference_variability` (q100); dilated 3 vox → `acceptable` (q80,
 Dice 0.74); eroded 4 vox → `unacceptable` (Dice 0.48); empty → `invalid`.
 
 ## Layout
@@ -55,3 +55,20 @@ clinical-stroke-lesion-segmentation/
 ```
 
 Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `clinical_gt/clinical-stroke-lesion-segmentation/`.
+
+## Verdicts
+
+Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubrics/<subject>.json`.
+
+| verdict | meaning |
+|---|---|
+| `within_reference_variability` | inside the published inter-rater ceiling recorded in `threshold_basis` — the reference is one expert tracing, so there is no panel spread to measure against and the bar comes from the literature |
+| `acceptable` | `quality >= 60` |
+| `marginal` | `quality >= 30` |
+| `unacceptable` | below that |
+| `invalid` | a validity gate failed; `quality` is forced to 0 |
+
+A submission passes when the verdict is `within_reference_variability` or `acceptable`.
+`within_reference_variability` is the top grade, not a hedge: it says the answer sits
+inside the disagreement the reference itself carries, which is as close as this task can
+measure.

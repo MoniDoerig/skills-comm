@@ -4,7 +4,7 @@ A **consensus-calibrated grader** for the harder, motion-corrupted skull-strip t
 (MR-ART `ds004173`, `sub-000103`, `acq-headmotion2` — the worst-motion tier). It is the
 companion to `structural-brain-extraction` (the healthy-adult baseline) on the **motion axis**.
 
-Same design: score a submission against a STAPLE consensus of accepted tools split into
+Same design: score a submission against a STAPLE consensus of a tool panel split into
 core (must keep) / margin (free, not scored) / background (must exclude), with all thresholds
 calibrated from the tools' own disagreement. See [`PROVENANCE.md`](PROVENANCE.md).
 
@@ -51,3 +51,20 @@ structural-brain-extraction-motion/
 
 Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `structural_gt/structural-brain-extraction-motion/`.
 The pack is frozen once; scoring never re-calibrates.
+
+## Verdicts
+
+Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubrics/<subject>.json`.
+
+| verdict | meaning |
+|---|---|
+| `within_reference_variability` | inside the panel's own leave-one-tool-out spread — every metric is at least as good as the weakest the reference tools themselves achieve, so the submission cannot be told apart from a panel member |
+| `acceptable` | `quality >= 60` |
+| `marginal` | `quality >= 30` |
+| `unacceptable` | below that |
+| `invalid` | a validity gate failed; `quality` is forced to 0 |
+
+A submission passes when the verdict is `within_reference_variability` or `acceptable`.
+`within_reference_variability` is the top grade, not a hedge: it says the answer sits
+inside the disagreement the reference itself carries, which is as close as this task can
+measure.

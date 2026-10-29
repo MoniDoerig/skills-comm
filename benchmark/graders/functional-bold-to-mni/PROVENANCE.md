@@ -38,7 +38,7 @@ Seven chains, all emitting a BOLD reference and a BOLD brain mask on the 1 mm te
 | `Direct_affine` | BOLD→MNI, 12-DOF affine, ignoring the subject's T1w | floor |
 | `Direct_SyN` | BOLD→MNI, nonlinear, ignoring the subject's T1w | candidate |
 
-Three independent accepted chains rather than two: with a pair, the envelope median is the mean of
+Three independent panel chains rather than two: with a pair, the envelope median is the mean of
 that pair, and one accepted arm necessarily sits at or below full marks.
 
 ## Scored metrics and how they were chosen
@@ -56,7 +56,7 @@ Four metrics were computed for every arm before any rubric was written.
 | `Direct_SyN` | 0.0153 | 12.29 | 0.5919 | 0.1435 |
 
 **NMI and centre-of-mass offset are scored.** Both split the panel the same way and with margin:
-NMI puts the accepted band at 0.0538–0.0580 against ≤0.0289 for every wrong chain (1.9×), and
+NMI puts the panel's band at 0.0538–0.0580 against ≤0.0289 for every wrong chain (1.9×), and
 offset puts it at 0.50–1.21 mm against ≥2.99 mm (2.5×).
 
 **Brain Dice is rejected.** Its whole range is 0.86–0.94 and it is *inverted* where it matters:
@@ -74,7 +74,7 @@ which differs legitimately between acceptable tools. A σ sweep over the panel:
 | `ANTs_reversed` | 0.4194 | 0.5576 | 0.6581 | 0.7212 | 0.7634 | 0.7849 |
 | `Direct_affine` | 0.3974 | 0.5211 | 0.6266 | 0.6946 | 0.7422 | 0.7816 |
 
-At every σ where the metric separates at all, the accepted FSL chain sits with the wrong arms; by
+At every σ where the metric separates at all, the FSL chain sits with the wrong arms; by
 σ=8 it tops `ANTs_correct` while nothing separates. The blur is not an artifact of resampling —
 a singly-resampled FSL output scores identically at every σ.
 
@@ -93,9 +93,9 @@ Weights 0.50 / 0.50. Gate caps: brain volume 1230–3030 cm³, centre of mass wi
 
 | arm | verdict | quality | gate failures |
 |---|---|---|---|
-| `fMRIPrep` | indistinguishable | 100.00 | — |
-| `FSL_chain` | indistinguishable | 96.67 | — |
-| `ANTs_correct` | indistinguishable | 93.71 | — |
+| `fMRIPrep` | within_reference_variability | 100.00 | — |
+| `FSL_chain` | within_reference_variability | 96.67 | — |
+| `ANTs_correct` | within_reference_variability | 93.71 | — |
 | `ANTs_no_epi` | marginal | 54.05 | — |
 | `ANTs_reversed` | unacceptable | 16.69 | — |
 | `Direct_affine` | unacceptable | 0.00 | — |
@@ -109,15 +109,15 @@ rubric says so.
 
 ## Perturbation validation
 
-The best accepted chain degraded in known ways (`analysis_07_validate.sh`), to check that the
+The best panel chain degraded in known ways (`analysis_07_validate.sh`), to check that the
 grader ranks degradations monotonically and that malformed submissions are gated rather than
 merely scored low.
 
 | perturbation | verdict | quality | gates |
 |---|---|---|---|
-| `self` | indistinguishable | 93.71 | — |
-| `nan_outside_brain` | indistinguishable | 93.71 | — |
-| `mask_255` | indistinguishable | 93.71 | — |
+| `self` | within_reference_variability | 93.71 | — |
+| `nan_outside_brain` | within_reference_variability | 93.71 | — |
+| `mask_255` | within_reference_variability | 93.71 | — |
 | `blur_4mm` | acceptable | 87.79 | — |
 | `shift_2mm` | marginal | 54.40 | — |
 | `shift_5mm` | unacceptable | 9.47 | — |
@@ -136,7 +136,7 @@ that value is, and `seg > 0` is what the metrics use downstream.
 
 ## Is the task measuring routing, or BOLD preparation?
 
-The agent is handed the unpreprocessed 4D series, and the accepted band is asymmetric: fMRIPrep's
+The agent is handed the unpreprocessed 4D series, and the panel's band is asymmetric: fMRIPrep's
 reference is motion- and distortion-corrected while the ANTs and FSL arms average the raw series.
 If the score mostly tracked how well the reference was prepared, the task would not be measuring
 the routing choice it claims to. Held one fixed and varied the other
@@ -144,7 +144,7 @@ the routing choice it claims to. Held one fixed and varied the other
 
 | reference preparation | route | NMI | offset (mm) | verdict | quality |
 |---|---|---|---|---|---|
-| raw temporal mean | anatomy-mediated | 0.0580 | 1.21 | indistinguishable | 93.71 |
+| raw temporal mean | anatomy-mediated | 0.0580 | 1.21 | within_reference_variability | 93.71 |
 | motion-corrected mean | anatomy-mediated | 0.0570 | 1.25 | acceptable | 92.91 |
 | motion-corrected mean | direct to template | 0.0240 | 2.47 | unacceptable | 20.80 |
 | raw temporal mean | direct to template | 0.0220 | 3.34 | unacceptable | 0.00 |
@@ -165,7 +165,7 @@ classic bug — but on this data it is not measurable as displacement, so it can
 
 The reason is the near-identity transform above. Reversing a 1.6 mm rigid transform against a large
 nonlinear warp perturbs the result by less than the metrics resolve: brain-mask Dice puts the
-reversed arm at 0.9111 against an accepted 0.9151, and in the QC panel every arm is the same brain
+reversed arm at 0.9111 against the panel's 0.9151, and in the QC panel every arm is the same brain
 in the same place. Same-session BOLD and T1w is the normal case for a BIDS dataset rather than a
 quirk of this subject, so no choice of subject would change that.
 
@@ -191,9 +191,9 @@ and coronal, one column per arm.
 
 ## Known limitations
 
-- **The accepted band is tight** (NMI 0.0538–0.0580) and reflects three tools on one dataset
+- **The panel band is tight** (NMI 0.0538–0.0580) and reflects three tools on one dataset
   rather than population variability.
-- Susceptibility distortion is only partly corrected, and not uniformly across the accepted band.
+- Susceptibility distortion is only partly corrected, and not uniformly across the panel's band.
   The dataset ships a phase-difference fieldmap whose `IntendedFor` lists this run, but fMRIPrep's
   report states it used fieldmap-less (SyN-based) correction instead; the ANTs and FSL arms apply
   none. Standard fieldmap correction is in practice unavailable here, because the BOLD sidecar

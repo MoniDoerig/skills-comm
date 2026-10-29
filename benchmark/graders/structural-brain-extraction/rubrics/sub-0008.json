@@ -43,7 +43,7 @@
       ],
       "fetch_into": "reference/ before grading \u2014 see reference/README.md"
     },
-    "note": "Frozen once from a panel of accepted tools; see PROVENANCE.md. Scoring a submission never re-calibrates. Reference data on the Hugging Face Hub; code on GitHub."
+    "note": "Frozen once from a panel of tools; see PROVENANCE.md. Scoring a submission never re-calibrates. Reference data on the Hugging Face Hub; code on GitHub."
   },
   "focal_bg_max_cm3": 40.0,
   "item": "skullstrip_ds002790_sub-0008",

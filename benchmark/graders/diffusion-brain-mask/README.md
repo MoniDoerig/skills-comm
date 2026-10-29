@@ -1,23 +1,23 @@
 # Grader: `diffusion-brain-mask`
 
-Grades a **brain mask made from a DWI b0** against a consensus of accepted masking tools
+Grades a **brain mask made from a DWI b0** against a consensus of a masking-tool panel
 (ds001226 `sub-CON02` `ses-preop`, `acq-AP`, 2.5 mm isotropic).
 
 **What it tests: whether the b0 is prepared before it is masked.** On the raw series every
 intensity-threshold method loses the same anatomy — cerebellum, temporal poles, brainstem — to
 the inferior bias field. Two routes pass: a contrast-agnostic stripper (SynthStrip, HD-BET,
 `3dSkullStrip`), or `dwidenoise` + `dwibiascorrect` before `dwi2mask`, which takes that tool from
-`invalid` to `indistinguishable`.
+`invalid` to `within_reference_variability`.
 
 ## Why a consensus, not one tool
 
 Every masking tool draws a different boundary, and on a b0 the disagreement is larger than on a
 T1w. Grading against any single tool would bake in that tool's convention. Instead the pack
-carries a STAPLE consensus of three accepted tools split into three zones —
+carries a STAPLE consensus of three panel tools split into three zones —
 
-    core (2)        every accepted tool includes it   -> must be kept  (scored)
+    core (2)        every panel tool includes it   -> must be kept  (scored)
     margin (1)      the tools legitimately disagree   -> free          (never scored)
-    background (0)  no accepted tool includes it      -> must be out   (scored)
+    background (0)  no panel tool includes it      -> must be out   (scored)
 
 — and scores only the two unambiguous zones. Every threshold is calibrated by leave-one-tool-out;
 see `PROVENANCE.md`.
@@ -34,7 +34,7 @@ The submission is a **binary brain mask on the diffusion grid** (96 × 96 × 60,
 ## Metrics
 
 Weighted quality over five metrics, each mapped to [0, 1] by the leave-one-tool-out envelope —
-1.0 at the median accepted tool, 0.0 at 1.5× beyond the worst:
+1.0 at the median panel tool, 0.0 at 1.5× beyond the worst:
 
 - **NSD** within τ = 5.59 mm (0.30) — boundary agreement
 - **core recall** (0.25) — brain must not be cut
@@ -45,7 +45,7 @@ Weighted quality over five metrics, each mapped to [0, 1] by the leave-one-tool-
 Dice is reported but not scored: it is a function of the two directional errors, so scoring it
 would weight the same information twice.
 
-Verdict: `indistinguishable` when every metric reaches full marks; else
+Verdict: `within_reference_variability` when every metric reaches full marks; else
 `acceptable`/`marginal`/`unacceptable` by weighted quality; `invalid` on any gate failure.
 
 ## Gates
@@ -79,3 +79,20 @@ diffusion-brain-mask/
 ```
 
 Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `diffusion_gt/diffusion-brain-mask/`.
+
+## Verdicts
+
+Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubrics/<subject>.json`.
+
+| verdict | meaning |
+|---|---|
+| `within_reference_variability` | inside the panel's own leave-one-tool-out spread — every metric is at least as good as the weakest the reference tools themselves achieve, so the submission cannot be told apart from a panel member |
+| `acceptable` | `quality >= 60` |
+| `marginal` | `quality >= 30` |
+| `unacceptable` | below that |
+| `invalid` | a validity gate failed; `quality` is forced to 0 |
+
+A submission passes when the verdict is `within_reference_variability` or `acceptable`.
+`within_reference_variability` is the top grade, not a hedge: it says the answer sits
+inside the disagreement the reference itself carries, which is as close as this task can
+measure.

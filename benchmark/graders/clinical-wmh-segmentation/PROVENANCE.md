@@ -37,7 +37,7 @@ are many small foci where detection, not just boundary overlap, is the point.
 
 ## Validation
 
-Against the pack: primary self → `indistinguishable` (q100); **O4 → `indistinguishable`** and **O3 →
+Against the pack: primary self → `within_reference_variability` (q100); **O4 → `within_reference_variability`** and **O3 →
 `acceptable` (q90)** — the two real raters land at "as good as another expert"; dilate the mask by 2
 voxels → `marginal` (Dice 0.24, +636 % volume — tiny lesions are unforgiving); erode by 1 →
 `unacceptable`; empty → `invalid`.

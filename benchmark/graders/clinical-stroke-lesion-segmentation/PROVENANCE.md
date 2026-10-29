@@ -26,7 +26,7 @@ a prediction overlaps ≥ 10 % of it.
 
 ## Validation
 
-Perturbing the expert mask against the pack: self → `indistinguishable` (q100, Dice 1.0); dilated 3
+Perturbing the expert mask against the pack: self → `within_reference_variability` (q100, Dice 1.0); dilated 3
 vox → `acceptable` (q80, Dice 0.74, volume +72 %); eroded 4 vox → `unacceptable` (Dice 0.48, F1 0.40);
 empty → `invalid` (nonempty gate).
 

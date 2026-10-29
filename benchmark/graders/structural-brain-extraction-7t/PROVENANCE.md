@@ -34,8 +34,8 @@ Scored on the raw (uncleaned) UNI against this pack:
 | tool (raw UNI)     | verdict             | note                                   |
 |--------------------|---------------------|----------------------------------------|
 | naive FSL `bet`    | **invalid** (557 cm³) | under-extracts; fails volume + core gates |
-| SynthStrip         | indistinguishable   | robust to the noise + 7T contrast      |
-| HD-BET             | indistinguishable   | robust to the noise + 7T contrast      |
+| SynthStrip         | within_reference_variability   | robust to the noise + 7T contrast      |
+| HD-BET             | within_reference_variability   | robust to the noise + 7T contrast      |
 
 `bet` fails on the cleaned image too (~546 cm³), so the failure is intrinsic to the tool at 7T, not
 a missed denoising step.

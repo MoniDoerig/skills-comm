@@ -52,11 +52,11 @@ rankable number:
    `score = 0`.
 2. **Quality** (only if all gates pass) → a weighted 0–100 from per-metric subscores, banded into
    `unacceptable / marginal / acceptable` at the pack's `verdict_thresholds`.
-3. **`indistinguishable`** overrides the band when *every* scored metric lands inside what the pack's
+3. **`within_reference_variability`** overrides the band when *every* scored metric lands inside what the pack's
    own references achieve. Each pack sets that bar from its calibration: a consensus-calibrated pack
    asks for every metric at least as good as the worst held-out tool, an inter-rater-calibrated pack
    asks for full marks on every metric. It is a separate test, not a score threshold — so a submission
-   can be `indistinguishable` without scoring 100, and `score` is **not** monotonic with the tier.
+   can be `within_reference_variability` without scoring 100, and `score` is **not** monotonic with the tier.
 
 `valid` and `score` are independent: a submission can be valid but score low (e.g. a mask that
 passes every gate but overlaps the reference poorly). Only `invalid` forces the score to 0.
@@ -76,7 +76,7 @@ because they cover the two ways a pack is calibrated:
 
 ```json
 { "task_id": "...", "model": "...", "condition": "baseline|skill", "timestamp": "...Z",
-  "valid": true, "verdict": "indistinguishable", "score": 100.0, "tiebreak": 1.0,
+  "valid": true, "verdict": "within_reference_variability", "score": 100.0, "tiebreak": 1.0,
   "gate_failures": [], "detail": { "kind": "binary|multiclass", ... },
   "raw": { ...full untouched scorer output for drill-down... } }
 ```
@@ -120,5 +120,5 @@ harness grades.
   envelope. The execution-plane workflow calls this per run.
 - **`selftest`** — on every push touching `harness/` or `graders/`: synthesises a perfect
   submission (a copy of the reference) and a broken one (all-zeros), and asserts the grader
-  returns `indistinguishable`/100 and `invalid` respectively. Runs entirely on a github-hosted
+  returns `within_reference_variability`/100 and `invalid` respectively. Runs entirely on a github-hosted
   runner — it validates the grading contract without involving the execution plane at all.

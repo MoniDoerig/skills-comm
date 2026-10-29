@@ -37,7 +37,7 @@ quality combines three:
   Full 0.70, zero credit at 0.33.
 - **absolute volume error %** (0.2) — full ≤ 15 %, zero credit at 50 %.
 
-Verdict: `indistinguishable` when all three hit full marks; else `acceptable`/`marginal`/
+Verdict: `within_reference_variability` when all three hit full marks; else `acceptable`/`marginal`/
 `unacceptable` by weighted quality; `invalid` on a gate failure (`binary`, `native_grid`,
 `nonempty`, `volume_plausible` at 0.5–150 cm³).
 
@@ -51,7 +51,7 @@ Degrading the expert mask ranks monotonically, and the two catastrophic modes ar
 
 | perturbation | verdict | quality | Dice | lesion F1 |
 |---|---|---|---|---|
-| self | indistinguishable | 100.0 | 1.000 | 1.000 |
+| self | within_reference_variability | 100.0 | 1.000 | 1.000 |
 | largest quarter of foci only | acceptable | 82.4 | 0.946 | 0.537 |
 | dilate 1 vox | marginal | 56.2 | 0.615 | 1.000 |
 | dilate 2 vox | marginal | 40.0 | 0.410 | 1.000 |
@@ -65,7 +65,7 @@ Two rows are worth reading closely. *Whole brain mask* shows why lesion-wise F1 
 on its own — one huge component overlaps every reference lesion, so F1 ≈ 1.0 while Dice is 0.05; the
 volume gate is what rejects it. *Largest quarter of foci only* is the grader's known tolerance: a
 submission that traces the big confluent lesions perfectly but misses three-quarters of the lesion
-instances still reaches `acceptable`, held down from `indistinguishable` by the F1 term alone.
+instances still reaches `acceptable`, held down from `within_reference_variability` by the F1 term alone.
 
 Erosion is harsher than dilation here because most foci are a few voxels across — an intrinsic
 property of multifocal MS at 1 mm, not a scoring artefact.
@@ -84,3 +84,20 @@ clinical-ms-lesion-segmentation/
 ```
 
 Reference: Hugging Face `neurodeskorg/skills-comm-ground-truth`, path `clinical_gt/clinical-ms-lesion-segmentation/`.
+
+## Verdicts
+
+Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubric.json`.
+
+| verdict | meaning |
+|---|---|
+| `within_reference_variability` | inside the published inter-rater ceiling recorded in `threshold_basis` — the reference is one expert tracing, so there is no panel spread to measure against and the bar comes from the literature |
+| `acceptable` | `quality >= 60` |
+| `marginal` | `quality >= 30` |
+| `unacceptable` | below that |
+| `invalid` | a validity gate failed; `quality` is forced to 0 |
+
+A submission passes when the verdict is `within_reference_variability` or `acceptable`.
+`within_reference_variability` is the top grade, not a hedge: it says the answer sits
+inside the disagreement the reference itself carries, which is as close as this task can
+measure.

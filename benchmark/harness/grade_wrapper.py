@@ -26,7 +26,7 @@ Envelope schema (schema_version 1.0):
       "scorer": str,                # scorer filename
       "pack": str,                  # pack dir (relative)
       "valid": bool,                # == (no gate failures)
-      "verdict": str,               # invalid|unacceptable|marginal|acceptable|indistinguishable
+      "verdict": str,               # invalid|unacceptable|marginal|acceptable|within_reference_variability
       "score": float,               # 0..100 quality  -> PRIMARY RANK KEY
       "tiebreak": float,            # secondary rank key (mean Dice), for equal scores
       "gate_failures": [str],
@@ -47,7 +47,7 @@ SCHEMA_VERSION = "1.0"
 
 # Ordering of the verdict vocabulary, worst -> best. Used only for display/tie context;
 # ranking is on the numeric `score`, which is already monotonic with the verdict tier.
-VERDICT_ORDER = ["invalid", "unacceptable", "marginal", "acceptable", "indistinguishable"]
+VERDICT_ORDER = ["invalid", "unacceptable", "marginal", "acceptable", "within_reference_variability"]
 
 
 def _utcnow_iso():

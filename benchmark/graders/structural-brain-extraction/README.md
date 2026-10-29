@@ -6,19 +6,19 @@ more discriminating alternative to grading a skull-strip by *Dice against one re
 ![How a brain-extraction submission is graded: five skull-strippers are fused by STAPLE into core, margin and background zones; a submission passes ten validity gates, then earns a 0-100 quality score weighting NSD 30%, core recall 25%, background inclusion 20%, HD95 15% and volume error 10%; an FSL BET run at f=0.7 would score about 71 on metrics alone but fails the focal-core-cut gate.](brain_extraction_grading.png)
 
 *Full size: [`brain_extraction_grading.png`](brain_extraction_grading.png). Every number in it comes
-from this pack's `rubric.json` and the test-evidence runs below.*
+from this pack's `rubrics/<subject>.json` and the test-evidence runs below.*
 
 The prompt is tool-agnostic (`tool_mode: agnostic`), so the grader must ask *"is this a competent
 brain mask?"*, not *"does it match one specific tool?"*. Every skull-stripper draws a slightly
 different boundary and they disagree in a few predictable places (sagittal sinus, tentorium,
 brainstem cut-off, sulcal CSF). So instead of one mask, the grader carries a **STAPLE consensus of a
-panel of accepted tools**, split into three zones, and scores only the *unambiguous* voxels:
+panel of tools**, split into three zones, and scores only the *unambiguous* voxels:
 
 | zone (value) | meaning | scored? |
 |---|---|---|
-| **core** (2) | every accepted tool includes it | yes — dropping it = brain cut |
+| **core** (2) | every panel tool includes it | yes — dropping it = brain cut |
 | **margin** (1) | the tools legitimately disagree | **no** — legitimate freedom |
-| **background** (0) | no accepted tool includes it | yes — including it = skull/dura/neck kept |
+| **background** (0) | no panel tool includes it | yes — including it = skull/dura/neck kept |
 
 Every threshold (the surface tolerance τ, the per-metric pass/fail envelope, the gate caps) was
 **calibrated from the data** (leave-one-tool-out), never hand-picked. See [`PROVENANCE.md`](PROVENANCE.md).
@@ -27,7 +27,7 @@ Every threshold (the surface tolerance τ, the per-metric pass/fail envelope, th
 
 ```
 structural-brain-extraction/
-├── rubric.json                       # frozen calibration: τ, envelope, weights, gate caps, grid
+├── rubrics/<subject>.json            # per-subject calibration: τ, envelope, weights, gate caps, grid
 ├── score_brain_mask.py               # the grader — importable score() + CLI
 ├── reference/                        # consensus NIfTIs — fetched from the Hub
 │   ├── README.md                     #   dataset path + fetch command
@@ -79,13 +79,13 @@ Dice fields were replaced):
   "entry": "score_brain_mask.py",
   "invoke": "python3 benchmark/graders/structural-brain-extraction/score_brain_mask.py --mask <AGENT_MASK> --pack benchmark/graders/structural-brain-extraction/",
   "validity_criterion": "verdict != invalid (script exit code 0)",
-  "pass_criterion": "verdict is acceptable or indistinguishable"
+  "pass_criterion": "verdict is acceptable or within_reference_variability"
 }
 ```
 
 A harness fetches the reference (`reference_fetch`) and runs `invoke`. Exit code 0 means that the
 submission passed all validity gates. The submission passes the benchmark when the verdict is
-`acceptable` or `indistinguishable`.
+`acceptable` or `within_reference_variability`.
 
 ## Test evidence
 
@@ -93,8 +93,8 @@ Scoring the panel + negative controls against this frozen pack gives:
 
 | submission | verdict | quality | why |
 |---|---|---|---|
-| `anat_hd_bet_bet.nii.gz` (HD-BET) | `indistinguishable` | 99.96 | NSD 0.991, focal 0.0, clean |
-| `AFNI_mask_bin.nii.gz` (AFNI, corrected) | `indistinguishable` | 99.78 | native grid, binary |
+| `anat_hd_bet_bet.nii.gz` (HD-BET) | `within_reference_variability` | 99.96 | NSD 0.991, focal 0.0, clean |
+| `AFNI_mask_bin.nii.gz` (AFNI, corrected) | `within_reference_variability` | 99.78 | native grid, binary |
 | `anat_bet_f07_mask.nii.gz` (BET −f 0.7) | **`invalid`** | 0 | `no_focal_core_loss` — 27.5 cm³ contiguous frontal cut |
 
 ```
@@ -105,9 +105,26 @@ $ echo $?    # 1
 
 ## Policy knobs
 
-- **Reference panel** (`rubric.json:reference_tools`) — defines the consensus AND every threshold.
+- **Reference panel** (`rubrics/<subject>.json:reference_tools`) — defines the consensus AND every threshold.
   Adding a tool only *loosens* the benchmark, because the core is an intersection.
 - **`focal_max_cm3`** — calibrated (`SLACK` × worst held-out focal miss, floored). Larger = more lenient
   on localised cuts.
 - **`native_grid` gate** — here a header-only deoblique (AFNI-style) is recovered onto the native grid
   rather than failed; flip to strict if the task should reject any header that doesn't match the input.
+
+## Verdicts
+
+Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubrics/<subject>.json`.
+
+| verdict | meaning |
+|---|---|
+| `within_reference_variability` | inside the panel's own leave-one-tool-out spread — every metric is at least as good as the weakest the reference tools themselves achieve, so the submission cannot be told apart from a panel member |
+| `acceptable` | `quality >= 60` |
+| `marginal` | `quality >= 30` |
+| `unacceptable` | below that |
+| `invalid` | a validity gate failed; `quality` is forced to 0 |
+
+A submission passes when the verdict is `within_reference_variability` or `acceptable`.
+`within_reference_variability` is the top grade, not a hedge: it says the answer sits
+inside the disagreement the reference itself carries, which is as close as this task can
+measure.
