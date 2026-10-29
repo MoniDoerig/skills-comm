@@ -151,16 +151,10 @@
       "pred_flag": "--seg",
       "detail_kind": "multiclass",
       "optional_inputs": {},
-      "ref_dir": "structural_gt/structural-tissue-segmentation-7t/{subject}",
+      "ref_dir": "structural_gt/structural-tissue-segmentation-7t",
       "reference_files": [
         "consensus_seg.nii.gz",
         "consensus_agreement.nii.gz"
-      ],
-      "per_subject": true,
-      "subjects": [
-        "sub-025",
-        "sub-045",
-        "sub-075"
       ]
     },
     "structural-mni-registration": {

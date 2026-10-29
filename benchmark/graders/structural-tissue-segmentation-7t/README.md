@@ -63,7 +63,7 @@ The pack is frozen once; scoring never re-calibrates.
 
 ## Verdicts
 
-Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubrics/<subject>.json`.
+Best to worst. `quality` is the weighted score in 0–100; the thresholds are in `rubric.json`.
 
 | verdict | meaning |
 |---|---|
