@@ -1807,7 +1807,7 @@
           },
           "solution": {
             "ground_truth": "Expert multi-rater consensus lesion mask shipped with the Ljubljana MS database - three expert raters segmented the patient independently and the released mask is their consensus. A genuine gold standard, NOT a tool consensus (automated MS lesion tools span Dice 0.50-0.74 on this cohort). Voxel data as published, on the header of the FLAIR handed to the agent (the published mask's own header misses it by <= 0.4 mm). lesion_mask.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision f0229ea2b089), path clinical_gt/clinical-ms-lesion-segmentation/{subject}/ (lesion_mask.nii.gz)",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision d25aa314cdfd), path clinical_gt/clinical-ms-lesion-segmentation/{subject}/ (lesion_mask.nii.gz)",
             "metric": "expert-mask: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from Dice + lesion-wise detection F1 + volume error (thresholds fixed from published results on this same cohort)",
             "pass_criterion": "A binary lesion mask {0,1} on the supplied FLAIR grid; nonempty and volume-plausible (0.5-150 cm3); Dice and lesion-wise overlap with the expert consensus above the fixed lines; No processing errors; logs captured",
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",

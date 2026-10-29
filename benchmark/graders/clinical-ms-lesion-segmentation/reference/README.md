@@ -4,7 +4,7 @@ The frozen reference for this grader is on the Hugging Face Hub:
 
 - **Dataset:** `neurodeskorg/skills-comm-ground-truth`
 - **Path:** `clinical_gt/clinical-ms-lesion-segmentation/<subject>/`
-- **Revision:** `f0229ea2b089`
+- **Revision:** `d25aa314cdfd`
 - **Files:**
   - `lesion_mask.nii.gz` — expert multi-rater consensus MS lesion mask (open_ms_data `patient01`,
 

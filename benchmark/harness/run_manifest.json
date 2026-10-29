@@ -234,7 +234,8 @@
         "patient08",
         "patient12",
         "patient14"
-      ]
+      ],
+      "reference_revision": "d25aa314cdfd"
     },
     "clinical-wmh-segmentation": {
       "pack_dir": "graders/clinical-wmh-segmentation",

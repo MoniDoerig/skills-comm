@@ -160,8 +160,12 @@ def validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask=None, dura
     g["single_component"] = bool(n > 0 and sizes.max() / sizes.sum() > 0.98)
     filled = ndi.binary_fill_holes(mask)
     g["no_internal_holes"] = bool((filled.sum() - mask.sum()) / max(mask.sum(), 1) < 0.02)
-    max_core_loss = 1 - rubric.get("consensus", {}).get("max_core_loss", 0.10)  # default 0.90 kept
-    g["no_catastrophic_core_loss"] = bool((mask & core).sum() / max(core.sum(), 1) > 0.90)
+    # The floor was computed from the rubric and then discarded, the gate testing a
+    # hardcoded 0.90 instead. No rubric sets consensus.max_core_loss today, so nothing was
+    # misgraded, but a task that set it would have been silently overridden.
+    min_core_kept = 1 - rubric.get("consensus", {}).get("max_core_loss", 0.10)
+    g["no_catastrophic_core_loss"] = bool(
+        (mask & core).sum() / max(core.sum(), 1) > min_core_kept)
     g["no_focal_core_loss"] = bool(_largest_component_cm3(core & ~mask, vox_cm3)
                                    <= rubric["focal_max_cm3"])
     g["no_focal_bg_inclusion"] = bool(_largest_component_cm3(mask & (zones == 0), vox_cm3)
@@ -237,19 +241,32 @@ def score(mask_path, pack_dir, stripped_path=None):
     zooms = np.asarray(ref_img.header.get_zooms()[:3], float)
     vox_cm3 = float(np.prod(zooms) / 1000.0)
 
-    # The rubric must belong to the reference it is grading. Grid shape does not prove it
-    # -- subjects of one task share a matrix -- but the core volume is specific to the
-    # brain, so it is checked against the zones actually loaded. This catches a rubric
-    # selected for the wrong subject, which would otherwise score silently and wrongly.
+    # The rubric must belong to the reference it is grading, and the test has to be
+    # something that actually separates subjects. Neither grid shape nor consensus volume
+    # does: subjects of one task share a matrix, and the closest pair of core volumes is
+    # 0.08% apart in the stroke task and under 1% in three others, so a volume comparison
+    # loose enough not to false-positive is too loose to catch anything. Measured on the
+    # nine per-subject tasks, every subject's scan affine is unique, so that is the test.
+    want_aff = (rubric.get("grid") or {}).get("raw_affine")
+    if want_aff is not None:
+        have_aff = nib.load(str(pack / "reference" / "consensus_mask.nii.gz")).affine
+        if not np.allclose(np.asarray(want_aff, float), have_aff, atol=1e-3):
+            raise SystemExit(
+                "ERROR: this rubric does not describe this reference -- its grid affine "
+                "does not match consensus_mask.nii.gz. The rubric and the reference are "
+                "for different subjects.")
+
+    # A volume far from what the rubric states means the reference changed under the
+    # rubric even though the subject matches; loose on purpose, so it flags a rebuild
+    # rather than a neighbouring subject.
     stated_core = (rubric.get("consensus") or {}).get("core_cm3")
     if stated_core:
         measured_core = float((zones == 2).sum() * vox_cm3)
-        if abs(measured_core - stated_core) > 0.02 * stated_core:
+        if abs(measured_core - stated_core) > 0.10 * stated_core:
             raise SystemExit(
-                f"ERROR: this rubric does not describe this reference. It states a core of "
-                f"{stated_core:.2f} cm3; the loaded consensus_zones.nii.gz has "
-                f"{measured_core:.2f} cm3. The rubric and the reference are for different "
-                f"subjects.")
+                f"ERROR: this rubric states a core of {stated_core:.2f} cm3 but the loaded "
+                f"consensus_zones.nii.gz has {measured_core:.2f} cm3 -- more than 10% "
+                "apart. The reference has changed since the rubric was calibrated.")
 
     raw_shape = rubric["grid"].get("raw_shape")
     raw_affine = rubric["grid"].get("raw_affine")

@@ -63,6 +63,17 @@ def fetch(task_id, manifest_path, graders_root=None, force=False, revision=None,
     dest = root / spec["pack_dir"] / "reference"
     dest.mkdir(parents=True, exist_ok=True)
 
+    # Reference filenames are the same for every subject, so "already present" cannot be
+    # read as "already correct": fetching subject B into a directory still holding
+    # subject A would skip every file and leave A's masks beside B's rubric. The marker
+    # records whose reference is in there, and a different subject forces a re-fetch.
+    marker = dest / ".subject"
+    held = marker.read_text().strip() if marker.is_file() else None
+    if subject and held != subject:
+        if held is not None:
+            print(f"  [switch] reference/ holds {held}; re-fetching for {subject}")
+        force = True
+
     for fname in spec["reference_files"]:
         local = dest / fname
         if local.exists() and not force:
@@ -94,6 +105,8 @@ def fetch(task_id, manifest_path, graders_root=None, force=False, revision=None,
         shutil.copyfile(src, dest / "rubric.json")
         print(f"  [rubric] {src.name} -> {dest / 'rubric.json'}")
 
+    if subject:
+        marker.write_text(subject + "\n")
     print(f"reference ready: {dest}")
     return dest
 

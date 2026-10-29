@@ -95,10 +95,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # one row per scorer shape, and per reference shape: a task with a single
+          # reference and one graded per subject are different code paths through both
+          # fetch_reference and grade_wrapper, and only the first was ever exercised.
           - task: clinical-wmh-segmentation
-            graded_ref: lesion_mask.nii.gz          # binary scorer
+            graded_ref: lesion_mask.nii.gz          # binary scorer, single reference
           - task: structural-tissue-segmentation-7t
-            graded_ref: consensus_seg.nii.gz        # multiclass scorer
+            graded_ref: consensus_seg.nii.gz        # multiclass scorer, single reference
+          - task: structural-brain-extraction
+            graded_ref: consensus_mask.nii.gz       # binary scorer, graded per subject
+            subject: sub-0023
+          - task: clinical-ms-lesion-segmentation
+            graded_ref: lesion_mask.nii.gz          # expert reference, graded per subject
+            subject: patient08
     steps:
       - uses: actions/checkout@v4
 
@@ -112,7 +121,9 @@ jobs:
       - name: Fetch reference
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python benchmark/harness/fetch_reference.py --task "${{ matrix.task }}"
+        run: |
+          python benchmark/harness/fetch_reference.py --task "${{ matrix.task }}" \
+            ${{ matrix.subject && format('--subject {0}', matrix.subject) || '' }}
 
       - name: Synthesise perfect + broken submissions from the reference
         run: |
@@ -120,13 +131,16 @@ jobs:
           import numpy as np, nibabel as nib
           from pathlib import Path
           task="${{ matrix.task }}"; graded="${{ matrix.graded_ref }}"
+          subject="${{ matrix.subject }}"
           ref = Path("benchmark/graders")/task/"reference"/graded
           img = nib.load(str(ref))
-          # perfect = an exact copy of the graded reference -> must be "indistinguishable"
-          good = Path("run_perfect/submissions")/task; good.mkdir(parents=True, exist_ok=True)
+          # perfect = an exact copy of the graded reference -> must sit inside the
+          # reference's own variability
+          sub_rel = Path(task)/subject if subject else Path(task)
+          good = Path("run_perfect/submissions")/sub_rel; good.mkdir(parents=True, exist_ok=True)
           nib.save(img, str(good/"output.nii.gz"))
           # broken = all-zeros on the same grid -> must trip a validity gate -> "invalid"
-          bad = Path("run_broken/submissions")/task; bad.mkdir(parents=True, exist_ok=True)
+          bad = Path("run_broken/submissions")/sub_rel; bad.mkdir(parents=True, exist_ok=True)
           z = nib.Nifti1Image(np.zeros(img.shape, dtype="uint8"), img.affine, img.header)
           nib.save(z, str(bad/"output.nii.gz"))
           print("synthesised perfect + broken for", task)
@@ -135,17 +149,19 @@ jobs:
       - name: Grade both and assert the contract
         run: |
           mkdir -p results
-          python benchmark/harness/grade_wrapper.py grade --task "${{ matrix.task }}" \
+          SUBJ="${{ matrix.subject && format('--subject {0}', matrix.subject) || '' }}"
+          python benchmark/harness/grade_wrapper.py grade --task "${{ matrix.task }}" $SUBJ \
             --submission-dir run_perfect --model selftest --condition perfect \
             --out results/perfect.json || true
-          python benchmark/harness/grade_wrapper.py grade --task "${{ matrix.task }}" \
+          python benchmark/harness/grade_wrapper.py grade --task "${{ matrix.task }}" $SUBJ \
             --submission-dir run_broken --model selftest --condition broken \
             --out results/broken.json || true
           python - <<'PY'
           import json, sys
           p = json.load(open("results/perfect.json")); b = json.load(open("results/broken.json"))
           print("perfect:", p["verdict"], p["score"], "| broken:", b["verdict"], b["score"])
-          ok = (p["verdict"] == "indistinguishable" and p["valid"] and p["score"] == 100.0
+          ok = (p["verdict"] == "within_reference_variability" and p["valid"]
+                and p["score"] == 100.0
                 and b["verdict"] == "invalid" and not b["valid"])
           if not ok:
               print("SELFTEST FAILED: grading contract not upheld"); sys.exit(1)
