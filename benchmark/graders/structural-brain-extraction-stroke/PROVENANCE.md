@@ -34,7 +34,9 @@ is a fluid-filled cavity, dark and CSF-like on T1 — a natural failure point:
 3. **Zones** → `consensus_zones.nii.gz` (0 = background, 1 = margin, 2 = core).
 4. **τ** = 95th percentile pairwise surface disagreement ≈ 5.4 mm.
 5. **Envelope** by leave-one-tool-out → per-metric median (full marks) / worst (pass line).
-6. **Gate caps:** `focal_max_cm3`, `focal_bg_max_cm3` = 40 cm³ (fixed), and **`lesion_retained_min`
+6. **Gate caps:** `focal_max_cm3` (5.0–12.5 cm³ here, LOTO-calibrated on the largest held-out miss that
+   survives a max(1.5 mm, one voxel) shave), `focal_bg_max_cm3` = 40 cm³ (fixed, measured the same
+   way), and **`lesion_retained_min`
    = 0.85** (fixed) — a competent stripper keeps ≥ 94 % of the lesion; BET's 52 % fails with margin.
 
 ## Reference data

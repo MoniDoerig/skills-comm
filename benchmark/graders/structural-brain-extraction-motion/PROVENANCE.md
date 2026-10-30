@@ -32,7 +32,9 @@ ANTs and BET remain as scored **candidates** (they come out `invalid`), which va
 3. **Zones** from the agreement fraction → `consensus_zones.nii.gz` (0=background, 1=margin, 2=core).
 4. **τ** = 95th percentile of pairwise surface disagreement among the three tools (≈ 5.7 mm).
 5. **Envelope** by leave-one-tool-out → per-metric median (full marks) / worst (pass line).
-6. **Gate caps:** `focal_max_cm3` (localised core loss, LOTO-calibrated with a floor) and
+6. **Gate caps:** `focal_max_cm3` (5.0–14.5 cm³ here) for localised core loss, LOTO-calibrated with a
+   floor, both sides measured as the largest component surviving a max(1.5 mm, one voxel) shave;
+   `focal_bg_max_cm3` is measured the same way; and
    **`focal_bg_max_cm3` = 40 cm³ (fixed)** for localised background inclusion. The background cap is
    *not* LOTO-calibrated: a competent tool retains ~0 contiguous background by construction, and with
    a small panel leave-one-out would be fooled by the loosest tool's dura.

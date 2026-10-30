@@ -44,6 +44,10 @@ from scipy import ndimage as ndi
 
 BIN_TOL = 1e-6
 STRUCT = ndi.generate_binary_structure(3, 1)
+# How deep a shave a region must survive to count as a solid piece of anatomy rather
+# than a boundary offset, floored at one voxel of the grid in use.
+# See _largest_solid_component_cm3.
+SOLID_SHAVE_MM = 1.5
 # metrics where a smaller value is better (used by the envelope mapping)
 LOWER_BETTER = {"assd_mm", "hd95_mm", "core_miss_cm3", "focal_core_miss_cm3",
                 "focal_bg_incl_cm3", "bg_fp_cm3", "bg_fp_frac_of_ref", "abs_volume_err_pct"}
@@ -116,6 +120,40 @@ def _largest_component_cm3(binary, vox_cm3):
     return float(np.bincount(lab.ravel())[1:].max() * vox_cm3) if n else 0.0
 
 
+def _largest_solid_component_cm3(binary, vox_cm3, zooms):
+    """Largest connected component that survives having SOLID_SHAVE_MM shaved off it.
+
+    Volume alone cannot tell a boundary convention from missing anatomy. A whole mask
+    offset inward by a millimetre and a lobe cut off can be the same number of cm3 in one
+    connected region: on these references a uniform 2 mm trim registers 3 to 232 cm3 of
+    "focal" loss while removing nothing a radiologist would name, and on the inclusion
+    side a 1 mm rim over half the cortical surface registers 59 to 116 cm3.
+
+    Shaving first separates them. A layer survives only if it is thicker than twice the
+    shave, so the shave is a distance rather than a voxel count: the quantity in question
+    is anatomical thickness and the grids here span 0.63 to 2.5 mm. A one-voxel erosion
+    asks for three voxels of thickness, 1.9 mm at 7T, which a two- to three-voxel dura
+    rind clears -- that is how one slipped through and pushed a cap from 8 to 53 cm3. At
+    SOLID_SHAVE_MM a structure has to exceed 3 mm, near cortical thickness, while dura
+    and CSF rinds at 1 to 2 mm do not.
+
+    The floor at one voxel matters on a coarse grid: a 1.5 mm shave removes nothing at
+    all on the 2.5 mm diffusion grid, since no voxel there is within 1.5 mm of the
+    outside, and the measure would quietly fall back to a raw component volume. A grid
+    cannot resolve a layer thinner than its own voxel, so one voxel is the least that
+    can be asked of it.
+
+    Boundary disagreement is not unscored -- tau, NSD and HD95 price it, total core loss
+    feeds core_recall and the catastrophic gate, and total background inclusion feeds
+    bg_fp. These two gates are for the other failure: a piece of anatomy that is simply
+    gone, or a piece of skull that is simply included.
+    """
+    if binary.any():
+        shave = max(SOLID_SHAVE_MM, float(np.max(zooms)))
+        binary = ndi.distance_transform_edt(binary, sampling=zooms) > shave
+    return _largest_component_cm3(binary, vox_cm3)
+
+
 def surface_metrics(cand, ref_binary, zooms, tau_mm):
     sc, sr = _surface(cand), _surface(ref_binary)
     if sc.sum() == 0 or sr.sum() == 0:
@@ -137,17 +175,17 @@ def evaluate(mask, zones, ref_binary, zooms, tau_mm):
     m["dice"] = 2 * (mask & ref_binary).sum() / max(mask.sum() + ref_binary.sum(), 1)
     m["core_recall"] = (mask & core).sum() / max(core.sum(), 1)
     m["core_miss_cm3"] = (core & ~mask).sum() * vox_cm3
-    m["focal_core_miss_cm3"] = _largest_component_cm3(core & ~mask, vox_cm3)
+    m["focal_core_miss_cm3"] = _largest_solid_component_cm3(core & ~mask, vox_cm3, zooms)
     m["bg_fp_cm3"] = (mask & background).sum() * vox_cm3
-    m["focal_bg_incl_cm3"] = _largest_component_cm3(mask & background, vox_cm3)
+    m["focal_bg_incl_cm3"] = _largest_solid_component_cm3(mask & background, vox_cm3, zooms)
     m["bg_fp_frac_of_ref"] = (mask & background).sum() / max(ref_binary.sum(), 1)
     m["margin_inclusion"] = (mask & margin).sum() / max(margin.sum(), 1)
     m.update(surface_metrics(mask, ref_binary, zooms, tau_mm))
     return m
 
 
-def validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask=None, dura_envelope=None,
-                   lesion_mask=None):
+def validity_gates(mask, notes, zones, rubric, vox_cm3, zooms, stripped_mask=None,
+                   dura_envelope=None, lesion_mask=None):
     core = zones == 2
     g = {}
     g["binary"] = not any(n.startswith("not_binary") or n == "values_not_0_1" for n in notes)
@@ -166,10 +204,12 @@ def validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask=None, dura
     min_core_kept = 1 - rubric.get("consensus", {}).get("max_core_loss", 0.10)
     g["no_catastrophic_core_loss"] = bool(
         (mask & core).sum() / max(core.sum(), 1) > min_core_kept)
-    g["no_focal_core_loss"] = bool(_largest_component_cm3(core & ~mask, vox_cm3)
-                                   <= rubric["focal_max_cm3"])
-    g["no_focal_bg_inclusion"] = bool(_largest_component_cm3(mask & (zones == 0), vox_cm3)
-                                      <= rubric.get("focal_bg_max_cm3", 40.0))
+    g["no_focal_core_loss"] = bool(
+        _largest_solid_component_cm3(core & ~mask, vox_cm3, zooms)
+        <= rubric["focal_max_cm3"])
+    g["no_focal_bg_inclusion"] = bool(
+        _largest_solid_component_cm3(mask & (zones == 0), vox_cm3, zooms)
+        <= rubric.get("focal_bg_max_cm3", 40.0))
     if stripped_mask is not None:
         g["stripped_matches_mask"] = bool((stripped_mask == mask).mean() > 0.99)
     # Dura gate (activates only for packs that ship a dura envelope, e.g. the 7T "no-dura" task):
@@ -296,7 +336,8 @@ def score(mask_path, pack_dir, stripped_path=None):
                              f"consensus reference grid {ref_img.shape[:3]}.")
         lesion_mask = np.asanyarray(les_img.dataobj) > BIN_TOL
 
-    gates = validity_gates(mask, notes, zones, rubric, vox_cm3, stripped_mask, dura_envelope, lesion_mask)
+    gates = validity_gates(mask, notes, zones, rubric, vox_cm3, zooms, stripped_mask,
+                           dura_envelope, lesion_mask)
     metrics = evaluate(mask, zones, ref_binary, zooms, rubric["tau_mm"])
     if dura_envelope is not None:
         metrics["dura_over_env_cm3"] = float((mask & ~dura_envelope).sum() * vox_cm3)

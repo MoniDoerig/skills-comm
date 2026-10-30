@@ -78,7 +78,8 @@ Keeping it had a concrete cost: the cerebellum landed in the **margin** zone, wh
 scored, so a submission that discarded the cerebellum entirely would not have been penalised —
 directly contradicting this task's own pass criterion ("brain retained including cerebellum and
 brainstem"). Dropping it moves the cerebellum into the scored core, where it belongs, and
-tightens τ from 12.5 mm to 5.59 mm and the focal core-loss cap from 190 cm³ to 55 cm³.
+tightens τ from 12.5 mm to 5.59 mm, and tightens the focal core-loss cap by an order of
+magnitude.
 
 ### Geometry
 
@@ -112,8 +113,11 @@ skull-stripped image with 7375 distinct intensities, so submitting that file unm
 4. **Envelope** by leave-one-tool-out — hold out each reference tool, rebuild the consensus from
    the other two, score the held-out tool against it → per-metric median (full marks) and worst
    (zero credit).
-5. **Gate caps**: `focal_max_cm3` = max(1.5 × worst held-out focal miss, 5 cm³ floor) =
-   **55.1 cm³**; `focal_bg_max_cm3` = **40 cm³** (fixed policy); `plausible_volume_cm3` =
+5. **Gate caps**: `focal_max_cm3` = max(1.5 × worst held-out focal miss, 5 cm³ floor) = **5.0–12.9 cm³**
+   across the five subjects, the miss and the submission's loss both measured as the largest
+   component surviving a max(1.5 mm, one voxel) shave, one voxel on this grid;
+   `focal_bg_max_cm3` = **40 cm³** (fixed policy, measured the same way);
+   `plausible_volume_cm3` =
    **[1020, 2290]** cm³, which rejects the 838 cm³ `3dAutomask` outright.
 
 ### Leave-one-tool-out

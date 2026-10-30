@@ -52,7 +52,9 @@ Verdict: `within_reference_variability` when every metric reaches full marks; el
 
 `binary`, `native_grid`, `nonempty`, `single_component`, `no_internal_holes`,
 `volume_plausible` (1020–2290 cm³), `no_catastrophic_core_loss` (≤ 10 % of core),
-`no_focal_core_loss` (≤ 55.1 cm³ contiguous), `no_focal_bg_inclusion` (≤ 40 cm³ contiguous),
+`no_focal_core_loss` (≤ 5.0–12.9 cm³, a solid chunk surviving a max(1.5 mm, one voxel) shave — here one
+voxel, 2.5 mm; a uniformly tighter boundary is priced by τ, NSD and HD95 instead),
+`no_focal_bg_inclusion` (≤ 40 cm³, measured the same way),
 `stripped_matches_mask`.
 
 **The gates name the failure.** Dice alone would not separate these: `bet -f 0.2` reaches Dice

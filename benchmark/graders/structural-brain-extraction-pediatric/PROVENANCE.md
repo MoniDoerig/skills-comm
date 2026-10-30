@@ -30,7 +30,10 @@ Four tools were run on the T1w and were all mutually coherent (pairwise Dice ~0.
 3. **Zones** from the agreement fraction → `consensus_zones.nii.gz` (0=background, 1=margin, 2=core).
 4. **τ** = 95th percentile of pairwise surface disagreement (≈ 4.5 mm).
 5. **Envelope** by leave-one-tool-out → per-metric median (full marks) / worst (pass line).
-6. **Gate caps:** `focal_max_cm3` (localised core loss, LOTO-calibrated + floor) and `focal_bg_max_cm3` = 40 cm³
+6. **Gate caps:** `focal_max_cm3` (5.0 cm³ here) for localised core loss, LOTO-calibrated with a
+   floor, both sides measured as the largest component surviving a max(1.5 mm, one voxel) shave so
+   a uniformly tighter boundary is not read as a missing structure; and `focal_bg_max_cm3` = 40 cm³,
+   measured the same way
    (fixed) for localised background inclusion.
 
 ## Reference data

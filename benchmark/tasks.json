@@ -1384,7 +1384,7 @@
             "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "consensus-calibrated",
-              "description": "Scores a binary mask against the STAPLE consensus in three zones: unanimous core (must be kept), margin (tools legitimately disagree, never scored) and background (must be excluded). Weighted quality over NSD within tau = 5.59 mm, core recall, background false-positive fraction, HD95 and volume error, each mapped by the leave-one-tool-out envelope. The discriminating gate is no_focal_core_loss (55.1 cm3): threshold-based methods drop the cerebellum on the raw b0 and fail it. See PROVENANCE.md.",
+              "description": "Scores a binary mask against the STAPLE consensus in three zones: unanimous core (must be kept), margin (tools legitimately disagree, never scored) and background (must be excluded). Weighted quality over NSD within tau = 5.59 mm, core recall, background false-positive fraction, HD95 and volume error, each mapped by the leave-one-tool-out envelope. The discriminating gate is no_focal_core_loss (5.0-12.9 cm3 per subject, a lost region that survives a one-voxel shave): threshold-based methods drop the cerebellum on the raw b0 and fail it. See PROVENANCE.md.",
               "pack": "benchmark/graders/diffusion-brain-mask/",
               "scorer": "benchmark/graders/diffusion-brain-mask/score_brain_mask.py",
               "reference_fetch": "python benchmark/harness/fetch_reference.py --task diffusion-brain-mask",

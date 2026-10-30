@@ -129,6 +129,6 @@
       "worst": 13.5702
     }
   },
-  "focal_max_cm3": 30.2592,
-  "focal_basis": "min(max(1.5 x worst held-out focal miss, 5.0 cm3 floor), 2% of core). The leave-one-out term alone gave 82.91 cm3, which is inter-tool boundary disagreement applied as an anatomical loss budget: it is loosest where the panel argued most, so the harder the image the more brain an answer could discard. The ceiling is policy, anchored on measurement - the core is unanimous so every panel tool loses 0.00% of it, the one legitimate non-panel tool measured loses 0.00%, and every tool that exceeds 2% is one independently judged wrong (AFNI on the 7T UNI at 7.5-10.5%, FSL BET at 2.9-54%, dwi2mask and AFNI automask on b0 at 4.3-58%). Two of those passed the uncapped value."
+  "focal_max_cm3": 5.0,
+  "focal_basis": "max(1.5 x worst held-out focal miss, 5.0 cm3 floor), both measured as the largest component surviving a max(1.5 mm, one voxel) shave, as the scorer measures a submission; shave 1.5 mm here, worst held-out miss 2.02 cm3"
 }

@@ -131,6 +131,6 @@
       "worst": 9.9694
     }
   },
-  "focal_max_cm3": 12.3165,
-  "focal_basis": "max(1.5 x worst held-out focal miss, 5.0 cm3 floor); worst 8.21 cm3 on dropping HD_BET"
+  "focal_max_cm3": 5.0,
+  "focal_basis": "max(1.5 x worst held-out focal miss, 5.0 cm3 floor), both measured as the largest component surviving a max(1.5 mm, one voxel) shave, as the scorer measures a submission; shave 1.5 mm here, worst held-out miss 1.15 cm3"
 }

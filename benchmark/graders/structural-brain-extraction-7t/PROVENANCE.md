@@ -51,7 +51,11 @@ a missed denoising step.
 4. **τ** = 95th percentile of pairwise surface disagreement (≈ 13.4 mm — wide, driven by SynthStrip's
    thick 7T CSF rim). The task's discriminating power is in the **validity gates**, not the envelope.
 5. **Envelope** by leave-one-tool-out → per-metric median (full marks) / worst (pass line).
-6. **Gate caps:** `focal_max_cm3` (localised core loss) and `focal_bg_max_cm3` = 40 cm³ (fixed).
+6. **Gate caps:** `focal_max_cm3` (5.0 cm³ here) for localised core loss, LOTO-calibrated with a
+   floor and measured as the largest component surviving a max(1.5 mm, one voxel) shave; and
+   `focal_bg_max_cm3` = 40 cm³ (fixed), measured the same way. At this task's 0.63 mm voxels a
+   one-voxel erosion asks for only 1.9 mm of thickness, which a dura rind clears, so it is the
+   millimetre floor rather than the voxel floor that binds here on both gates.
 
 ## Reference data
 

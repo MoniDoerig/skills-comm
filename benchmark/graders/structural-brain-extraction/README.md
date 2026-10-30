@@ -62,8 +62,11 @@ a harness as a pass/fail check. Depends only on `numpy`, `scipy`, `nibabel`.
 Two stages: **gates** (any failure ⇒ `invalid`, score 0, gate named) then a **weighted quality**
 mapped onto the leave-one-tool-out envelope. The five scored metrics and weights: NSD@τ (0.30),
 core recall (0.25), background FP (0.20), HD95 (0.15), volume error (0.10). The gates include the
-discriminating **`no_focal_core_loss`** — it fails a mask that cuts one *contiguous* chunk of core
-beyond the calibrated cap, which a global core-recall would dilute.
+discriminating **`no_focal_core_loss`** — it fails a mask that cuts a *solid* chunk out of the
+core beyond the calibrated cap, which a global core-recall would dilute. Solid means it survives
+being shaved by one voxel, so a uniformly tighter boundary is priced by τ, NSD and HD95 instead of
+being read as a missing structure. The same measure guards `no_focal_bg_inclusion`, so a mask
+sitting a millimetre outside the margin is not read as a swallowed chunk of skull either.
 
 ## How it's wired into `benchmark/tasks.json`
 
@@ -95,7 +98,7 @@ Scoring the panel + negative controls against this frozen pack gives:
 |---|---|---|---|
 | `anat_hd_bet_bet.nii.gz` (HD-BET) | `within_reference_variability` | 99.96 | NSD 0.991, focal 0.0, clean |
 | `AFNI_mask_bin.nii.gz` (AFNI, corrected) | `within_reference_variability` | 99.78 | native grid, binary |
-| `anat_bet_f07_mask.nii.gz` (BET −f 0.7) | **`invalid`** | 0 | `no_focal_core_loss` — 27.5 cm³ contiguous frontal cut |
+| `anat_bet_f07_mask.nii.gz` (BET −f 0.7) | **`invalid`** | 0 | `no_focal_core_loss` — 14.3 cm³ solid frontal cut (27.5 cm³ before erosion) |
 
 ```
 $ python3 score_brain_mask.py --mask anat_bet_f07_mask.nii.gz --pack .
@@ -107,8 +110,9 @@ $ echo $?    # 1
 
 - **Reference panel** (`rubrics/<subject>.json:reference_tools`) — defines the consensus AND every threshold.
   Adding a tool only *loosens* the benchmark, because the core is an intersection.
-- **`focal_max_cm3`** — calibrated (`SLACK` × worst held-out focal miss, floored). Larger = more lenient
-  on localised cuts.
+- **`focal_max_cm3`** — calibrated (`SLACK` × worst held-out focal miss, floored), the miss measured
+  the same way the scorer measures a submission's: largest component surviving a max(1.5 mm, one voxel) shave.
+  5.0 cm³ across this task's subjects. Larger = more lenient on localised cuts.
 - **`native_grid` gate** — here a header-only deoblique (AFNI-style) is recovered onto the native grid
   rather than failed; flip to strict if the task should reject any header that doesn't match the input.
 
