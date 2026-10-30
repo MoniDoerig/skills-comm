@@ -101,7 +101,8 @@ jobs:
           - task: clinical-wmh-segmentation
             graded_ref: lesion_mask.nii.gz          # binary scorer, single reference
           - task: structural-tissue-segmentation-7t
-            graded_ref: consensus_seg.nii.gz        # multiclass scorer, single reference
+            graded_ref: consensus_seg.nii.gz        # multiclass scorer, graded per subject
+            subject: sub-025
           - task: structural-brain-extraction
             graded_ref: consensus_mask.nii.gz       # binary scorer, graded per subject
             subject: sub-0023
