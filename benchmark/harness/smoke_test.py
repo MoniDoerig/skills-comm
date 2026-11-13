@@ -214,6 +214,44 @@ def run_segmentation(task, spec, rows):
                 rows.append((task, sub, f"rubric of {other}", "refused", "refused", True))
 
 
+def run_dataset_state(task, spec, rows):
+    """Probe the scorer that grades a dataset rather than an image.
+
+    This family cannot be probed the way the others are. Their selftest copies the graded
+    reference in as a perfect submission, which works because the reference and the
+    submission are the same kind of object. Here the reference is a list of
+    participant-sessions and the submission is a Nipoppy study, so there is nothing to
+    copy: a correct submission can only be produced by running the tool.
+
+    What is probed instead is the half that does not need one. An empty submission must be
+    refused, and refused for the stated reasons rather than by crashing -- which exercises
+    the pack, the fetched reference, the rubric and every gate on the path. If the build
+    tree carries a reference study at `nipoppy_reference_study/`, that is graded too and
+    must come back complete.
+    """
+    sc = scorer(spec["scorer"])
+    pack = REPO / spec["pack_dir"]
+    expect = {"study_initialised", "pipeline_installed", "rerun_selection"}
+
+    empty = Path(tempfile.mkdtemp(prefix="smoke_dataset_state_"))
+    try:
+        r = sc.score(str(empty), str(pack))
+        v, q, f = verdict_of(r)
+        ok = v == "invalid" and expect.issubset(set(f))
+        rows.append((task, "-", "empty submission", "invalid",
+                     f"{v} q{q:.1f} {','.join(sorted(set(f) & expect)) or 'no gates fired'}", ok))
+    finally:
+        shutil.rmtree(empty, ignore_errors=True)
+
+    ref = (BUILD / "nipoppy_reference_study") if BUILD else None
+    if ref and ref.is_dir():
+        r = sc.score(str(ref), str(pack))
+        v, q, f = verdict_of(r)
+        rows.append((task, "-", "reference study", "complete at 100",
+                     f"{v} q{q:.1f} {','.join(f) or '-'}",
+                     v == "complete" and not f))
+
+
 def run_registration(task, spec, rows):
     cfg = REG_PROBES.get(task)
     if not cfg:
@@ -275,10 +313,19 @@ def main():
         spec = MAN[task]
         print(f"... {task}", flush=True)
         try:
-            if Path(spec["scorer"]).name == "score_registration.py":
+            name = Path(spec["scorer"]).name
+            if name == "score_registration.py":
                 run_registration(task, spec, rows)
-            else:
+            elif name == "score_dataset_state.py":
+                run_dataset_state(task, spec, rows)
+            elif name in GRADED:
                 run_segmentation(task, spec, rows)
+            else:
+                # A scorer family nothing here knows how to probe is reported, not
+                # crashed through: an unprobed task is a gap, and a gap that reads as a
+                # harness error hides whatever else the run found.
+                rows.append((task, "-", "no probe for this scorer",
+                             "-", name, None))
         except Exception as e:
             rows.append((task, "-", "harness", "-", f"{type(e).__name__}: {str(e)[:50]}",
                          False))

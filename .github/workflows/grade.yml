@@ -212,3 +212,116 @@ jobs:
         with:
           name: selftest-${{ matrix.task }}
           path: results/*.json
+
+  # The dataset-state family cannot use the selftest above. That one copies the graded
+  # reference in as a perfect submission, which works because reference and submission are
+  # the same kind of object. Here the reference is a list of participant-sessions and the
+  # submission is a Nipoppy study, so a correct submission can only be produced by running
+  # the tool -- which this job does, from the reference list alone.
+  nipoppy-selftest:
+    name: selftest (nipoppy-fmriprep-default)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install grading dependencies
+        # nipoppy is pinned: 0.4.7 has no `pipeline install --skip-container` and spells
+        # --study as --dataset, so a drifting version fails in ways that read as a broken
+        # submission rather than a broken environment.
+        run: pip install --quiet huggingface_hub nipoppy==0.4.8
+
+      - name: Fetch reference
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python benchmark/harness/fetch_reference.py --task nipoppy-fmriprep-default
+
+      - name: Build a study from the reference pair list
+        run: |
+          python - <<'PY'
+          import json, os, subprocess, sys
+          from pathlib import Path
+
+          pack = Path("benchmark/graders/nipoppy-fmriprep-default")
+          pairs = [l.split("\t") for l in
+                   (pack / "reference/expected_pairs.tsv").read_text().splitlines() if l.strip()]
+
+          # A tree with those participant-sessions and nothing in the files: this task
+          # never reads a voxel, so zero-byte images index exactly like real ones.
+          bids = Path("ci_bids"); bids.mkdir()
+          (bids / "dataset_description.json").write_text(json.dumps(
+              {"Name": "ci", "BIDSVersion": "1.8.0", "DatasetType": "raw"}))
+          for pid, sid in pairs:
+              anat = bids / f"sub-{pid}" / f"ses-{sid}" / "anat"
+              anat.mkdir(parents=True, exist_ok=True)
+              stem = f"sub-{pid}_ses-{sid}_T1w"
+              (anat / f"{stem}.nii.gz").touch()
+              (anat / f"{stem}.json").write_text(json.dumps({"MagneticFieldStrength": 3}))
+
+          lic = Path("fs_license.txt").absolute(); lic.write_text("ci\n")
+          tpl = Path("templateflow").absolute(); tpl.mkdir()
+          study = Path("ci_study").absolute()
+
+          def run(*a):
+              r = subprocess.run(["nipoppy", *a], capture_output=True, text=True)
+              if r.returncode:
+                  print(r.stdout[-2000:], r.stderr[-2000:]); sys.exit(f"FAILED: {' '.join(a)}")
+
+          run("init", "--study", str(study), "--bids-source", str(bids.absolute()), "--mode", "copy")
+
+          cfg = study / "global_config.json"
+          import re
+          d = json.loads(re.sub(r"(?m)^\s*//.*$", "", cfg.read_text()))
+          d.setdefault("CONTAINER_CONFIG", {})["COMMAND"] = None
+          cfg.write_text(json.dumps(d, indent=4))
+
+          run("pipeline", "install", "--study", str(study), "--skip-container", "21929445")
+
+          d = json.loads(re.sub(r"(?m)^\s*//.*$", "", cfg.read_text()))
+          for vers in d.get("PIPELINE_VARIABLES", {}).get("PROCESSING", {}).values():
+              for vs in vers.values():
+                  for k in list(vs):
+                      vs[k] = str(lic) if "LICENSE" in k.upper() else str(tpl)
+          cfg.write_text(json.dumps(d, indent=4))
+
+          invo = study / "pipelines/processing/fmriprep-24.1.1/invocation.json"
+          j = json.loads(invo.read_text())
+          j["work_dir"] = "[[NIPOPPY_DPATH_PIPELINE_WORK]]"
+          invo.write_text(json.dumps(j, indent=4))
+
+          run("track-curation", "--study", str(study))
+          print(f"built a study over {len(pairs)} participant-sessions")
+          PY
+
+      - name: Assert the contract
+        run: |
+          mkdir -p ci_empty
+          python - <<'PY'
+          import importlib.util, sys
+          from pathlib import Path
+
+          pack = Path("benchmark/graders/nipoppy-fmriprep-default")
+          spec = importlib.util.spec_from_file_location("sds", pack / "score_dataset_state.py")
+          sds = importlib.util.module_from_spec(spec); sys.modules["sds"] = sds
+          spec.loader.exec_module(sds)
+
+          good = sds.score("ci_study", str(pack))
+          print("built study :", good["verdict"], good["quality"], good["gate_failures"])
+          for n in good["load_notes"]:
+              print("   ", n[:150])
+          empty = sds.score("ci_empty", str(pack))
+          print("empty       :", empty["verdict"], empty["quality"], empty["gate_failures"])
+
+          ok = (good["verdict"] == "complete" and not good["gate_failures"]
+                and good["metrics"]["pair_recall"] == 1.0)
+          ok_empty = (empty["verdict"] == "invalid"
+                      and {"study_initialised", "rerun_selection"} <= set(empty["gate_failures"]))
+          if not ok:
+              sys.exit("FAIL: a correctly built study must score complete with full recall")
+          if not ok_empty:
+              sys.exit("FAIL: an empty submission must be refused by the rerun gates")
+          print("OK: the grader accepts a real study and refuses an empty one")
+          PY

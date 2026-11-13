@@ -1,0 +1,17 @@
+{
+  "item": "nipoppy_fmriprep_ds003653",
+  "prompt": "Prepare fMRIPrep 24.1.1 processing of every participant-session of ds003653 with Nipoppy, without executing fMRIPrep.",
+  "pipeline": "fmriprep",
+  "pipeline_version": "24.1.1",
+  "rerun_timeout_s": 900,
+  "weights": {"pair_recall": 0.50, "work_dir_ok": 0.25, "config_ok": 0.25},
+  "verdict_thresholds": {"complete": 99, "acceptable": 60, "marginal": 30},
+  "max_real_outputs": 0,
+  "gates": ["study_initialised", "pipeline_installed", "rerun_selection",
+            "rerun_simulate", "no_invented_pairs", "not_executed_for_real"],
+  "weight_basis": {
+    "pair_recall": "The task is to prepare every participant-session, so coverage is the task. It is near-binary in practice -- a correctly built study selects all of them and a broken one fails a rerun gate -- so the weight is what separates a study built over part of the dataset from one built over all of it.",
+    "work_dir_ok": "The pipeline bundle ships a container-only working directory. Nothing here runs a container and nothing is executed, so this is the one defect neither the produced state nor a failed run can show: only the regenerated command does.",
+    "config_ok": "Disabling the container command and filling the pipeline variables is what makes a launch possible at all. Both also gate, so this scores the margin rather than the pass."
+  }
+}

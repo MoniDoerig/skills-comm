@@ -195,6 +195,20 @@
       ],
       "per_subject": true,
       "reference_revision": "bb49fb08210d"
+    },
+    "nipoppy-fmriprep-default": {
+      "pack_dir": "graders/nipoppy-fmriprep-default",
+      "scorer": "graders/nipoppy-fmriprep-default/score_dataset_state.py",
+      "pred_flag": "--study",
+      "submission_output_path": "submissions/{task_id}/nipoppy_dataset",
+      "detail_kind": "dataset_state",
+      "ref_dir": "process_gt/nipoppy-fmriprep-default",
+      "reference_files": [
+        "expected_pairs.tsv",
+        "expected_command.txt"
+      ],
+      "per_subject": false,
+      "reference_revision": "c11ee2180717"
     }
   }
 }
