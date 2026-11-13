@@ -212,7 +212,7 @@
             "expected_files_detail": "One or more NIfTI files (.nii.gz, ); JSON sidecar(s) with acquisition metadata"
           }
         },
-        "nipoppy-fmriprep-default": {
+        "data-handling-nipoppy-fmriprep": {
           "title": "fMRIPrep processing of a full BIDS dataset prepared with Nipoppy",
           "description": "Set up a Nipoppy study from OpenNeuro ds003653 and configure fMRIPrep 24.1.1 so it would run on every participant-session, without executing it.",
           "grading": "automated",
@@ -228,7 +228,7 @@
             "required_tool": [
               "nipoppy"
             ],
-            "required_output": "OUTPUT LOCATION (exact, mandatory): create the Nipoppy dataset at\n`submissions/nipoppy-fmriprep-default/nipoppy_dataset/` under your working directory, and\nwrite the selection to `nipoppy_dataset/subcohort.tsv`. Keep Nipoppy's own logs inside it\n(do not move or delete `logs/`). Do NOT run fMRIPrep for real (always use `--simulate`\nwhen launching the pipeline) and do NOT download the imaging data contents; the BIDS file\ntree and JSON sidecars are enough."
+            "required_output": "OUTPUT LOCATION (exact, mandatory): create the Nipoppy dataset at\n`submissions/data-handling-nipoppy-fmriprep/nipoppy_dataset/` under your working directory, and\nwrite the selection to `nipoppy_dataset/subcohort.tsv`. Keep Nipoppy's own logs inside it\n(do not move or delete `logs/`). Do NOT run fMRIPrep for real (always use `--simulate`\nwhen launching the pipeline) and do NOT download the imaging data contents; the BIDS file\ntree and JSON sidecars are enough."
           },
           "solution": {
             "ground_truth": "The participant-sessions the dataset contains, and the pipeline command a correctly configured study generates. Neither is hidden knowledge: the pair list is derivable from the public dataset. Grading does not read them from the submission -- it runs nipoppy against the submitted study and compares what that produces. expected_pairs.tsv + expected_command.txt in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth.",

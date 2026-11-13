@@ -1,7 +1,7 @@
-# Reference for `nipoppy-fmriprep-default`
+# Reference for `data-handling-nipoppy-fmriprep`
 
 Fetched from the gated dataset by `../../../harness/fetch_reference.py --task
-nipoppy-fmriprep-default`; nothing here is committed.
+data-handling-nipoppy-fmriprep`; nothing here is committed.
 
 | file | what it is |
 |---|---|

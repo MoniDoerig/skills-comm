@@ -219,7 +219,7 @@ jobs:
   # submission is a Nipoppy study, so a correct submission can only be produced by running
   # the tool -- which this job does, from the reference list alone.
   nipoppy-selftest:
-    name: selftest (nipoppy-fmriprep-default)
+    name: selftest (data-handling-nipoppy-fmriprep)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -237,7 +237,7 @@ jobs:
       - name: Fetch reference
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python benchmark/harness/fetch_reference.py --task nipoppy-fmriprep-default
+        run: python benchmark/harness/fetch_reference.py --task data-handling-nipoppy-fmriprep
 
       - name: Build a study from the reference pair list
         run: |
@@ -245,7 +245,7 @@ jobs:
           import json, os, subprocess, sys
           from pathlib import Path
 
-          pack = Path("benchmark/graders/nipoppy-fmriprep-default")
+          pack = Path("benchmark/graders/data-handling-nipoppy-fmriprep")
           pairs = [l.split("\t") for l in
                    (pack / "reference/expected_pairs.tsv").read_text().splitlines() if l.strip()]
 
@@ -303,7 +303,7 @@ jobs:
           import importlib.util, sys
           from pathlib import Path
 
-          pack = Path("benchmark/graders/nipoppy-fmriprep-default")
+          pack = Path("benchmark/graders/data-handling-nipoppy-fmriprep")
           spec = importlib.util.spec_from_file_location("sds", pack / "score_dataset_state.py")
           sds = importlib.util.module_from_spec(spec); sys.modules["sds"] = sds
           spec.loader.exec_module(sds)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""score_dataset_state.py — grade a Nipoppy study for the `nipoppy-fmriprep-default`
+"""score_dataset_state.py — grade a Nipoppy study for the `data-handling-nipoppy-fmriprep`
 benchmark task.
 
 This is the GRADER-side scorer. The submission is not an image but a directory tree that
