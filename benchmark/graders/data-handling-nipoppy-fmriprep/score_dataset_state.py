@@ -19,9 +19,12 @@ Two invocations, both against a copy, because re-running writes new logs:
                                   the agent's own invocation.json and global_config.json
 
 The second is what makes `work_dir` gradeable. The pipeline bundle ships `work_dir` as
-"/work", a path that exists only inside a container bind; nothing here runs a container,
-so an unfixed command would fail at runtime -- but the task launches with --simulate and
-never reaches runtime. Regenerating the command is the only place the defect is visible.
+"/work", which is a directory only inside a container the bundle binds it into. A study
+that launches through a container therefore has two right answers -- "/work", or the
+study's own working directory, which Nipoppy binds in at its own path as well -- while a
+study that launches without one has only the second, "/work" being a path on no
+filesystem. Nothing is executed, so the regenerated command is the only place that
+pairing shows.
 
 Scored:
 
@@ -30,8 +33,9 @@ Scored:
                        study selects all of them and a broken one fails a rerun gate
                        instead, so this mainly catches a study built over part of the
                        dataset.
-    work_dir_ok        the regenerated command's working directory lies inside the study
-    config_ok          the container command is disabled and no pipeline variable is null
+    work_dir_ok        the regenerated command's working directory lies inside the study,
+                       read through the command's own bind arguments when it runs a
+                       container
 
 Validity gates:
 
@@ -43,10 +47,13 @@ Validity gates:
     not_executed_for_real    the task forbids a real run, and a real run leaves outputs
 
 The two rerun gates are the forgery check, and they do it by construction: neither can
-pass unless the study really is configured. They also absorb the failures that would
-otherwise each need a gate -- a missing BIDS tree, an uninstalled pipeline and an unset
-pipeline variable each make nipoppy exit non-zero with its own message, which is recorded
-in the notes.
+pass unless the study really is configured. They also absorb everything a third metric
+could have scored: a missing BIDS tree, an uninstalled pipeline, an unset pipeline
+variable, a container runtime that is not installed and a container image that is not
+there each make nipoppy exit non-zero with its own message, which is recorded in the
+notes. Nothing here scores the execution route, because a Neurodesk machine can take
+either -- the entry point from a loaded module, or a container -- and one it cannot take
+does not run at all.
 
 Pack layout (--pack DIR):
     rubric.json                     weights, gates, verdict thresholds, pipeline pins
@@ -163,10 +170,26 @@ def run_nipoppy(exe, study, rubric, extra, notes, label):
     return p.returncode, text
 
 
-def work_dir_ok(records, study, notes):
-    """Does the regenerated command put its working directory inside the study?"""
-    cmds = [r for r in records
+def pipeline_commands(records):
+    """Records that are the command Nipoppy built, not the descriptor it built it from."""
+    return [r for r in records
             if "--fs-license-file" in r and not r.lstrip().startswith("Descriptor string:")]
+
+
+def work_dir_ok(records, roots, notes):
+    """Does the regenerated command put its working directory inside the study?
+
+    `roots` is every path that counts as the study. The grader reruns against a copy, so
+    the copy is one root -- a study that derives its working directory from Nipoppy's own
+    substitution rebases with the copy and lands there. The submitted study is the other,
+    because writing the absolute path of its own working directory is a setup that runs,
+    and it would otherwise read as a directory somewhere else entirely.
+
+    A study that launches through a container is read through its own bind arguments. The
+    bundle binds the study's working directory onto "/work", so under a container "/work"
+    IS that directory; with no such bind it is the container-only default left unfixed.
+    """
+    cmds = pipeline_commands(records)
     if not cmds:
         notes.append("the rerun generated no pipeline command")
         return 0.0
@@ -175,27 +198,48 @@ def work_dir_ok(records, study, notes):
     if w is None:
         notes.append("the regenerated command names no working directory")
         return 0.0
-    inside = str(study.resolve()) in str(Path(w).resolve(strict=False))
-    if not inside:
-        notes.append(f"the regenerated command works in {w}, outside the study")
-    return 1.0 if inside else 0.0
+    rs = [p.resolve(strict=False) for p in roots]
+    for cand in host_paths(w, bind_map(records)):
+        wp = Path(cand).resolve(strict=False)
+        if any(wp == r or r in wp.parents for r in rs):
+            return 1.0
+    notes.append(f"the regenerated command works in {w}, outside the study")
+    return 0.0
 
 
-def config_score(cfg, notes):
-    """A disabled container command, and no pipeline variable left unset."""
-    if cfg is None:
-        notes.append("global_config.json missing or unparseable")
-        return 0.0
-    parts = [1.0 if cfg.get("CONTAINER_CONFIG", {}).get("COMMAND", "unset") is None else 0.0]
-    vals = [v for kinds in cfg.get("PIPELINE_VARIABLES", {}).values()
-            for names in (kinds or {}).values()
-            for d in (names or {}).values() for v in (d or {}).values()]
-    if vals:
-        parts.append(sum(v is not None for v in vals) / len(vals))
-    else:
-        notes.append("no PIPELINE_VARIABLES present; the pipeline was never installed")
-        parts.append(0.0)
-    return sum(parts) / len(parts)
+def bind_map(records):
+    """Every (host, container) pair the launch binds.
+
+    Nipoppy logs its bind arguments apart from the command they apply to, inside the
+    launch options it hands the runtime, so this reads the whole run rather than the
+    command alone.
+    """
+    out = []
+    for rec in records:
+        toks = rec.split()
+        for i, t in enumerate(toks):
+            if t in ("--bind", "-B") and i + 1 < len(toks):
+                spec = toks[i + 1]
+            elif t.startswith("--bind="):
+                spec = t.split("=", 1)[1]
+            else:
+                continue
+            for one in spec.strip("'\"[],").split(","):
+                parts = one.split(":")
+                if len(parts) >= 2 and parts[1].startswith("/"):
+                    out.append((parts[0], parts[1]))
+    return out
+
+
+def host_paths(w, binds):
+    """Every host directory the command's working directory could be: itself, and
+    whatever a bind maps it back to."""
+    cands = [w]
+    for host, cont in binds:
+        c = cont.rstrip("/")
+        if w == c or w.startswith(c + "/"):
+            cands.append(host.rstrip("/") + w[len(c):])
+    return cands
 
 
 def real_run_outputs(study):
@@ -245,7 +289,7 @@ def score(study_dir, pack_dir):
             exe, study, rubric,
             ["--participant-id", pid, "--session-id", sid, "--simulate"], notes, "simulate")
         if sim_rc == 0:
-            wd = work_dir_ok(log_records(sim_text), study, notes)
+            wd = work_dir_ok(log_records(sim_text), (study, submitted), notes)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
@@ -253,7 +297,7 @@ def score(study_dir, pack_dir):
     metrics = {"pair_recall": recall,
                "pairs_selected": float(len(selected)), "pairs_expected": float(len(want)),
                "pairs_invented": float(len(selected - want)),
-               "work_dir_ok": wd, "config_ok": config_score(cfg, notes)}
+               "work_dir_ok": wd}
 
     invented = sorted(selected - want)
     if invented:
