@@ -30,6 +30,14 @@ The integer mapping is not published by CEREBRUM-7T. It was pinned rather than a
 class's volume and its median intensity on the UNI, which order the tissues unambiguously at 7T.
 The measurements behind the pinning are in the gated provenance.
 
+Class 2 is the panel's *deep grey nuclei*, which is wider than the three structures the name
+suggests. Caudate, putamen and pallidum are 48–52 % of its unanimous core, thalamus a further
+28–31 %, ventral diencephalon 15 % and accumbens 2 %, while hippocampus and amygdala fall in
+class 1 with the rest of the grey matter. The dataset's own hand-drawn label maps agree: inside
+the region they cover, 90–97 % of thalamic voxels carry label 2. The task prompt therefore names
+all of them — a submission labelling only caudate, putamen and pallidum recovers about half of
+the class and fails `no_class_collapse` on it alone.
+
 ## Consensus and calibration
 
 The segmentations shipped with CEREBRUM-7T are fused by per-voxel majority vote into a six-class

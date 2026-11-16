@@ -25,7 +25,7 @@
   },
   "label_definitions": {
     "1": "grey matter \u2014 cortical grey matter",
-    "2": "basal ganglia \u2014 deep grey nuclei (caudate, putamen, pallidum)",
+    "2": "basal ganglia \u2014 deep grey nuclei (caudate, putamen, pallidum, thalamus, ventral diencephalon, accumbens); hippocampus and amygdala are grey matter",
     "3": "white matter \u2014 cerebral white matter",
     "4": "ventricles \u2014 ventricular CSF only (lateral/3rd/4th ventricles); NOT sulcal CSF",
     "5": "cerebellum \u2014 entire cerebellum (grey + white)",
