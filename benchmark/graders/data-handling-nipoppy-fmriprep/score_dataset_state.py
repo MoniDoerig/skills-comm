@@ -87,20 +87,24 @@ _ANSI = re.compile(r"\x1b\[[0-9;]*m")
 _LEVEL = re.compile(r"^(?:\[[^\]]+\]\s*)?(INFO|WARNING|ERROR|DEBUG)\s")
 
 
-def log_records(text):
-    """The records of a log, each unwrapped back onto a single line."""
-    out, cur = [], []
+def log_records(text, level=None):
+    """The records of a log, each unwrapped back onto a single line.
+
+    A record's text starts after its level, so `level` is how a caller asks for the
+    records of one level: the word itself is no longer in what comes back.
+    """
+    out, cur, lvl = [], [], None
     for line in _ANSI.sub("", text).splitlines():
         m = _LEVEL.match(line)
         if m:
             if cur:
-                out.append(" ".join(cur))
-            cur = [line[m.end():]]
+                out.append((lvl, " ".join(cur)))
+            cur, lvl = [line[m.end():]], m.group(1)
         elif cur:
             cur.append(line.strip())
     if cur:
-        out.append(" ".join(cur))
-    return [re.sub(r"\s+", " ", r).strip() for r in out]
+        out.append((lvl, " ".join(cur)))
+    return [re.sub(r"\s+", " ", r).strip() for l, r in out if level in (None, l)]
 
 
 def expected_pairs(pack):
@@ -147,7 +151,7 @@ def find_study(submission, notes):
     return submission
 
 
-def run_nipoppy(exe, study, rubric, extra, notes, label):
+def run_nipoppy(exe, study, rubric, extra, notes, label, path=None):
     """One nipoppy invocation against the study, captured rather than trusted."""
     cmd = [exe, "process", "--study", str(study),
            "--pipeline", rubric.get("pipeline", "fmriprep"),
@@ -158,6 +162,8 @@ def run_nipoppy(exe, study, rubric, extra, notes, label):
     # space, which would turn the pipeline command's working directory into a fragment
     # and read as wrong. Asking for a very wide terminal stops it wrapping at all.
     env = {**os.environ, "COLUMNS": "10000", "TERM": "dumb"}
+    if path:
+        env["PATH"] = path
     try:
         p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, env=env)
     except (subprocess.TimeoutExpired, OSError) as e:
@@ -165,7 +171,7 @@ def run_nipoppy(exe, study, rubric, extra, notes, label):
         return None, ""
     text = (p.stdout or "") + (p.stderr or "")
     if p.returncode != 0:
-        why = next((r for r in log_records(text) if r.startswith("ERROR")), "")
+        why = next(iter(log_records(text, level="ERROR")), "")
         notes.append(f"{label}: nipoppy exit {p.returncode}. {why[:160]}")
     return p.returncode, text
 
@@ -265,6 +271,22 @@ def score(study_dir, pack_dir):
     if not exe:
         raise SystemExit("ERROR: no nipoppy on PATH; set NIPOPPY_BIN to the pinned install")
 
+    # nipoppy launches a pipeline by shelling out to `bosh`, the boutiques CLI it is
+    # installed alongside. A NIPOPPY_BIN in an environment of its own leaves that CLI off
+    # PATH, and then the launch fails the same way for every submission, which reads as a
+    # room full of studies that cannot run rather than as a grader that cannot grade. Look
+    # beside nipoppy for it, and refuse to grade if it is nowhere.
+    path = os.environ.get("PATH", "")
+    if not shutil.which("bosh"):
+        beside = Path(exe).resolve().parent
+        if (beside / "bosh").is_file():
+            path = f"{beside}{os.pathsep}{path}"
+            notes.append(f"bosh taken from {beside}, beside nipoppy")
+        else:
+            raise SystemExit("ERROR: no bosh on PATH and none beside nipoppy; nipoppy "
+                             "launches pipelines through boutiques, so every submission "
+                             "would fail the rerun gates on this machine")
+
     want = expected_pairs(pack)
     cfg = load_config(submitted)
     installed = bool(list((submitted / "pipelines" / "processing").glob("*/config.json")))
@@ -278,7 +300,7 @@ def score(study_dir, pack_dir):
 
         out_tsv = tmp / "subcohort.tsv"
         sel_rc, _ = run_nipoppy(exe, study, rubric, ["--write-subcohort", str(out_tsv)],
-                                notes, "selection")
+                                notes, "selection", path=path)
         if out_tsv.is_file():
             selected = pairs_from_tsv(out_tsv)
 
@@ -287,7 +309,8 @@ def score(study_dir, pack_dir):
         pid, sid = sorted(want)[0] if want else ("", "")
         sim_rc, sim_text = run_nipoppy(
             exe, study, rubric,
-            ["--participant-id", pid, "--session-id", sid, "--simulate"], notes, "simulate")
+            ["--participant-id", pid, "--session-id", sid, "--simulate"], notes, "simulate",
+            path=path)
         if sim_rc == 0:
             wd = work_dir_ok(log_records(sim_text), (study, submitted), notes)
     finally:
