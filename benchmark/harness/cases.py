@@ -46,3 +46,19 @@ def resolve(cases, task_id, case_or_subject):
     if c["task"] != task_id:
         raise SystemExit(f"ERROR: {case_or_subject} is a case of {c['task']}, not of {task_id}")
     return c["subject"]
+
+
+def role_of(cases, task_id, case_or_subject):
+    """The case's role, for a task whose cases have one; None otherwise.
+
+    A role says what a case is for when a task is reported by more than one rate rather
+    than by one pass rate. Most tasks' cases carry none. Looked up by case id, or by
+    subject for anyone who names the subject directly.
+    """
+    c = cases.get(case_or_subject)
+    if c is None:
+        c = next((v for v in cases.values()
+                  if v["task"] == task_id and v["subject"] == case_or_subject), None)
+    if c is None or c["task"] != task_id:
+        return None
+    return c.get("role")

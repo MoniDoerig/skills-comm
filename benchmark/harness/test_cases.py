@@ -8,6 +8,8 @@ TABLE = {
     "case-012": {"task": "structural-brain-extraction", "subject": "sub-a"},
     "case-011": {"task": "structural-brain-extraction", "subject": "sub-b"},
     "case-013": {"task": "structural-brain-extraction-7t", "subject": "sub-c"},
+    "case-021": {"task": "diffusion-tensor-fit", "subject": "sub-d", "role": "control"},
+    "case-022": {"task": "diffusion-tensor-fit", "subject": "sub-e", "role": "defect"},
 }
 
 
@@ -26,6 +28,17 @@ class Cases(unittest.TestCase):
     def test_a_case_of_another_task_is_refused(self):
         with self.assertRaises(SystemExit):
             cases.resolve(TABLE, "structural-brain-extraction", "case-013")
+
+    def test_a_role_is_found_by_case_or_by_subject(self):
+        self.assertEqual(cases.role_of(TABLE, "diffusion-tensor-fit", "case-022"), "defect")
+        self.assertEqual(cases.role_of(TABLE, "diffusion-tensor-fit", "sub-d"), "control")
+
+    def test_a_case_without_a_role_has_none(self):
+        self.assertIsNone(cases.role_of(TABLE, "structural-brain-extraction", "case-012"))
+        self.assertIsNone(cases.role_of(TABLE, "structural-brain-extraction", "sub-a"))
+
+    def test_another_tasks_case_lends_no_role(self):
+        self.assertIsNone(cases.role_of(TABLE, "structural-brain-extraction", "case-022"))
 
 
 if __name__ == "__main__":

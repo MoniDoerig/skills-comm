@@ -21,6 +21,8 @@ Envelope schema (schema_version 1.0):
       "schema_version": "1.0",
       "task_id": str,
       "subject": str | null,        # the subject graded, for a task graded per subject
+      "role": str | null,           # the case's role in cases.json, for a task whose cases
+                                    # have one; reported apart, never pooled
       "model": str,                 # e.g. "qwen"           (runner-supplied)
       "condition": str,             # "baseline" | "skill"  (runner-supplied)
       "timestamp": str,             # ISO-8601 UTC          (runner-supplied or now)
@@ -96,12 +98,17 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
     # own; a task with one reference takes none. Checked here, not left to str.format,
     # where a missing subject is a KeyError and a wrong one a quiet path to nothing.
     allowed = spec.get("subjects") or []
+    role = None
+    named = subject
     if spec.get("per_subject") and not allowed:
         # The subjects live in the gated cases.json, not in the manifest: the allowed
-        # list comes from there, and a case id becomes its subject.
+        # list comes from there, and a case id becomes its subject. The role comes from
+        # there too, and goes into the envelope whatever the submission holds, so a run
+        # that wrote nothing is still counted on the rate it belongs to.
         cs = cases_mod.load(manifest, spec.get("reference_revision"))
         allowed = cases_mod.subjects_of(cs, task_id)
         if subject is not None:
+            role = cases_mod.role_of(cs, task_id, subject)
             subject = cases_mod.resolve(cs, task_id, subject)
     if spec.get("per_subject"):
         if subject is None:
@@ -131,9 +138,14 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
     # The contracted path: the task's own, else the manifest default for a task graded
     # per subject (submission_path, one level deeper) or for one with a single reference.
     defaults = manifest["defaults"]
-    out_rel = (spec.get("submission_output_path")
-               or defaults["submission_path" if subject else "submission_output_path"]
-               ).format(**fields)
+    template = (spec.get("submission_output_path")
+                or defaults["submission_path" if subject else "submission_output_path"])
+    # A blinded run is given its case id, and the prompt's {subject} is that id, so its
+    # output sits under the case id. One named by subject writes under the subject.
+    if named != subject and (Path(submission_dir)
+                             / template.format(**{**fields, "subject": named})).exists():
+        fields["subject"] = named
+    out_rel = template.format(**fields)
     pred = Path(submission_dir) / out_rel
     if not pred.exists():
         # A missing contracted output is a submission failure, not a harness crash:
@@ -142,7 +154,7 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
                          raw={"verdict": "invalid", "quality": 0.0,
                               "gate_failures": ["missing_output"],
                               "load_notes": [f"no submission at {out_rel}"]},
-                         subject=subject)
+                         subject=subject, role=role)
 
     # Build: python <scorer> <pred_flag> <pred> --pack <pack> --json <tmp> [extra inputs]
     result_json = Path(submission_dir) / f".grade_{task_id}.json"
@@ -156,7 +168,7 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
                 raw={"verdict": "invalid", "quality": 0.0,
                      "gate_failures": [f"missing_required_output:{cand.name}"],
                      "load_notes": [f"no submission at {rel.format(**fields)}"]},
-                subject=subject,
+                subject=subject, role=role,
             )
         cmd += [flag, str(cand)]
     for flag, rel in (spec.get("optional_inputs") or {}).items():
@@ -172,16 +184,18 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
                          f"cmd: {' '.join(cmd)}\nstderr:\n{proc.stderr}")
     raw = json.load(open(result_json))
     result_json.unlink(missing_ok=True)
-    return _envelope(task_id, spec, model, condition, timestamp, raw, subject=subject)
+    return _envelope(task_id, spec, model, condition, timestamp, raw, subject=subject,
+                     role=role)
 
 
-def _envelope(task_id, spec, model, condition, timestamp, raw, subject=None):
+def _envelope(task_id, spec, model, condition, timestamp, raw, subject=None, role=None):
     detail_kind = spec["detail_kind"]
     gate_failures = raw.get("gate_failures", [])
     return {
         "schema_version": SCHEMA_VERSION,
         "task_id": task_id,
         "subject": subject,
+        "role": role,
         "model": model,
         "condition": condition,
         "timestamp": timestamp or _utcnow_iso(),

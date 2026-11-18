@@ -1,6 +1,7 @@
 import json
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from benchmark.harness import grade_wrapper
@@ -126,6 +127,90 @@ class GradeWrapperTests(unittest.TestCase):
                 grade_wrapper.grade("bet", submission, manifest_path, subject="sub-09")
             with self.assertRaises(SystemExit):
                 grade_wrapper.grade("single", submission, manifest_path, subject="sub-01")
+
+    def test_a_cases_role_reaches_the_envelope_even_without_a_submission(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            harness = root / "harness"
+            pack = root / "graders" / "fit"
+            submission = root / "run"
+            harness.mkdir()
+            (pack / "rubrics").mkdir(parents=True)
+            (pack / "rubrics" / "policy.json").write_text("{}")
+            scorer = pack / "score.py"
+            scorer.write_text(
+                "import argparse, json\n"
+                "p = argparse.ArgumentParser()\n"
+                "p.add_argument('--submission', required=True)\n"
+                "p.add_argument('--pack', required=True)\n"
+                "p.add_argument('--json', required=True)\n"
+                "a = p.parse_args()\n"
+                "json.dump({'verdict': 'complete', 'quality': 100.0, 'gate_failures': []},\n"
+                "          open(a.json, 'w'))\n"
+            )
+            manifest = {
+                "defaults": {"submission_output_path": "submissions/{task_id}/output.nii.gz",
+                             "submission_path": "submissions/{task_id}/{subject}/output.nii.gz"},
+                "tasks": {"fit": {"pack_dir": "graders/fit", "scorer": "graders/fit/score.py",
+                                  "pred_flag": "--submission",
+                                  "submission_output_path": "submissions/{task_id}/{subject}",
+                                  "detail_kind": "record", "per_subject": True}},
+            }
+            manifest_path = harness / "run_manifest.json"
+            manifest_path.write_text(json.dumps(manifest))
+            table = {"case-031": {"task": "fit", "subject": "sub-01", "role": "control"},
+                     "case-032": {"task": "fit", "subject": "sub-02", "role": "defect"}}
+            (submission / "submissions" / "fit" / "sub-01").mkdir(parents=True)
+
+            with mock.patch.object(grade_wrapper.cases_mod, "load", return_value=table):
+                done = grade_wrapper.grade("fit", submission, manifest_path, subject="case-031")
+                empty = grade_wrapper.grade("fit", submission, manifest_path, subject="case-032")
+
+            self.assertEqual((done["role"], done["subject"], done["verdict"]),
+                             ("control", "sub-01", "complete"))
+            # nothing written for the defect case: still invalid, and still counted as one
+            self.assertEqual((empty["role"], empty["gate_failures"]),
+                             ("defect", ["missing_output"]))
+
+    def test_a_blinded_run_is_found_under_its_case_id(self):
+        # the prompt's {subject} is the case id, so that is where a blinded run writes
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            harness = root / "harness"
+            pack = root / "graders" / "fit"
+            submission = root / "run"
+            harness.mkdir()
+            (pack / "rubrics").mkdir(parents=True)
+            (pack / "rubrics" / "policy.json").write_text("{}")
+            (pack / "score.py").write_text(
+                "import argparse, json\n"
+                "p = argparse.ArgumentParser()\n"
+                "p.add_argument('--submission', required=True)\n"
+                "p.add_argument('--pack', required=True)\n"
+                "p.add_argument('--json', required=True)\n"
+                "a = p.parse_args()\n"
+                "json.dump({'verdict': 'complete', 'quality': 100.0, 'gate_failures': [],\n"
+                "           'load_notes': [a.submission]}, open(a.json, 'w'))\n"
+            )
+            manifest = {
+                "defaults": {"submission_output_path": "submissions/{task_id}/output.nii.gz",
+                             "submission_path": "submissions/{task_id}/{subject}/output.nii.gz"},
+                "tasks": {"fit": {"pack_dir": "graders/fit", "scorer": "graders/fit/score.py",
+                                  "pred_flag": "--submission",
+                                  "submission_output_path": "submissions/{task_id}/{subject}",
+                                  "detail_kind": "record", "per_subject": True}},
+            }
+            manifest_path = harness / "run_manifest.json"
+            manifest_path.write_text(json.dumps(manifest))
+            table = {"case-031": {"task": "fit", "subject": "sub-01", "role": "defect"}}
+            (submission / "submissions" / "fit" / "case-031").mkdir(parents=True)
+
+            with mock.patch.object(grade_wrapper.cases_mod, "load", return_value=table):
+                env = grade_wrapper.grade("fit", submission, manifest_path, subject="case-031")
+
+            self.assertEqual((env["verdict"], env["subject"], env["role"]),
+                             ("complete", "sub-01", "defect"))
+            self.assertTrue(env["load_notes"][0].endswith("case-031"))
 
 
 if __name__ == "__main__":

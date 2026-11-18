@@ -1441,6 +1441,46 @@
             "expected_files_detail": "One or more quantitative scalar maps (NIfTI, any filename; e.g. FA, MD, CBF, ALFF, ReHo)"
           }
         },
+        "diffusion-tensor-fit": {
+          "title": "Diffusion tensor fit with an acquisition record",
+          "grading": "automated",
+          "description": "Record what the staged diffusion acquisition of {subject} contains, judge whether it can support a tensor fit, and fit one where it can; graded on the record against the acquisition as staged.",
+          "prompt": {
+            "goal": "Fit a diffusion tensor for {subject} and produce FA and MD maps.\n\nThe acquisition is staged for you at `input/{subject}/dwi/` as `dwi.nii.gz`, `dwi.bval`, `dwi.bvec` and `dwi.json`.\n\nA tensor fit needs at least six non-collinear diffusion-weighted directions, so first record what the acquisition contains and judge whether it can support the fit. Write that record as JSON with exactly these fields:\n\n  n_volumes              volumes in the DWI series\n  n_b0                   volumes with b < 50\n  n_dwi                  volumes with b >= 50\n  n_gradient_directions  volumes with b >= 50 whose gradient vector is non-zero\n  usable                 true if these data can support a tensor fit, false if not\n  reason                 one sentence\n\nIf usable is false, do not write metric maps.",
+            "dataset": {
+              "source": "staged",
+              "staged_at": "input/{subject}/dwi/",
+              "note": "The harness stages this case's acquisition before the run; there is nothing to download."
+            },
+            "required_output": "A JSON record of the acquisition, and - only where the acquisition supports a tensor fit - the FA and MD maps.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/diffusion-tensor-fit/{subject}/` under your working directory - create that folder. Put the record at `submissions/diffusion-tensor-fit/{subject}/acquisition.json`, the FA map at `submissions/diffusion-tensor-fit/{subject}/output.nii.gz` and the MD map at `submissions/diffusion-tensor-fit/{subject}/md.nii.gz`. Use these exact paths and filenames.",
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's acquisition under its case id, and {subject} in the goal and the output paths is replaced with that id."
+          },
+          "solution": {
+            "ground_truth": "What the case's acquisition, as staged, contains: volumes, b0s, diffusion-weighted volumes, how many of those carry a non-zero gradient vector, and whether that supports a tensor fit. Computed from the staged files themselves. truth.json in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time.",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision ad123f2febd6), path diffusion_gt/diffusion-tensor-fit/{subject}/truth.json; the staged acquisition at input/diffusion-tensor-fit/<case>/dwi/",
+            "metric": "exact-contract: verdict {complete|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
+            "pass_criterion": "A readable acquisition.json with every field of the contract; counts that match the staged acquisition; a usability verdict that follows from them; FA and MD maps where the acquisition supports a fit and none where it does not",
+            "output_validation": "Run the grader (see the grader block); a case passes when verdict >= acceptable (quality >= 60). The envelope carries the case's role from cases.json where it has one, and such a task is reported per model by one rate per role, side by side. The script's exit code signals validity (no gate failure), not pass.",
+            "grader": {
+              "kind": "exact-contract",
+              "description": "Reads the submitted record against what the staged acquisition contains. No reference spread to calibrate against: the answers are counts in a file and the judgement that follows from them. Validity gates refuse a submission with no readable record, and one that writes metric maps from an acquisition that cannot support a tensor fit.",
+              "pack": "benchmark/graders/diffusion-tensor-fit/",
+              "scorer": "benchmark/graders/diffusion-tensor-fit/score_tensor_fit.py",
+              "reference_fetch": "python benchmark/harness/fetch_reference.py --task diffusion-tensor-fit --case <case>",
+              "invoke": "python3 benchmark/graders/diffusion-tensor-fit/score_tensor_fit.py --submission <AGENT_DIR>/submissions/diffusion-tensor-fit/{subject} --pack benchmark/graders/diffusion-tensor-fit/",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass"
+            },
+            "tool_mode": "agnostic",
+            "tool_suggestions": [
+              "mrtrix3",
+              "fsl",
+              "python:dipy"
+            ],
+            "tool_note": "Any diffusion toolkit. The graded answer is the record; the maps are asked for only where the acquisition supports them. Tool names are non-binding suggestions.",
+            "notes": "[note] The record is graded rather than the maps because a tensor fit runs on any gradient table a tool can parse, so a map alone cannot show that the acquisition was read.",
+            "expected_files_detail": "acquisition.json (the six fields of the contract); output.nii.gz (FA) and md.nii.gz (MD) where the acquisition supports a fit"
+          }
+        },
         "diffusion-fod-peaks": {
           "title": "Multi-fibre orientation peaks (CSD)",
           "description": "CSD multi-fibre modelling with peak extraction (4D peaks NIfTI) from the multi-shell DWI of sub-CON02 (ses-preop) of OpenNeuro dataset ds001226",

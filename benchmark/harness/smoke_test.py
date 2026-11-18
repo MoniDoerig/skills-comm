@@ -252,6 +252,42 @@ def run_dataset_state(task, spec, rows):
                      v == "complete" and not f))
 
 
+def run_record(task, spec, rows):
+    """Probe a scorer that grades a record of the input against the input as staged.
+
+    The reference is the truth of what the case's input contains, and a perfect
+    submission is that truth written out as the record the task asks for -- with the FA
+    map where the input supports a fit -- so it must come back complete at 100. An empty
+    submission must be refused for having no record, not by crashing.
+    """
+    sc = scorer(spec["scorer"])
+    for subject in subjects(task, spec):
+        pack = build_pack(task, spec, subject)
+        sub = Path(tempfile.mkdtemp(prefix="smoke_record_"))
+        try:
+            truth = json.loads((pack / "reference" / "truth.json").read_text())
+            r = sc.score(str(sub), str(pack))
+            v, q, f = verdict_of(r)
+            rows.append((task, subject or "-", "empty submission", "invalid",
+                         f"{v} q{q:.1f} {','.join(f) or '-'}",
+                         v == "invalid" and "report_present" in f))
+
+            keys = ("n_volumes", "n_b0", "n_dwi", "n_gradient_directions", "usable")
+            (sub / "acquisition.json").write_text(json.dumps(
+                {**{k: truth[k] for k in keys}, "reason": "the truth, written out"}))
+            if truth["usable"]:
+                nib.save(nib.Nifti1Image(np.zeros(truth["shape"], np.float32), np.eye(4)),
+                         str(sub / "output.nii.gz"))
+            r = sc.score(str(sub), str(pack))
+            v, q, f = verdict_of(r)
+            rows.append((task, subject or "-", "truth as the record", "complete at 100",
+                         f"{v} q{q:.1f} {','.join(f) or '-'}",
+                         v == "complete" and q == 100.0 and not f))
+        finally:
+            shutil.rmtree(sub, ignore_errors=True)
+            shutil.rmtree(pack, ignore_errors=True)
+
+
 def run_registration(task, spec, rows):
     cfg = REG_PROBES.get(task)
     if not cfg:
@@ -318,6 +354,8 @@ def main():
                 run_registration(task, spec, rows)
             elif name == "score_dataset_state.py":
                 run_dataset_state(task, spec, rows)
+            elif name == "score_tensor_fit.py":
+                run_record(task, spec, rows)
             elif name in GRADED:
                 run_segmentation(task, spec, rows)
             else:

@@ -1,0 +1,9 @@
+# The case's truth lives in the gated Hugging Face dataset neurodeskorg/skills-comm-ground-truth
+# and is fetched at grade time -- never commit it to git. See README.md in this directory.
+truth.json
+
+# the rubric fetch_reference.py writes into this directory from ../rubrics/policy.json
+rubric.json
+
+# which subject fetch_reference.py last placed here
+.subject

@@ -5,7 +5,7 @@
     "submission_output_path": "submissions/{task_id}/output.nii.gz",
     "reference_repo": "neurodeskorg/skills-comm-ground-truth",
     "reference_repo_type": "dataset",
-    "reference_revision": "bb49fb08210d",
+    "reference_revision": "ad123f2febd6",
     "submission_path": "submissions/{task_id}/{subject}/output.nii.gz",
     "cases_file": "cases.json"
   },
@@ -209,6 +209,19 @@
       ],
       "per_subject": false,
       "reference_revision": "23082d93030e"
+    },
+    "diffusion-tensor-fit": {
+      "pack_dir": "graders/diffusion-tensor-fit",
+      "scorer": "graders/diffusion-tensor-fit/score_tensor_fit.py",
+      "pred_flag": "--submission",
+      "submission_output_path": "submissions/{task_id}/{subject}",
+      "detail_kind": "record",
+      "ref_dir": "diffusion_gt/diffusion-tensor-fit/{subject}",
+      "reference_files": [
+        "truth.json"
+      ],
+      "per_subject": true,
+      "reference_revision": "ad123f2febd6"
     }
   }
 }
