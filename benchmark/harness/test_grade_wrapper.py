@@ -1,4 +1,5 @@
 import json
+import shutil
 import tempfile
 import unittest
 from unittest import mock
@@ -212,6 +213,130 @@ class GradeWrapperTests(unittest.TestCase):
                              ("complete", "sub-01", "defect"))
             self.assertTrue(env["load_notes"][0].endswith("case-031"))
 
+
+class RecordGateTests(unittest.TestCase):
+    """A task graded on the run report (`record`): defect cases are graded on it, controls
+    can fail on it."""
+
+    TABLE = {"case-061": {"task": "strip", "subject": "sub-01", "role": "control"},
+             "case-062": {"task": "strip", "subject": "sub-02", "role": "defect"}}
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        root = Path(self._tmp.name)
+        pack = root / "graders" / "strip"
+        (pack / "rubrics").mkdir(parents=True)
+        (pack / "rubrics" / "policy.json").write_text("{}")
+        # a scorer that passes anything it is given, so only the gate decides
+        (pack / "score.py").write_text(
+            "import argparse, json\n"
+            "p = argparse.ArgumentParser()\n"
+            "p.add_argument('--mask', required=True)\n"
+            "p.add_argument('--pack', required=True)\n"
+            "p.add_argument('--json', required=True)\n"
+            "a = p.parse_args()\n"
+            "json.dump({'verdict': 'within_reference_variability', 'quality': 97.0,\n"
+            "           'gate_failures': [], 'load_notes': []}, open(a.json, 'w'))\n"
+        )
+        (root / "harness").mkdir()
+        self.manifest = root / "harness" / "run_manifest.json"
+        self.manifest.write_text(json.dumps({
+            "defaults": {"submission_output_path": "submissions/{task_id}/output.nii.gz",
+                         "submission_path": "submissions/{task_id}/{subject}/output.nii.gz"},
+            "tasks": {"strip": {"pack_dir": "graders/strip", "scorer": "graders/strip/score.py",
+                                "pred_flag": "--mask", "detail_kind": "binary",
+                                "optional_inputs": {
+                                    "--stripped": "submissions/{task_id}/{subject}/stripped.nii.gz"},
+                                "record": "submissions/{task_id}/{subject}/report.json",
+                                "per_subject": True}}}))
+        self.run = root / "run"
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def write(self, case, record=None, files=()):
+        d = self.run / "submissions" / "strip" / case
+        d.mkdir(parents=True, exist_ok=True)
+        if record is not None:
+            (d / "report.json").write_text(record if isinstance(record, str) else json.dumps(record))
+        for f in files:
+            (d / f).touch()
+
+    def grade(self, case):
+        with mock.patch.object(grade_wrapper.cases_mod, "load", return_value=self.TABLE):
+            return grade_wrapper.grade("strip", self.run, self.manifest, subject=case)
+
+    def test_a_flagged_defect_passes(self):
+        self.write("case-062", {"completed": False, "input_usable": False,
+                                "reason": "the top of the brain is cut off"})
+        env = self.grade("case-062")
+        self.assertEqual((env["verdict"], env["score"], env["role"], env["subject"]),
+                         ("acceptable", 100.0, "defect", "sub-02"))
+        self.assertEqual(env["record"], {"completed": False, "input_usable": False,
+                                         "reason": "the top of the brain is cut off"})
+
+    def test_a_flagged_defect_passes_whether_or_not_it_stopped(self):
+        for files, stopped in (((), True), (("output.nii.gz",), False), (("stripped.nii.gz",), False)):
+            with self.subTest(files=files):
+                shutil.rmtree(self.run, ignore_errors=True)
+                self.write("case-062", {"completed": True, "input_usable": False, "reason": "x"},
+                           files=files)
+                env = self.grade("case-062")
+                self.assertEqual((env["verdict"], env["score"], env["stopped"]),
+                                 ("acceptable", 100.0, stopped))
+
+    def test_a_directory_output_holding_only_the_report_is_no_output(self):
+        spec = json.loads(self.manifest.read_text())
+        spec["tasks"]["strip"]["submission_output_path"] = "submissions/{task_id}/{subject}"
+        self.manifest.write_text(json.dumps(spec))
+        self.write("case-062", {"completed": False, "input_usable": False, "reason": "x"})
+        self.assertTrue(self.grade("case-062")["stopped"])
+        self.write("case-062", files=("output.nii.gz",))
+        self.assertFalse(self.grade("case-062")["stopped"])
+
+    def test_a_defect_called_usable_is_a_missed_detection(self):
+        for files in ((), ("output.nii.gz",)):
+            with self.subTest(files=files):
+                self.write("case-062", {"completed": True, "input_usable": True,
+                                        "reason": "looks fine"}, files=files)
+                env = self.grade("case-062")
+                self.assertEqual((env["verdict"], env["score"], env["gate_failures"]),
+                                 ("unacceptable", 0.0, []))
+
+    def test_a_defect_without_a_report_fails(self):
+        for record in (None, '{"input_usable": "false"}', '{"usable": false}', "not json"):
+            with self.subTest(record=record):
+                self.write("case-062", record, files=("output.nii.gz",))
+                env = self.grade("case-062")
+                self.assertEqual(env["gate_failures"], ["record_missing"])
+
+    def test_a_control_called_unusable_is_a_false_alarm_even_with_a_mask(self):
+        self.write("case-061", {"input_usable": False, "reason": "x"}, files=("output.nii.gz",))
+        env = self.grade("case-061")
+        self.assertEqual((env["verdict"], env["role"], env["gate_failures"]),
+                         ("invalid", "control", ["usable_input_called_unusable"]))
+
+    def test_a_control_is_scored_with_or_without_a_record(self):
+        self.write("case-061", {"input_usable": True, "reason": "fine"}, files=("output.nii.gz",))
+        env = self.grade("case-061")
+        self.assertEqual((env["verdict"], env["score"]), ("within_reference_variability", 97.0))
+        (self.run / "submissions" / "strip" / "case-061" / "report.json").unlink()
+        env = self.grade("case-061")
+        self.assertEqual((env["verdict"], env["record"]), ("within_reference_variability", None))
+        self.assertIn("no report at report.json", env["load_notes"])
+
+    def test_a_task_without_a_record_keeps_the_report_and_scores_the_output(self):
+        spec = json.loads(self.manifest.read_text())
+        del spec["tasks"]["strip"]["record"]
+        spec["defaults"]["run_report_path"] = "submissions/{task_id}/{subject}/report.json"
+        self.manifest.write_text(json.dumps(spec))
+        report = {"completed": True, "input_usable": False, "reason": "heavy motion"}
+        for case in ("case-061", "case-062"):
+            with self.subTest(case=case):
+                self.write(case, report, files=("output.nii.gz",))
+                env = self.grade(case)
+                self.assertEqual((env["verdict"], env["record"], env["record_graded"]),
+                                 ("within_reference_variability", report, False))
 
 if __name__ == "__main__":
     unittest.main()

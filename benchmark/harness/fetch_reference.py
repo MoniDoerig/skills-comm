@@ -20,7 +20,8 @@ agent works has none. Idempotent — files already present are left untouched.
 
 A task graded per subject needs --subject, or --case with the case id a benchmark run
 names; the reference dataset's cases.json (see cases.py) says which subjects a task has
-and which subject a case is.
+and which subject a case is. A defect case of a task graded on the run report (`record`)
+has no reference, and fetching it is a no-op.
 """
 import argparse
 import json
@@ -67,6 +68,12 @@ def fetch(task_id, manifest_path, graders_root=None, force=False, revision=None,
         cs = cases_mod.load(m, rev)
         allowed = cases_mod.subjects_of(cs, task_id)
         if subject is not None:
+            # A defect case of a task that grades it on the agent's run report alone has no
+            # reference: the wrapper never runs the scorer for it, so there is nothing to
+            # fetch.
+            if spec.get("record") and cases_mod.role_of(cs, task_id, subject) == "defect":
+                print(f"  {subject}: a defect case, graded on its run report; no reference to fetch")
+                return None
             subject = cases_mod.resolve(cs, task_id, subject)
     if per_subject:
         # Checked against the list rather than interpolated blindly: a typo would

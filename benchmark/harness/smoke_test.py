@@ -60,8 +60,9 @@ _SUBJECTS = {}   # task -> subjects from the gated cases.json, fetched once per 
 
 
 def subjects(task, spec):
-    """A task's subjects: the manifest's list if it still has one, else the reference
-    dataset's gated cases.json."""
+    """A task's subjects with a reference: the manifest's list if it still has one, else
+    the reference dataset's gated cases.json, without the defect cases of a task that
+    grades them on a record."""
     if spec.get("subjects"):
         return spec["subjects"]
     if not spec.get("per_subject"):
@@ -72,7 +73,10 @@ def subjects(task, spec):
         except ImportError:
             import cases as cases_mod
         cs = cases_mod.load(MANIFEST)
-        _SUBJECTS.update({t: cases_mod.subjects_of(cs, t) for t in MAN})
+        # a task with a record has no reference for its defect cases: the wrapper grades
+        # their record, so there is nothing here to probe them against
+        _SUBJECTS.update({t: (cases_mod.referenced_subjects_of(cs, t) if MAN[t].get("record")
+                              else cases_mod.subjects_of(cs, t)) for t in MAN})
     return _SUBJECTS.get(task) or [None]
 
 # which reference file a submission is compared against, per scorer family
@@ -252,37 +256,41 @@ def run_dataset_state(task, spec, rows):
                      v == "complete" and not f))
 
 
-def run_record(task, spec, rows):
-    """Probe a scorer that grades a record of the input against the input as staged.
+def run_tensor_fit(task, spec, rows):
+    """Probe a scorer that grades FA and MD maps against a panel consensus.
 
-    The reference is the truth of what the case's input contains, and a perfect
-    submission is that truth written out as the record the task asks for -- with the FA
-    map where the input supports a fit -- so it must come back complete at 100. An empty
-    submission must be refused for having no record, not by crashing.
+    The consensus maps themselves, handed in as the submission, must come back within the
+    reference's variability at 100; the same maps mirrored left-right must fail; an empty
+    submission must be refused for having no FA map, not by crashing.
     """
     sc = scorer(spec["scorer"])
     for subject in subjects(task, spec):
         pack = build_pack(task, spec, subject)
-        sub = Path(tempfile.mkdtemp(prefix="smoke_record_"))
+        sub = Path(tempfile.mkdtemp(prefix="smoke_fit_"))
         try:
-            truth = json.loads((pack / "reference" / "truth.json").read_text())
             r = sc.score(str(sub), str(pack))
             v, q, f = verdict_of(r)
             rows.append((task, subject or "-", "empty submission", "invalid",
                          f"{v} q{q:.1f} {','.join(f) or '-'}",
-                         v == "invalid" and "report_present" in f))
+                         v == "invalid" and "fa_present" in f))
 
-            keys = ("n_volumes", "n_b0", "n_dwi", "n_gradient_directions", "usable")
-            (sub / "acquisition.json").write_text(json.dumps(
-                {**{k: truth[k] for k in keys}, "reason": "the truth, written out"}))
-            if truth["usable"]:
-                nib.save(nib.Nifti1Image(np.zeros(truth["shape"], np.float32), np.eye(4)),
-                         str(sub / "output.nii.gz"))
+            ref = pack / "reference"
+            shutil.copy(ref / "consensus_fa.nii.gz", sub / "output.nii.gz")
+            shutil.copy(ref / "consensus_md.nii.gz", sub / "md.nii.gz")
             r = sc.score(str(sub), str(pack))
             v, q, f = verdict_of(r)
-            rows.append((task, subject or "-", "truth as the record", "complete at 100",
+            rows.append((task, subject or "-", "consensus as submission", "within at 100",
                          f"{v} q{q:.1f} {','.join(f) or '-'}",
-                         v == "complete" and q == 100.0 and not f))
+                         v == "within_reference_variability" and q == 100.0 and not f))
+
+            for name in ("output.nii.gz", "md.nii.gz"):
+                img = nib.load(str(sub / name))
+                flipped = np.asanyarray(img.dataobj)[::-1]
+                nib.save(nib.Nifti1Image(flipped, img.affine, img.header), str(sub / name))
+            r = sc.score(str(sub), str(pack))
+            v, q, f = verdict_of(r)
+            rows.append((task, subject or "-", "consensus mirrored", "fail",
+                         f"{v} q{q:.1f} {','.join(f) or '-'}", q < 60))
         finally:
             shutil.rmtree(sub, ignore_errors=True)
             shutil.rmtree(pack, ignore_errors=True)
@@ -355,7 +363,7 @@ def main():
             elif name == "score_dataset_state.py":
                 run_dataset_state(task, spec, rows)
             elif name == "score_tensor_fit.py":
-                run_record(task, spec, rows)
+                run_tensor_fit(task, spec, rows)
             elif name in GRADED:
                 run_segmentation(task, spec, rows)
             else:

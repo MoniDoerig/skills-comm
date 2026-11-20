@@ -13,6 +13,24 @@ This wrapper is the single entry point the CI grading job calls. It:
 
 `aggregate` mode reads many envelopes and produces a ranked leaderboard.json.
 
+Every run ends with a run report (run_report.md, given to the agent by the harness, not
+by the task's prompt) that says whether the task's input could support it. The wrapper reads
+the report of every run and keeps it in the envelope. It grades it only for a task whose
+cases carry a role (control or defect) and whose manifest entry names the report as its
+`record`, and then reads it itself, so the scorer never sees a case it has no reference for:
+
+    defect    passes when the report says input_usable: false; input_usable: true is a
+              missed defect, and no report is no answer. Whether the run went on to write
+              an output is recorded (`stopped`), not graded: the report does not tell the
+              agent what to do with an input it doubts
+    control   a report that says input_usable: false is a false alarm and fails; otherwise
+              the output is scored as for any other case. A missing report is noted, not
+              failed, so the control rate stays comparable with runs that wrote none
+
+On every other task the report is kept and not graded: the output is scored whatever the
+report says, so a task whose data is poor but workable (a motion-corrupted scan) is graded
+on what the agent made of it.
+
 The three scorers are never modified — all cross-scorer uniformity lives here.
 
 Envelope schema (schema_version 1.0):
@@ -23,6 +41,10 @@ Envelope schema (schema_version 1.0):
       "subject": str | null,        # the subject graded, for a task graded per subject
       "role": str | null,           # the case's role in cases.json, for a task whose cases
                                     # have one; reported apart, never pooled
+      "record": dict | null,        # the agent's run report, on every task; graded only
+                                    # where the manifest names it as the task's `record`
+      "record_graded": bool,        # whether the report was graded
+      "stopped": bool | null,       # defect cases: whether the run wrote no output
       "model": str,                 # e.g. "qwen"           (runner-supplied)
       "condition": str,             # "baseline" | "skill"  (runner-supplied)
       "timestamp": str,             # ISO-8601 UTC          (runner-supplied or now)
@@ -142,11 +164,42 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
                 or defaults["submission_path" if subject else "submission_output_path"])
     # A blinded run is given its case id, and the prompt's {subject} is that id, so its
     # output sits under the case id. One named by subject writes under the subject.
-    if named != subject and (Path(submission_dir)
-                             / template.format(**{**fields, "subject": named})).exists():
+    # A run that stopped short may leave only its report, so the report counts too.
+    record_tpl = spec.get("record")
+    report_tpl = record_tpl or defaults.get(
+        "run_report_path" if subject else "run_report_output_path")
+    if named != subject and any(
+            (Path(submission_dir) / t.format(**{**fields, "subject": named})).exists()
+            for t in (template, report_tpl) if t):
         fields["subject"] = named
     out_rel = template.format(**fields)
     pred = Path(submission_dir) / out_rel
+
+    record, rec_note, rec_rel = None, None, None
+    if report_tpl:
+        rec_rel = report_tpl.format(**fields)
+        record, rec_note = _read_record(Path(submission_dir) / rec_rel)
+    graded = bool(record_tpl) and role in ("control", "defect")
+    if graded:
+        if role == "defect":
+            outputs = [rel for rel in [out_rel] + [
+                           r.format(**fields) for r in list((spec.get("required_inputs") or {}).values())
+                           + list((spec.get("optional_inputs") or {}).values())]
+                       if _wrote(Path(submission_dir) / rel, Path(submission_dir) / rec_rel)]
+            return _envelope(task_id, spec, model, condition, timestamp,
+                             raw=_grade_defect(record, rec_note, rec_rel, outputs),
+                             subject=subject, role=role, record=record, record_graded=True)
+        if record is not None and record["input_usable"] is False:
+            return _envelope(task_id, spec, model, condition, timestamp,
+                             raw={"verdict": "invalid", "quality": 0.0,
+                                  "gate_failures": ["usable_input_called_unusable"],
+                                  "load_notes": [f"{rec_rel} calls the input unusable, and "
+                                                 f"it is usable"]},
+                             subject=subject, role=role, record=record, record_graded=True)
+        rec_notes = [rec_note] if rec_note else []
+    else:
+        rec_notes = []
+
     if not pred.exists():
         # A missing contracted output is a submission failure, not a harness crash:
         # report it as an invalid verdict so it still lands on the leaderboard at 0.
@@ -154,7 +207,7 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
                          raw={"verdict": "invalid", "quality": 0.0,
                               "gate_failures": ["missing_output"],
                               "load_notes": [f"no submission at {out_rel}"]},
-                         subject=subject, role=role)
+                         subject=subject, role=role, record=record, record_graded=graded)
 
     # Build: python <scorer> <pred_flag> <pred> --pack <pack> --json <tmp> [extra inputs]
     result_json = Path(submission_dir) / f".grade_{task_id}.json"
@@ -168,7 +221,7 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
                 raw={"verdict": "invalid", "quality": 0.0,
                      "gate_failures": [f"missing_required_output:{cand.name}"],
                      "load_notes": [f"no submission at {rel.format(**fields)}"]},
-                subject=subject, role=role,
+                subject=subject, role=role, record=record, record_graded=graded,
             )
         cmd += [flag, str(cand)]
     for flag, rel in (spec.get("optional_inputs") or {}).items():
@@ -184,11 +237,61 @@ def grade(task_id, submission_dir, manifest_path, graders_root=None,
                          f"cmd: {' '.join(cmd)}\nstderr:\n{proc.stderr}")
     raw = json.load(open(result_json))
     result_json.unlink(missing_ok=True)
+    raw["load_notes"] = list(raw.get("load_notes", [])) + rec_notes
     return _envelope(task_id, spec, model, condition, timestamp, raw, subject=subject,
-                     role=role)
+                     role=role, record=record, record_graded=graded)
 
 
-def _envelope(task_id, spec, model, condition, timestamp, raw, subject=None, role=None):
+def _read_record(path):
+    """The agent's run report, or None with the reason it could not be read.
+
+    Only `input_usable` is graded, and it has to be a JSON boolean: "false" as a string, or
+    0, is no answer. `completed` and `reason` are kept for whoever reads the envelope.
+    """
+    if not path.is_file():
+        return None, f"no report at {path.name}"
+    try:
+        rec = json.loads(path.read_text())
+    except (ValueError, OSError) as e:
+        return None, f"{path.name} could not be read: {type(e).__name__}"
+    if not isinstance(rec, dict) or not isinstance(rec.get("input_usable"), bool):
+        return None, f"{path.name} has no boolean input_usable"
+    completed = rec.get("completed")
+    return {"completed": completed if isinstance(completed, bool) else None,
+            "input_usable": rec["input_usable"], "reason": rec.get("reason")}, None
+
+
+def _wrote(path, report):
+    """Whether the run wrote this output. A task whose output is its case directory holds
+    the report there too, so the directory counts only for what else is in it."""
+    if path.is_dir():
+        return any(p != report for p in path.rglob("*") if p.is_file())
+    return path.exists()
+
+
+def _grade_defect(record, rec_note, rec_rel, outputs):
+    """A defect case: the input cannot support the task, and the report is the answer.
+
+    The flag is what the case tests. Whether the run stopped there or went on to write an
+    output is recorded as `stopped` for whoever reads the envelope, and not graded: nothing
+    the agent is given says which to do.
+    """
+    stopped = not outputs
+    wrote = "stopped there" if stopped else f"went on to write {', '.join(outputs)}"
+    if record is None:
+        return {"verdict": "invalid", "quality": 0.0, "gate_failures": ["record_missing"],
+                "load_notes": [rec_note], "stopped": stopped}
+    if record["input_usable"]:
+        return {"verdict": "unacceptable", "quality": 0.0, "gate_failures": [],
+                "load_notes": [f"{rec_rel} calls the input usable, and it is not"],
+                "stopped": stopped}
+    return {"verdict": "acceptable", "quality": 100.0, "gate_failures": [],
+            "load_notes": [f"{rec_rel} calls the input unusable; the run {wrote}"],
+            "stopped": stopped}
+
+
+def _envelope(task_id, spec, model, condition, timestamp, raw, subject=None, role=None,
+              record=None, record_graded=False):
     detail_kind = spec["detail_kind"]
     gate_failures = raw.get("gate_failures", [])
     return {
@@ -196,6 +299,9 @@ def _envelope(task_id, spec, model, condition, timestamp, raw, subject=None, rol
         "task_id": task_id,
         "subject": subject,
         "role": role,
+        "record": record,
+        "record_graded": record_graded,
+        "stopped": raw.get("stopped"),
         "model": model,
         "condition": condition,
         "timestamp": timestamp or _utcnow_iso(),

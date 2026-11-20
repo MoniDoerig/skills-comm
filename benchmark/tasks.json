@@ -28,19 +28,11 @@
       "validity",
       "distribution",
       "spec_validation"
-    ]
+    ],
+    "prompt_version": "Every task carries prompt_version, an integer raised whenever a change to its prompt changes what the task measures. Runs are reported by task and prompt version, so runs under different prompts are never pooled; the task id stays the same.",
+    "run_report": "Not part of any task's prompt: the harness gives every run the same closing instruction to write report.json (completed, input_usable, reason), worded in benchmark/harness/run_report.md. The wrapper keeps every run's report in the envelope; a task whose run_manifest.json entry has `record` is graded on it where a case carries a role."
   },
   "datasets_catalog": {
-    "stroke_rehab_fmri": {
-      "source": "openneuro",
-      "id": "ds003999",
-      "version_pin": "latest",
-      "subjects": [
-        "sub-01"
-      ],
-      "fetch_command": "datalad install ///openneuro/ds003999",
-      "notes": "Post-stroke rehab fMRI, 29 subj"
-    },
     "clinical_motion_t1": {
       "source": "openneuro",
       "id": "ds004332",
@@ -165,6 +157,7 @@
         "data-handling-dicom-to-bids": {
           "title": "DICOM to BIDS organization (full subject)",
           "description": "Organize the DICOM data of subject 001 from the ReproIn/HeuDiConv example dataset into BIDS format using an automated converter (e.g. HeuDiConv).",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Organize the DICOM data for subject 001 of the ReproIn/HeuDiConv example dataset into a valid BIDS dataset, including the anatomical (T1w), the resting-state functional (BOLD), and the field-map series.",
             "dataset": {
@@ -190,6 +183,7 @@
         "data-handling-dicom-to-nifti": {
           "title": "DICOM to NIfTI Conversion (dcm2nii)",
           "description": "Convert the DICOM files for subject 001 (downloaded via the fetch command) to NIfTI (.nii.gz) with BIDS-style JSON sidecars",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Convert the T1-weighted (MPRAGE) anatomical scan for subject 001 of the ReproIn/HeuDiConv example dataset to NIfTI (.nii.gz) with a BIDS-style JSON sidecar.",
             "dataset": {
@@ -216,6 +210,7 @@
           "title": "fMRIPrep processing of a full BIDS dataset prepared with Nipoppy",
           "description": "Set up a Nipoppy study from OpenNeuro ds003653 and configure fMRIPrep 24.1.1 so it would run on every participant-session, without executing it.",
           "grading": "automated",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Use Nipoppy to prepare fMRIPrep 24.1.1 processing, with default parameters, for every\nparticipant and every session of OpenNeuro dataset `ds003653` (version tag `1.0.0`), so\nthat it would run on this machine. Configure it exactly as you would for a real run, but\nwithout executing fMRIPrep. Then produce both of these:\n\n1. the full list of participant-sessions the pipeline would run on, written to\n   `subcohort.tsv` inside the study with `nipoppy process ... --write-subcohort`\n2. the command Nipoppy generates, by launching one participant-session with `--simulate`\n\nA FreeSurfer licence file is at `~/.license`.",
             "dataset": {
@@ -246,6 +241,7 @@
         "structural-brain-age-prediction": {
           "title": "Brain age prediction from T1w",
           "description": "Predict brain age (numerical, years) from the T1w of sub-0011 of OpenNeuro dataset ds002790 using a pretrained model; compare to chronological age.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Predict brain age from the T1-weighted image of sub-0011 using a pretrained brain-age model. Report the predicted brain age as a numerical value in years.",
             "dataset": {
@@ -275,24 +271,24 @@
         "structural-brain-extraction": {
           "title": "Brain extraction (skull stripping)",
           "grading": "automated",
-          "description": "Skull-strip the T1w of {subject} of OpenNeuro dataset ds002790, producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "description": "Skull-strip the staged T1w of {subject}, producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "prompt_version": 2,
           "prompt": {
-            "goal": "Skull-strip the T1-weighted image of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the T1-weighted image of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.\n\nDATA. The image is already in your working directory:\n  input/{subject}/anat/T1w.nii.gz",
             "dataset": {
-              "source": "openneuro",
-              "id": "ds002790",
-              "version_pin": "2.0.0",
-              "subjects_graded": 5
+              "source": "staged",
+              "staged_at": "input/{subject}/anat/",
+              "note": "The harness stages this case's image before the run; there is nothing to download."
             },
             "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction/{subject}/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction/{subject}/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction/{subject}/`. Only `submissions/structural-brain-extraction/{subject}/output.nii.gz` is scored.",
-            "subject_note": "This task runs once per case. Its subjects are listed as cases in cases.json of the gated reference dataset; the harness fetches each one under its case id, and {subject} in the goal and the output paths is replaced with that id."
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's image under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "STAPLE consensus of a panel of independent skull-strippers, split into core/margin/background zones and calibrated per subject; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time.",
+            "ground_truth": "Controls: STAPLE consensus of a panel of independent skull-strippers, split into core/margin/background zones and calibrated per subject; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
             "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision e3619b09778a), path structural_gt/structural-brain-extraction/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
             "metric": "consensus-calibrated: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
-            "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input image; Brain mask is binary (values 0 and 1 only); Brain mask is anatomically plausible: skull/dura removed, brain retained; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the mask passes the consensus grader (verdict >= acceptable). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores the mask against a STAPLE consensus of a panel of tools, split into core (must keep) / margin (free, not scored) / background (must exclude); all thresholds (tolerance tau, per-metric envelope, gate caps) are calibrated by leave-one-tool-out. See PROVENANCE.md for the calibration procedure.",
@@ -318,8 +314,8 @@
               "afni"
             ],
             "tool_note": "Context: healthy adult T1w. Any competent skull-stripper is a reasonable choice. Tool names are non-binding suggestions.",
-            "notes": "[note] Native-space task, no MNI resampling. Grading is consensus-calibrated per subject: one rubric per subject in the grader pack's rubrics/, and adding a subject means calibrating one more.",
-            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds002790.git && cd ds002790 && datalad get <subject>/anat/",
+            "notes": "[note] Native-space task, no MNI resampling. Grading is consensus-calibrated per subject: one rubric per subject in the grader pack's rubrics/, and adding a subject means calibrating one more. [prompt v2] Cases are staged, and the task holds controls (the five graded subjects) and defect cases (T1w images that cannot support a brain extraction) under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/structural-brain-extraction/<case>/anat/T1w.nii.gz). Controls are ds002790 2.0.0 T1w images as published, with the header's aux_file cleared; no sidecar is staged.",
             "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename — tool-determined; e.g. *_bet.nii.gz, *BrainExtractionBrain.nii.gz, or caller-named via -o); A binary brain mask (NIfTI, any filename — tool-determined; e.g. *_bet_mask.nii.gz, *BrainExtractionMask.nii.gz, *_mask.nii.gz, or caller-named via -m)"
           }
         },
@@ -327,6 +323,7 @@
           "title": "Brain extraction under head motion (skull stripping)",
           "grading": "automated",
           "description": "Skull-strip the high-motion T1w of {subject} of MR-ART (OpenNeuro ds004173), producing a brain-extracted image and a binary brain mask in native T1w space, despite motion artefacts.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Skull-strip the motion-corrupted T1-weighted image (acq-headmotion2) of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.",
             "dataset": {
@@ -373,23 +370,23 @@
           "title": "Brain extraction in a young child (skull stripping)",
           "grading": "automated",
           "description": "Skull-strip the T1w of {subject} (~3.6 yo) of OpenNeuro dataset ds000228, producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "prompt_version": 2,
           "prompt": {
-            "goal": "Skull-strip the T1-weighted image of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the T1-weighted image of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.\n\nDATA. The image is already in your working directory:\n  input/{subject}/anat/T1w.nii.gz",
             "dataset": {
-              "source": "openneuro",
-              "id": "ds000228",
-              "version_pin": "1.1.1",
-              "subjects_graded": 5
+              "source": "staged",
+              "staged_at": "input/{subject}/anat/",
+              "note": "The harness stages this case's image before the run; there is nothing to download."
             },
             "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-pediatric/{subject}/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-pediatric/{subject}/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-pediatric/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-pediatric/{subject}/`. Only `submissions/structural-brain-extraction-pediatric/{subject}/output.nii.gz` is scored.",
-            "subject_note": "This task runs once per case. Its subjects are listed as cases in cases.json of the gated reference dataset; the harness fetches each one under its case id, and {subject} in the goal and the output paths is replaced with that id."
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's image under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "STAPLE consensus of a panel of independent skull-strippers run on the child T1w, split into core/margin/background zones and calibrated per subject; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time.",
+            "ground_truth": "Controls: STAPLE consensus of a panel of independent skull-strippers run on the child T1w, split into core/margin/background zones and calibrated per subject; native T1w space. consensus_mask.nii.gz + consensus_zones.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
             "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision e3619b09778a), path structural_gt/structural-brain-extraction-pediatric/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
             "metric": "consensus-calibrated: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
-            "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input; Brain mask is binary (0 and 1 only); Brain (incl. cerebellum and brainstem) retained and skull/dura/neck removed; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the mask passes the consensus grader (verdict >= acceptable). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores the mask against a STAPLE consensus of a tool panel run on the child T1w, split into core (must keep) / margin (free, not scored) / background (must exclude); thresholds (tolerance tau, per-metric envelope, gate caps) calibrated by leave-one-tool-out. See PROVENANCE.md.",
@@ -408,14 +405,15 @@
               "afni"
             ],
             "tool_note": "Context: young child (~3.6 yo). Deep-learning strippers and FSL BET with -R handle the pediatric brain well; ANTs is a poor fit, because the adult OASIS template does not match a 3.6-yo brain. Tool names are non-binding suggestions.",
-            "notes": "[note] PEDIATRIC axis, companion to the healthy-adult baseline and the motion subject. Full-FOV clean scans; a candidate whose field of view cut through the brain was rejected at screening.",
-            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds000228.git && cd ds000228 && datalad get <subject>/anat/",
+            "notes": "[note] PEDIATRIC axis, companion to the healthy-adult baseline and the motion subject. Full-FOV clean scans; a candidate whose field of view cut through the brain was rejected at screening. [prompt v2] Cases are staged, and the task holds controls (the five graded subjects) and defect cases (T1w images that cannot support a brain extraction) under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/structural-brain-extraction-pediatric/<case>/anat/T1w.nii.gz). Controls are ds000228 1.1.1 T1w images as published, with the header's free-text fields cleared; no sidecar is staged.",
             "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename — tool-determined); A binary brain mask (NIfTI, any filename — tool-determined)."
           }
         },
         "structural-cortical-morphometry": {
           "title": "Cortical ROI morphometry (thickness/area/volume)",
           "description": "Compute per-ROI cortical morphometry (thickness, surface area, volume) from an existing FreeSurfer recon for sub-0008 of OpenNeuro dataset ds002790.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "From the pre-computed FreeSurfer reconstruction of sub-0008, compute per-region cortical morphometry - mean thickness, surface area, and grey-matter volume - for each cortical parcel in both hemispheres.",
             "dataset": {
@@ -445,6 +443,7 @@
         "structural-cortical-reconstruction": {
           "title": "FreeSurfer cortical reconstruction (recon-all)",
           "description": "Full FreeSurfer recon-all cortical surface reconstruction and subcortical segmentation from the T1w of sub-0001 of OpenNeuro dataset ds002790.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Run a full FreeSurfer cortical reconstruction (recon-all) on the T1-weighted image of sub-0001, producing cortical surfaces, the subcortical segmentation, and the cortical parcellation.",
             "dataset": {
@@ -476,6 +475,7 @@
         "structural-fastsurfer-recon": {
           "title": "FastSurfer rapid recon-all alternative",
           "description": "Run FastSurfer deep-learning cortical reconstruction on the T1w of sub-0009 of OpenNeuro dataset ds002790, producing the whole-brain segmentation.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Run FastSurfer (deep-learning cortical reconstruction) on the T1-weighted image of sub-0009, producing the whole-brain segmentation (DKT-atlas cortical parcellation + subcortical structures).",
             "dataset": {
@@ -505,6 +505,7 @@
           "title": "MNI registration (T1w to MNI152NLin2009cAsym)",
           "grading": "automated",
           "description": "Register the T1w of {subject} of OpenNeuro ds002790 to MNI152NLin2009cAsym and carry the supplied tissue segmentation through the same transform, graded by propagated-label overlap against the template's own tissue priors.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Register the T1-weighted image of {subject} to the MNI152NLin2009cAsym template and resample it into that space. Apply the SAME transform to the supplied tissue segmentation, using nearest-neighbour interpolation so its labels are preserved.\n\nDATA. The images are already in your working directory:\n  input/{subject}/anat/T1w.nii.gz        the T1-weighted image to register\n  input/{subject}/anat/dseg.nii.gz       a tissue segmentation of that same T1w\n  input/{subject}/template/T1w.nii.gz    MNI152NLin2009cAsym at 1 mm, 193x229x193\n\ninput/{subject}/anat/dseg.nii.gz has labels 1 = grey matter, 2 = white matter, 3 = CSF. Warp it with the transform you compute for the T1w; do not re-segment, and do not relabel it.\n\nBoth outputs must be on the template grid: the same shape and affine as input/{subject}/template/T1w.nii.gz. Do not resample to any other space.",
             "dataset": {
@@ -548,6 +549,7 @@
         "structural-morphometric-stats": {
           "title": "FreeSurfer morphometric stats extraction",
           "description": "Extract morphometric statistics (volumes, thickness, area) from an existing FreeSurfer recon for sub-0002 of OpenNeuro dataset ds002790, without re-running recon-all.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "From the pre-computed FreeSurfer reconstruction of sub-0002, extract the morphometric statistics: regional cortical thickness, surface area, and volumes. Do not re-run recon-all; parse the existing reconstruction.",
             "dataset": {
@@ -576,6 +578,7 @@
         "structural-normative-modeling": {
           "title": "Normative modeling of cortical thickness",
           "description": "Fit a normative model of cortical thickness against age and sex on a training cohort (~200 subjects) from OpenNeuro dataset ds002790, then compute deviation (Z) scores for a held-out test set (~26 subjects).",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Using the FreeSurfer cortical-thickness measures and demographic covariates (age, sex), fit a normative model on a training cohort of ~200 subjects that predicts regional cortical thickness from the covariates, then compute per-region deviation (Z) scores for the held-out test subjects (~26). Report the deviation scores for the test set.",
             "dataset": {
@@ -608,6 +611,7 @@
         "structural-subcortical-segmentation": {
           "title": "Subcortical segmentation (T1)",
           "description": "Subcortical grey-matter segmentation from the T1w of sub-0007 of OpenNeuro dataset ds002790.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Segment the subcortical grey-matter structures (e.g. thalamus, caudate, putamen, pallidum, hippocampus, amygdala, accumbens) from the T1-weighted image of sub-0007.",
             "dataset": {
@@ -639,6 +643,7 @@
         "structural-t1w-preprocessing": {
           "title": "Structural T1w preprocessing (bias-correct, brain-extract, segment)",
           "description": "Structural T1w preprocessing (bias-field correction, brain extraction, tissue segmentation) for sub-0003 of OpenNeuro dataset ds002790.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Preprocess the T1-weighted image of sub-0003: apply bias-field correction, brain extraction, and tissue segmentation, producing a brain-extracted image, a brain mask, and tissue class maps.",
             "dataset": {
@@ -670,6 +675,7 @@
         "structural-tissue-segmentation": {
           "title": "Tissue segmentation (T1)",
           "description": "Tissue-type segmentation (GM/WM/CSF) of the T1w of sub-0005 of OpenNeuro dataset ds002790.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Segment the T1-weighted image of sub-0005 into the three tissue classes - grey matter, white matter, and CSF - producing tissue probability or label maps.",
             "dataset": {
@@ -702,6 +708,7 @@
         "structural-voxel-based-morphometry": {
           "title": "Voxel-based morphometry (GM maps for group analysis)",
           "description": "Voxel-based morphometry: produce smoothed, modulated grey-matter volume maps in template space from the T1w of sub-0010 of OpenNeuro dataset ds002790.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Perform voxel-based morphometry on the T1-weighted image of sub-0010: segment grey matter, register to template space, modulate, and smooth, producing a grey-matter volume map in template space.",
             "dataset": {
@@ -735,6 +742,7 @@
           "title": "Brain extraction at 7 Tesla (MP2RAGE skull stripping)",
           "grading": "automated",
           "description": "Skull-strip the 7T MP2RAGE UNI image of {subject} of CEREBRUM-7T (OpenNeuro ds003642), producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.",
             "dataset": {
@@ -777,6 +785,7 @@
           "title": "Brain extraction at 7T with explicit dura removal (skull stripping)",
           "grading": "automated",
           "description": "Skull-strip the 7T MP2RAGE UNI image of {subject} of CEREBRUM-7T (OpenNeuro ds003642) AND remove the dura, producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of {subject} AND remove the dura, producing a brain-extracted image and a binary brain mask in the native T1w space.",
             "dataset": {
@@ -820,6 +829,7 @@
           "title": "Tissue parcellation at 7 Tesla (six structures)",
           "grading": "automated",
           "description": "Parcellate the 7T MP2RAGE image of {subject} (CEREBRUM-7T, OpenNeuro ds003642) into six brain structures (GM, basal ganglia, WM, ventricles/CSF, cerebellum, brainstem) in native T1w space.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Parcellate the 7T MP2RAGE image of {subject} into an integer label map of six brain structures in native T1w space: 1=grey matter (cortical grey matter), 2=basal ganglia (deep grey nuclei: caudate, putamen, pallidum, thalamus, ventral diencephalon, accumbens; hippocampus and amygdala are grey matter), 3=white matter (cerebral white matter), 4=ventricles (ventricular CSF only — lateral/3rd/4th ventricles, NOT sulcal CSF), 5=cerebellum (entire cerebellum, grey+white), 6=brainstem (midbrain, pons, medulla).",
             "dataset": {
@@ -863,23 +873,23 @@
           "title": "Brain extraction of a lesioned (chronic-stroke) brain",
           "grading": "automated",
           "description": "Skull-strip the T1w of {subject} (Aphasia Recovery Cohort, ds004884), a chronic-stroke subject whose brain contains an 82.8 cm3 infarct cavity; produce a brain-extracted image and a binary brain mask in native T1w space. The lesion is brain tissue (graded by the lesion_retained gate) but this is NOT disclosed to the agent.",
+          "prompt_version": 2,
           "prompt": {
-            "goal": "Skull-strip the T1-weighted image of {subject} session ses-681, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the T1-weighted image of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.\n\nDATA. The image is already in your working directory:\n  input/{subject}/anat/T1w.nii.gz",
             "dataset": {
-              "source": "openneuro",
-              "id": "ds004884",
-              "version_pin": "1.0.2",
-              "subjects_graded": 5
+              "source": "staged",
+              "staged_at": "input/{subject}/anat/",
+              "note": "The harness stages this case's image before the run; there is nothing to download."
             },
             "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-stroke/{subject}/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-stroke/{subject}/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-stroke/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-stroke/{subject}/`. Only `submissions/structural-brain-extraction-stroke/{subject}/output.nii.gz` is scored.",
-            "subject_note": "This task runs once per case. Its subjects are listed as cases in cases.json of the gated reference dataset; the harness fetches each one under its case id, and {subject} in the goal and the output paths is replaced with that id."
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's image under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "STAPLE consensus of a panel of skull-strippers that retain the lesion, run on the lesioned T1w, split into core/margin/background zones; native T1w space. A tool that removes much of the lesion is excluded from the panel and kept as a scored candidate. The expert lesion mask (registered T2w->T1w) is shipped for a lesion_retained gate. consensus_mask + consensus_zones + lesion_mask in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth.",
+            "ground_truth": "Controls: STAPLE consensus of a panel of skull-strippers that retain the lesion, run on the lesioned T1w, split into core/margin/background zones; native T1w space. A tool that removes much of the lesion is excluded from the panel and kept as a scored candidate. The expert lesion mask (registered T2w->T1w) is shipped for a lesion_retained gate. consensus_mask + consensus_zones + lesion_mask in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
             "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision e3619b09778a), path structural_gt/structural-brain-extraction-stroke/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz, lesion_mask.nii.gz)",
             "metric": "consensus-calibrated + lesion_retained gate: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
-            "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; geometry matches the input; mask is binary; brain (incl. the stroke lesion) retained and skull/dura removed; the mask contains >= 85% of the expert lesion (lesion_retained); No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass. A mask that carves out the lesion fails the lesion_retained gate.",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the mask passes the consensus grader and the lesion_retained gate (verdict >= acceptable). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass. A mask that carves out the lesion fails the lesion_retained gate.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores the mask against a STAPLE consensus of lesion-retaining tools split into core/margin/background, PLUS a lesion_retained gate (mask must contain >= lesion_retained_min of the expert lesion). See PROVENANCE.md.",
@@ -897,8 +907,8 @@
               "afni"
             ],
             "tool_note": "Context: chronic stroke. The lesion is a fluid-filled cavity, dark and CSF-like on T1, and an intensity-based stripper carves much of it out. Prefer a tool that keeps it, and check the lesion is still inside your mask. Tool names are non-binding suggestions.",
-            "notes": "[note] PATHOLOGY axis. Step 1 of a stroke pair; step 2 is clinical-stroke-lesion-segmentation on the same subjects. Open data (ARC ds004884). The lesion mask is drawn in T2w space and rigid-registered to T1w for the reference. A lesion_retained gate is part of the shared score_brain_mask.py.",
-            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004884.git && cd ds004884 && datalad get <subject>/ses-681/anat/",
+            "notes": "[note] PATHOLOGY axis. Step 1 of a stroke pair; step 2 is clinical-stroke-lesion-segmentation on the same subjects. Open data (ARC ds004884). The lesion mask is drawn in T2w space and rigid-registered to T1w for the reference. A lesion_retained gate is part of the shared score_brain_mask.py. [prompt v2] Cases are staged, and the task holds controls (the five graded subjects) and defect cases (T1w images that cannot support a brain extraction) under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/structural-brain-extraction-stroke/<case>/anat/T1w.nii.gz). Controls are ds004884 1.0.2 T1w images as published, with the header's free-text fields cleared; no sidecar is staged.",
             "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename); a binary brain mask (NIfTI, any filename)."
           }
         }
@@ -910,6 +920,7 @@
         "functional-alff-reho": {
           "title": "ALFF / ReHo local fMRI activity",
           "description": "ALFF/fALFF/ReHo voxel-wise maps from the fMRIPrep BOLD of sub-CON01 (ses-preop) of ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Compute ALFF, fALFF, and ReHo from the fMRIPrep-preprocessed resting-state BOLD of sub-0022 (resting-state, task-restingstate) (fMRIPrep derivatives), producing three voxel-wise scalar maps.",
             "dataset": {
@@ -944,6 +955,7 @@
         "functional-confound-regression": {
           "title": "fMRI confound regression",
           "description": "Confound regression (motion + WM/CSF) on the fMRIPrep BOLD of sub-CON01 (ses-preop) of ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Apply confound regression to the fMRIPrep-preprocessed resting-state BOLD of sub-0014 (session ses-preop). Regress out the fMRIPrep confounds (motion parameters, ICA-AROMA components, and white-matter and CSF signals) to produce a denoised BOLD timeseries.",
             "dataset": {
@@ -978,6 +990,7 @@
         "functional-connectome": {
           "title": "ROI-to-ROI functional connectome (from fMRIPrep derivatives)",
           "description": "ROI-to-ROI functional connectivity matrix (atlas-based, confound-cleaned correlations) from the fMRIPrep derivatives of sub-CON01 (ses-preop) of OpenNeuro dataset ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Compute an ROI-to-ROI functional connectivity matrix from the fMRIPrep-preprocessed resting-state BOLD of sub-0016 (resting-state, task-restingstate): extract atlas ROI time series with confound cleaning, then compute pairwise Pearson correlations. Produce the ROI x ROI correlation matrix with ROI labels.",
             "dataset": {
@@ -1011,6 +1024,7 @@
         "functional-fmriprep-preprocessing": {
           "title": "fMRIPrep preprocessing of a BIDS dataset",
           "description": "fMRIPrep preprocessing of sub-CON01 (ses-preop) of OpenNeuro dataset ds001226 (BIDS) to standard space with QC",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Run fMRIPrep on sub-0020 (session ses-preop) to produce preprocessed BOLD and anatomical derivatives in standard space, with confounds and a QC report.",
             "dataset": {
@@ -1039,6 +1053,7 @@
         "functional-ica-aroma": {
           "title": "ICA-AROMA BOLD denoising",
           "description": "ICA-AROMA non-aggressive denoising of the fMRIPrep-preprocessed BOLD of sub-CON01 (ses-preop) of OpenNeuro dataset ds001226: noise-component classification + denoised BOLD",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Apply ICA-AROMA denoising to the fMRIPrep-preprocessed resting-state BOLD of sub-CON01 (session ses-preop): identify motion-related noise components and regress them out non-aggressively to produce a denoised BOLD.",
             "dataset": {
@@ -1068,6 +1083,7 @@
         "functional-ica-decomposition": {
           "title": "Resting-state ICA decomposition",
           "description": "Resting-state spatial ICA decomposition (~20-30 components) of the BOLD of sub-CON01 (ses-preop) of OpenNeuro dataset ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Decompose the resting-state BOLD of sub-0013 (session ses-preop) into spatial independent components using ICA (e.g. ~20-30 components). Produce the component spatial maps and their time courses.",
             "dataset": {
@@ -1103,6 +1119,7 @@
         "functional-motion-correction": {
           "title": "fMRI motion correction",
           "description": "Motion correction (realignment) of the resting BOLD of sub-CON01 (ses-preop) of ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Apply motion correction (volume realignment) to the 4D resting-state BOLD of sub-CON01 (session ses-preop). Produce the motion-corrected BOLD and the motion parameters.",
             "dataset": {
@@ -1135,6 +1152,7 @@
         "functional-mriqc-quality": {
           "title": "MRIQC quality report on a BIDS dataset",
           "description": "MRIQC participant-level image-quality metrics + HTML reports for sub-CON01 (ses-preop) of OpenNeuro dataset ds001226 (BIDS)",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Run MRIQC at the participant level on sub-0021 (session ses-preop) to produce image-quality metrics and visual QC reports.",
             "dataset": {
@@ -1163,6 +1181,7 @@
         "functional-postprocessing-denoising": {
           "title": "Post-fMRIPrep denoising with XCP-D",
           "description": "XCP-D post-fMRIPrep denoising (nuisance regression + bandpass + motion censoring) of sub-CON01 (ses-preop) fMRIPrep derivatives of OpenNeuro dataset ds001226, with QC",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Run XCP-D to post-process the fMRIPrep derivatives of sub-20712 (resting-state, task-restingstate): apply a standard nuisance-regression denoising strategy, temporal bandpass filtering, and motion censoring, producing a denoised resting-state BOLD with a QC report.",
             "dataset": {
@@ -1193,6 +1212,7 @@
         "functional-roi-timeseries": {
           "title": "ROI time-series extraction (from fMRIPrep derivatives)",
           "description": "Per-ROI BOLD time-series extraction (atlas-based, confound-cleaned) from the fMRIPrep derivatives of sub-CON01 (ses-preop) of OpenNeuro dataset ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Extract per-ROI BOLD time series from the fMRIPrep-preprocessed resting-state BOLD of sub-0015 (resting-state, task-restingstate), using a brain atlas/parcellation and applying confound cleaning with the fMRIPrep confounds. Produce the cleaned per-ROI time series as a 2D array (time x ROI) with ROI labels.",
             "dataset": {
@@ -1226,6 +1246,7 @@
         "functional-seed-to-voxel": {
           "title": "Seed-to-voxel correlation map (from fMRIPrep derivatives)",
           "description": "Seed-to-voxel functional connectivity map (whole-brain correlation with a seed ROI) from the fMRIPrep derivatives of sub-CON01 (ses-preop) of OpenNeuro dataset ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Compute a seed-to-voxel functional connectivity map from the fMRIPrep-preprocessed resting-state BOLD of sub-0017 (resting-state, task-restingstate): define a posterior cingulate cortex (PCC) seed, extract its confound-cleaned time series, and correlate it against every brain voxel. Produce the seed-to-voxel correlation map as a 3D NIfTI in BOLD space.",
             "dataset": {
@@ -1259,6 +1280,7 @@
         "functional-task-glm": {
           "title": "First-level task GLM (motor activation)",
           "description": "First-level task GLM on the motor (finger-foot-lips) fMRIPrep derivatives of sub-01 ses-test of OpenNeuro dataset ds000114: events design + confounds -> movement-vs-baseline contrast map",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Run a first-level task GLM on the fMRIPrep-preprocessed BOLD of sub-01, session ses-test, task fingerfootlips. The finger-foot-lips paradigm alternates finger, foot, and lip movements; build the design from the task events, include standard nuisance confounds, and produce a movement-vs-baseline activation contrast map. the task events.tsv come from the raw OpenNeuro dataset.",
             "dataset": {
@@ -1301,24 +1323,23 @@
           "title": "DWI brain mask",
           "grading": "automated",
           "description": "Produce a binary brain mask for the AP diffusion series of {subject} (ses-preop) of OpenNeuro ds001226 on the diffusion grid, graded against a STAPLE consensus of three masking tools.",
+          "prompt_version": 2,
           "prompt": {
-            "goal": "Skull-strip the AP diffusion series of {subject} (session ses-preop), producing a brain-extracted b = 0 image and a binary brain mask on the diffusion grid.\n\nThe mask must have the same shape and affine as the input DWI (96x96x60, 2.5 mm isotropic). Do not resample to any other space.",
+            "goal": "Skull-strip the diffusion series of {subject}, producing a brain-extracted b = 0 image and a binary brain mask on the diffusion grid.\n\nThe mask must have the same shape and affine as the input DWI (2.5 mm isotropic). Do not resample to any other space.\n\nDATA. The series is already in your working directory:\n  input/{subject}/dwi/dwi.nii.gz, with dwi.bval, dwi.bvec and dwi.json",
             "dataset": {
-              "source": "openneuro",
-              "id": "ds001226",
-              "version_pin": "5.0.1",
-              "session": "ses-preop",
-              "subjects_graded": 5
+              "source": "staged",
+              "staged_at": "input/{subject}/dwi/",
+              "note": "The harness stages this case's series before the run; there is nothing to download."
             },
             "required_output": "A brain-extracted b0 image (NIfTI) and a binary brain mask (NIfTI, {0,1}) on the diffusion grid.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/diffusion-brain-mask/{subject}/` under your working directory - create that folder. Put the binary brain mask at `submissions/diffusion-brain-mask/{subject}/output.nii.gz` (THIS is the graded file) and the brain-extracted b0 at `submissions/diffusion-brain-mask/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/diffusion-brain-mask/{subject}/`. Only `submissions/diffusion-brain-mask/{subject}/output.nii.gz` is scored.",
-            "subject_note": "This task runs once per case. Its subjects are listed as cases in cases.json of the gated reference dataset; the harness fetches each one under its case id, and {subject} in the goal and the output paths is replaced with that id."
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's series under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "STAPLE consensus of a curated panel of skull-strippers run on the mean b0, split into core/margin/background zones and calibrated per subject by leave-one-tool-out; the diffusion grid. Tools that lose the same anatomy to the inferior bias field on the raw series - cerebellum, temporal poles, brainstem - are excluded from the panel and kept as scored candidates. consensus_mask.nii.gz + consensus_zones.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time.",
+            "ground_truth": "Controls: STAPLE consensus of a curated panel of skull-strippers run on the mean b0, split into core/margin/background zones and calibrated per subject by leave-one-tool-out; the diffusion grid. Tools that lose the same anatomy to the inferior bias field on the raw series - cerebellum, temporal poles, brainstem - are excluded from the panel and kept as scored candidates. consensus_mask.nii.gz + consensus_zones.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
             "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision e3619b09778a), path diffusion_gt/diffusion-brain-mask/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
             "metric": "consensus-calibrated: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
-            "pass_criterion": "A b0 is extracted and a binary brain mask produced; mask geometry (shape, voxel size, affine) matches the diffusion series; mask is binary (0 and 1 only); brain retained including cerebellum and brainstem, skull and neck removed; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the mask passes the consensus grader (verdict >= acceptable). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores a binary mask against the STAPLE consensus in three zones: unanimous core (must be kept), margin (tools legitimately disagree, never scored) and background (must be excluded). Weighted quality over NSD within a calibrated surface tolerance, core recall, background false-positive fraction, HD95 and volume error, each mapped by the leave-one-tool-out envelope. The discriminating gate is no_focal_core_loss, a lost region that survives a shave of 1.5 mm or one voxel, whichever is larger: threshold-based methods drop the cerebellum on the raw b0 and fail it. See PROVENANCE.md.",
@@ -1338,14 +1359,15 @@
               "fsl"
             ],
             "tool_note": "Context: healthy adult, multi-shell DWI at 2.5 mm, RAW series. Extract a b0 (dwiextract -bzero, fslroi) then mask it. Thresholding the raw b0 without preparing it first loses the cerebellum and fails: the inferior receive-coil bias field drops it below threshold. Tool names are non-binding suggestions.",
-            "notes": "[note] Same scorer and construction as the brain-extraction tasks, on a different modality: the reference is a tool consensus on the mean b0 rather than on a T1w. The trap is not tool identity but whether the b0 is prepared before masking - the inferior receive-coil bias field drops cerebellum, temporal poles and brainstem below threshold. [caution] One panel tool returns its output with obliquity stripped from the header and emits a multi-valued stripped image rather than a binary mask; the grader carries grid.raw_affine, the on-disk affine rather than the canonicalised one, and reads that case on the native grid instead of resampling.",
-            "dataset_fetch_reference": "datalad clone https://github.com/OpenNeuroDatasets/ds001226.git && git -C ds001226 checkout 5.0.1 && datalad -C ds001226 get <subject>/ses-preop/dwi/<subject>_ses-preop_acq-AP_dwi.nii.gz <subject>/ses-preop/dwi/<subject>_ses-preop_acq-AP_dwi.bval <subject>/ses-preop/dwi/<subject>_ses-preop_acq-AP_dwi.bvec",
+            "notes": "[note] Same scorer and construction as the brain-extraction tasks, on a different modality: the reference is a tool consensus on the mean b0 rather than on a T1w. The trap is not tool identity but whether the b0 is prepared before masking - the inferior receive-coil bias field drops cerebellum, temporal poles and brainstem below threshold. [caution] One panel tool returns its output with obliquity stripped from the header and emits a multi-valued stripped image rather than a binary mask; the grader carries grid.raw_affine, the on-disk affine rather than the canonicalised one, and reads that case on the native grid instead of resampling. [prompt v2] Cases are staged, and the task holds controls (the five graded subjects) and defect cases (diffusion series that cannot support a brain mask) under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/diffusion-brain-mask/<case>/dwi/: dwi.nii.gz, dwi.bval, dwi.bvec, dwi.json). Controls are ds001226 5.0.1 ses-preop acq-AP series as published, with the header's free-text fields and slice order code cleared and the sidecar cut to the acquisition parameters every case shares.",
             "expected_files_detail": "A binary brain mask (NIfTI, any filename; values {0,1}) on the diffusion grid (96x96x60, 2.5 mm isotropic), and a brain-extracted b0 image."
           }
         },
         "diffusion-denoising": {
           "title": "DWI denoising (MP-PCA)",
           "description": "MP-PCA denoising of the DWI of sub-CON02 (ses-preop) of OpenNeuro dataset ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Apply MP-PCA denoising to the DWI of sub-CON02 (session ses-preop). Produce the denoised 4D DWI.",
             "dataset": {
@@ -1378,6 +1400,7 @@
         "diffusion-distortion-eddy-correction": {
           "title": "DWI distortion and eddy-current correction",
           "description": "Distortion (TOPUP, using AP+PA) and eddy-current correction of the DWI of sub-CON02 (ses-preop) of OpenNeuro dataset ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Run susceptibility distortion correction and eddy-current/motion correction on the DWI of sub-CON02 (session ses-preop), which provides opposite phase-encode (AP and PA) acquisitions. Produce the corrected DWI.",
             "dataset": {
@@ -1410,6 +1433,7 @@
         "diffusion-dti-metrics": {
           "title": "DTI core metrics (FA/MD/AD/RD)",
           "description": "Diffusion-tensor fit producing FA/MD/AD/RD scalar maps for sub-CON02 (ses-preop) of OpenNeuro dataset ds001226 (healthy control, multi-shell DWI)",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Fit a diffusion tensor and compute the four core DTI scalar maps - FA (fractional anisotropy), MD (mean diffusivity), AD (axial diffusivity), and RD (radial diffusivity) - for sub-CON02 (session ses-preop). Save each metric as a NIfTI map.",
             "dataset": {
@@ -1442,28 +1466,29 @@
           }
         },
         "diffusion-tensor-fit": {
-          "title": "Diffusion tensor fit with an acquisition record",
+          "title": "Diffusion tensor fit",
           "grading": "automated",
-          "description": "Record what the staged diffusion acquisition of {subject} contains, judge whether it can support a tensor fit, and fit one where it can; graded on the record against the acquisition as staged.",
+          "description": "Fit a diffusion tensor to the staged diffusion acquisition of {subject} and produce FA and MD maps in its native space.",
+          "prompt_version": 1,
           "prompt": {
-            "goal": "Fit a diffusion tensor for {subject} and produce FA and MD maps.\n\nThe acquisition is staged for you at `input/{subject}/dwi/` as `dwi.nii.gz`, `dwi.bval`, `dwi.bvec` and `dwi.json`.\n\nA tensor fit needs at least six non-collinear diffusion-weighted directions, so first record what the acquisition contains and judge whether it can support the fit. Write that record as JSON with exactly these fields:\n\n  n_volumes              volumes in the DWI series\n  n_b0                   volumes with b < 50\n  n_dwi                  volumes with b >= 50\n  n_gradient_directions  volumes with b >= 50 whose gradient vector is non-zero\n  usable                 true if these data can support a tensor fit, false if not\n  reason                 one sentence\n\nIf usable is false, do not write metric maps.",
+            "goal": "Fit a diffusion tensor for {subject} and produce FA and MD maps.\n\nThe acquisition is staged for you at `input/{subject}/dwi/` as `dwi.nii.gz`, `dwi.bval`, `dwi.bvec` and `dwi.json`.",
             "dataset": {
               "source": "staged",
               "staged_at": "input/{subject}/dwi/",
               "note": "The harness stages this case's acquisition before the run; there is nothing to download."
             },
-            "required_output": "A JSON record of the acquisition, and - only where the acquisition supports a tensor fit - the FA and MD maps.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/diffusion-tensor-fit/{subject}/` under your working directory - create that folder. Put the record at `submissions/diffusion-tensor-fit/{subject}/acquisition.json`, the FA map at `submissions/diffusion-tensor-fit/{subject}/output.nii.gz` and the MD map at `submissions/diffusion-tensor-fit/{subject}/md.nii.gz`. Use these exact paths and filenames.",
+            "required_output": "An FA map and an MD map (NIfTI) in the native space of the diffusion acquisition.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/diffusion-tensor-fit/{subject}/` under your working directory - create that folder. Put the FA map at `submissions/diffusion-tensor-fit/{subject}/output.nii.gz` (THIS is the graded file) and the MD map at `submissions/diffusion-tensor-fit/{subject}/md.nii.gz`. Use these exact paths and filenames.",
             "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's acquisition under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "What the case's acquisition, as staged, contains: volumes, b0s, diffusion-weighted volumes, how many of those carry a non-zero gradient vector, and whether that supports a tensor fit. Computed from the staged files themselves. truth.json in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth (revision ad123f2febd6), path diffusion_gt/diffusion-tensor-fit/{subject}/truth.json; the staged acquisition at input/diffusion-tensor-fit/<case>/dwi/",
-            "metric": "exact-contract: verdict {complete|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
-            "pass_criterion": "A readable acquisition.json with every field of the contract; counts that match the staged acquisition; a usability verdict that follows from them; FA and MD maps where the acquisition supports a fit and none where it does not",
-            "output_validation": "Run the grader (see the grader block); a case passes when verdict >= acceptable (quality >= 60). The envelope carries the case's role from cases.json where it has one, and such a task is reported per model by one rate per role, side by side. The script's exit code signals validity (no gate failure), not pass.",
+            "ground_truth": "Controls: the voxelwise median FA and MD of a panel of six defensible fits of the staged acquisition (FSL dtifit and MRtrix3 dwi2tensor; ordinary and weighted least squares; all shells and b <= 1200 only), with the b0 brain mask eroded by two voxels and full-credit lines calibrated per subject from the panel's leave-one-out spread. consensus_fa.nii.gz, consensus_md.nii.gz and roi_mask.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth, path diffusion_gt/diffusion-tensor-fit/{subject}/ (consensus_fa.nii.gz, consensus_md.nii.gz, roi_mask.nii.gz) and calibration/diffusion-tensor-fit/{subject}.json; the staged acquisition at input/diffusion-tensor-fit/<case>/dwi/",
+            "metric": "consensus-calibrated: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the FA and MD maps pass the consensus grader (verdict >= acceptable). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A case passes when verdict >= acceptable (quality >= 60). The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
-              "kind": "exact-contract",
-              "description": "Reads the submitted record against what the staged acquisition contains. No reference spread to calibrate against: the answers are counts in a file and the judgement that follows from them. Validity gates refuse a submission with no readable record, and one that writes metric maps from an acquisition that cannot support a tensor fit.",
+              "kind": "consensus-calibrated",
+              "description": "Compares the FA and MD maps with the panel consensus inside the eroded brain mask: Pearson r of FA, median absolute FA difference, Pearson r of MD (any unit). Each earns full credit at the panel's own leave-one-out spread and none at a fixed line. Validity gates refuse a missing FA map, one off the acquisition's grid, and one out of the [0, 1] range or constant.",
               "pack": "benchmark/graders/diffusion-tensor-fit/",
               "scorer": "benchmark/graders/diffusion-tensor-fit/score_tensor_fit.py",
               "reference_fetch": "python benchmark/harness/fetch_reference.py --task diffusion-tensor-fit --case <case>",
@@ -1476,14 +1501,15 @@
               "fsl",
               "python:dipy"
             ],
-            "tool_note": "Any diffusion toolkit. The graded answer is the record; the maps are asked for only where the acquisition supports them. Tool names are non-binding suggestions.",
-            "notes": "[note] The record is graded rather than the maps because a tensor fit runs on any gradient table a tool can parse, so a map alone cannot show that the acquisition was read.",
-            "expected_files_detail": "acquisition.json (the six fields of the contract); output.nii.gz (FA) and md.nii.gz (MD) where the acquisition supports a fit"
+            "tool_note": "Any diffusion toolkit; the choice of shells and estimator is the analyst's. Tool names are non-binding suggestions.",
+            "notes": "[note] Native-space task. FA and MD are graded on their pattern against a consensus of defensible fits, and FA a little on its level, because the shells used and the estimator move the level of both maps. The task holds controls and defect cases under one prompt; which is which is in the gated cases.json only.",
+            "expected_files_detail": "output.nii.gz (FA) and md.nii.gz (MD) on the acquisition's grid"
           }
         },
         "diffusion-fod-peaks": {
           "title": "Multi-fibre orientation peaks (CSD)",
           "description": "CSD multi-fibre modelling with peak extraction (4D peaks NIfTI) from the multi-shell DWI of sub-CON02 (ses-preop) of OpenNeuro dataset ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "From the multi-shell DWI of sub-CON02 (session ses-preop), estimate the fibre response function, compute fibre orientation distributions (constrained spherical deconvolution), and extract the peak directions as a 4D NIfTI peaks image.",
             "dataset": {
@@ -1518,6 +1544,7 @@
         "diffusion-preprocessing": {
           "title": "DWI preprocessing (QSIPrep)",
           "description": "QSIPrep DWI preprocessing (denoise + distortion/eddy via AP+PA) to MNI152NLin2009cAsym for sub-CON01 (ses-preop) of OpenNeuro dataset ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Preprocess the diffusion-weighted data of sub-CON01 (session ses-preop) using QSIPrep. Note: the reverse phase-encoded (PA) acquisition is a b0 fieldmap for susceptibility distortion correction; QSIPrep expects such short reverse-PE scans in the fmap/ directory as an EPI fieldmap (dir-PA_epi) with an IntendedFor entry pointing at the AP DWI, rather than in dwi/. Organize the data accordingly and run QSIPrep to produce the preprocessed DWI.",
             "dataset": {
@@ -1547,6 +1574,7 @@
         "diffusion-structural-connectome": {
           "title": "DWI structural connectome (QSIRecon)",
           "description": "QSIRecon structural connectome (orientation -> tractography -> ROI-to-ROI matrix) for sub-CON01 (ses-preop) of OpenNeuro dataset ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Reconstruct a structural connectome from preprocessed DWI using QSIRecon for sub-CON01 (session ses-preop): estimate fibre orientations, run tractography, and produce an ROI-to-ROI connectivity matrix using a standard atlas.",
             "dataset": {
@@ -1576,6 +1604,7 @@
         "diffusion-tractography-tdi": {
           "title": "White-matter tractography + track-density image",
           "description": "Whole-brain tractography + track-density image (TDI scalar NIfTI) on the DWI of sub-CON02 (ses-preop) of OpenNeuro dataset ds001226",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Perform whole-brain white-matter tractography on the DWI of sub-CON02 (session ses-preop), then convert the tractogram to a track-density image (TDI): a voxel-wise scalar NIfTI giving streamline density on the DWI grid.",
             "dataset": {
@@ -1615,6 +1644,7 @@
         "quantitative-susceptibility-mapping": {
           "title": "QSM reconstruction",
           "description": "Run QSMxT on magnitude + phase data to produce a susceptibility map; verify spatial coherence in deep grey matter",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Reconstruct a quantitative susceptibility map (QSM) for sub-1 (session ses-20170705) from the QSMxT tutorial dataset (OSF ). The data is supplied as gradient-echo (T2*-weighted) DICOMs with magnitude and phase, plus a T1w; organise it as needed and produce the susceptibility map.",
             "dataset": {
@@ -1644,6 +1674,7 @@
         "quantitative-swi": {
           "title": "Phase unwrapping + SWI with ClearSWI",
           "description": "ClearSWI susceptibility-weighted imaging (SWI + minIP) from the gradient-echo magnitude and phase of sub-1 (ses-20170705) from OSF dataset ru43c",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Using ClearSWI, produce a susceptibility-weighted image (SWI) and a minimum-intensity projection (minIP) for sub-1 (session ses-20170705) from the OSF dataset. The data is supplied as gradient-echo magnitude and phase (with echo time metadata); organise it as needed and produce the SWI and minIP.",
             "dataset": {
@@ -1674,41 +1705,10 @@
     "clinical": {
       "description": "Clinical/pathology workflows: lesion and subfield segmentation, clinical preprocessing.",
       "tasks": {
-        "clinical-brain-extraction": {
-          "title": "Brain extraction (clinical T1)",
-          "description": "Clinical brain extraction (skull-strip + mask) from the T1w of sub-01 (ses-pre) of OpenNeuro dataset ds003999",
-          "prompt": {
-            "goal": "Skull-strip this clinical brain scan and produce a brain mask. Use the T1w of sub-01 (session ses-pre).",
-            "dataset": {
-              "source": "openneuro",
-              "id": "ds003999",
-              "version_pin": "latest",
-              "subjects": [
-                "sub-01"
-              ],
-              "session": "ses-pre"
-            },
-            "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI)."
-          },
-          "solution": {
-            "ground_truth": "HD-BET brain mask sub-01_desc-brain_T1w_bet.nii.gz (ds003999 sub-01 ses-pre, clinical T1). Grade by Dice to reference mask. Binary mask (0/1).",
-            "ground_truth_location": "not yet migrated — the reference was produced for this task but lives in a retired OSF project; it must be rebuilt or re-uploaded to the Hugging Face dataset before this task can be graded",
-            "metric": "dice",
-            "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input image; Brain mask is binary (values 0 and 1 only); Brain mask is anatomically plausible: skull/dura removed, brain retained; No processing errors; logs captured",
-            "tool_mode": "agnostic",
-            "tool_suggestions": [
-              "ants",
-              "fsl"
-            ],
-            "tool_note": "Context: clinical. Skill guidance: difficult anatomy / low contrast / high accuracy -> HD-BET or mri_synthstrip. BET known to fail on non-brain pathology near boundary and non-standard intensity profiles",
-            "notes": "Preferred: hdbet, synthstrip Known to fail: afni",
-            "dataset_fetch_reference": "datalad install ///openneuro/ds003999 && cd ds003999 && datalad get sub-01",
-            "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename — tool-determined; e.g. *_bet.nii.gz, *BrainExtractionBrain.nii.gz, or caller-named via -o); A binary brain mask (NIfTI, any filename — tool-determined; e.g. *_bet_mask.nii.gz, *BrainExtractionMask.nii.gz, *_mask.nii.gz, or caller-named via -m)"
-          }
-        },
         "clinical-cortical-parcellation": {
           "title": "FreeSurfer recon-all-clinical on heterogeneous scan",
           "description": "recon-all-clinical on a 2D T1 STIR (clinical, heterogeneous contrast) scan of sub-01 from OpenNeuro dataset ds004332; produces aparc+aseg via SynthSeg/SynthSR. Scan pinned to remove selection ambiguity",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Run a clinical cortical reconstruction pipeline (recon-all-clinical) on a clinical, heterogeneous-contrast T1 scan of sub-01, producing a cortical parcellation and subcortical segmentation. No FreeSurfer license required.",
             "dataset": {
@@ -1737,6 +1737,7 @@
         "clinical-hippocampal-subfields": {
           "title": "ASHS hippocampal subfield segmentation",
           "description": "ASHS hippocampal subfield segmentation from the T1w+T2w pair of sub-010003 (ses-01) from OpenNeuro dataset ds000221, using the downloaded UPenn PMC atlas. Per-subfield volumes reported",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Segment hippocampal subfields with ASHS from the T1w and T2w pair of sub-010003 (session ses-01), and report per-subfield volumes. ASHS requires an atlas: download the UPenn PMC atlas from the ASHS project (NITRC), extract it, and point ASHS at the extracted atlas directory.",
             "dataset": {
@@ -1768,6 +1769,7 @@
           "title": "MS white-matter lesion segmentation",
           "grading": "automated",
           "description": "Segment the multiple-sclerosis white-matter lesions of {subject} of the open_ms_data cross-sectional dataset (Ljubljana MS database) on FLAIR, producing a binary lesion mask in the supplied co-registered 1 mm FLAIR space, graded against the expert multi-rater consensus mask.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Segment the multiple-sclerosis white-matter lesions of {subject} of the open_ms_data cross-sectional dataset (Ljubljana MS database) on the FLAIR image.\n\nDATA - open, no login (CC-BY). This dataset is NOT on OpenNeuro; do not use datalad. Download the three input files with:\n  mkdir -p ms_input\n  for f in FLAIR T1W brainmask; do curl -sSL --retry 3 https://raw.githubusercontent.com/muschellij2/open_ms_data/65704901f60650824565aa5a4818611aa89716f4/cross_sectional/coregistered_resampled/{subject}/$f.nii.gz -o ms_input/$f.nii.gz; done\nms_input/FLAIR.nii.gz is the segmentation input; ms_input/T1W.nii.gz is the co-registered T1 (optional to use); ms_input/brainmask.nii.gz bounds the brain. All three share one grid.\n\nOUTPUT - a single binary lesion mask (NIfTI, values {0,1}) restricted to the brain mask, on the grid of ms_input/FLAIR.nii.gz: the same shape and affine (154x240x240, 1 mm isotropic). Do not resample to any other space.",
             "dataset": {
@@ -1810,6 +1812,7 @@
         "clinical-subcortical-nuclei": {
           "title": "Subcortical nuclei segmentation (T1)",
           "description": "Subcortical nuclei segmentation from the T1w of sub-01 of OpenNeuro dataset ds004332, with per-structure volumes reported",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Segment subcortical nuclei from the T1w of sub-01 and report per-structure volumes.",
             "dataset": {
@@ -1844,6 +1847,7 @@
           "title": "Stroke lesion segmentation (T1)",
           "grading": "automated",
           "description": "Segment the chronic stroke lesion in the T1w of {subject} (Aphasia Recovery Cohort, ds004884), producing a binary lesion mask in native T1w space, graded against an expert manual tracing.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Segment the chronic stroke lesion in the T1-weighted image of {subject} session ses-681, producing a binary lesion mask in native T1w space.",
             "dataset": {
@@ -1887,6 +1891,7 @@
           "title": "White-matter hyperintensity (WMH) segmentation",
           "grading": "automated",
           "description": "Segment white-matter hyperintensities on the FLAIR of subject Amsterdam/GE3T/100 (WMH Segmentation Challenge 2017), producing a binary WMH mask in native FLAIR space; graded against an expert mask with inter-rater-derived thresholds.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Segment the white-matter hyperintensities (WMH) on the FLAIR image of subject {subject} from the WMH Segmentation Challenge 2017.\n\nDATA - open, no login (DataverseNL, DOI 10.34894/AECRSD). This dataset is NOT on OpenNeuro; do not use datalad. File ids per subject:\n\n  Amsterdam_GE3T_100   FLAIR 325669   3DT1 325515\n  Amsterdam_GE3T_114   FLAIR 325596   3DT1 325657\n  Singapore_52         FLAIR 325027   3DT1 325090\n  Utrecht_33           FLAIR 324306   3DT1 324757\n  Utrecht_39           FLAIR 324366   3DT1 324585\n\nDownload the two files for {subject}, substituting its ids:\n  mkdir -p wmh_input\n  curl -sSL --retry 3 https://dataverse.nl/api/access/datafile/<FLAIR id> -o wmh_input/FLAIR.nii.gz\n  curl -sSL --retry 3 https://dataverse.nl/api/access/datafile/<3DT1 id> -o wmh_input/3DT1.nii.gz\n\nwmh_input/FLAIR.nii.gz is the segmentation input; wmh_input/3DT1.nii.gz is the co-registered T1 (optional to use).\n\nOUTPUT - a single binary WMH mask (NIfTI, values {0,1}) in the NATIVE FLAIR space: the same grid and affine as the FLAIR you downloaded. The three scanner sites use different grids, so take the shape from your own FLAIR rather than assuming one. Do not resample to any other space.",
             "dataset": {
@@ -1935,6 +1940,7 @@
         "electrophysiology-eeg-preprocessing": {
           "title": "EEG preprocessing pipeline with MNE-Python",
           "description": "MNE-Python EEG preprocessing (filter + ICA artefact rejection + epoching) producing a cleaned dataset and QC report, for sub-01 from OpenNeuro dataset ds001787",
+          "prompt_version": 1,
           "prompt": {
             "goal": "In MNE-Python, run a BIDS EEG dataset through filtering, ICA-based artefact rejection, and epoching for sub-01 (a meditation EEG dataset). Produce a cleaned dataset with a QC report.",
             "dataset": {
@@ -1963,6 +1969,7 @@
         "electrophysiology-eeg-spectral": {
           "title": "EEG spectral / band-power features",
           "description": "EEG preprocessing + sensor-level spectral features (PSD, band power per channel) on the eyes-closed resting EEG of sub-01 (ses-session1) from OpenNeuro dataset ds004148",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Run EEG preprocessing (filtering, artefact rejection) and compute sensor-level spectral features - power spectral density and band power (delta/theta/alpha/beta/gamma) - on the eyes-closed resting EEG of sub-01 (session ses-session1). Report band power per channel.",
             "dataset": {
@@ -1997,6 +2004,7 @@
         "electrophysiology-meg-preprocessing": {
           "title": "MEG preprocessing with FieldTrip",
           "description": "FieldTrip preprocessing (filter, downsample, artefact removal) + sensor-level power spectra on the resting MEG of sub-0002 (ses-01) from OpenNeuro dataset ds000247",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Using FieldTrip, preprocess (filter, downsample, artefact removal) and compute sensor-level power spectra on the resting-state MEG of sub-0002 (session ses-01). Save the power spectra to a file.",
             "dataset": {
@@ -2033,6 +2041,7 @@
         "spinal-cord-segmentation": {
           "title": "Spinal cord segmentation with SCT",
           "description": "Run Spinal Cord Toolbox sct_deepseg on a T2w cervical scan and report per-level cross-sectional area.",
+          "prompt_version": 1,
           "prompt": {
             "goal": "Segment the spinal cord on a T2w cervical scan and report the per-level cross-sectional area. Use subject sub-01.",
             "dataset": {

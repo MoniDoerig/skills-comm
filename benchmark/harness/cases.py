@@ -13,6 +13,10 @@ A benchmark run names a case, never a subject, so an agent cannot look its subje
 anywhere public. The harness reads this file at the two moments it needs the subject:
 before the agent starts (to fetch the data under the case name) and at grading time.
 The subject lists therefore no longer appear in run_manifest.json or tasks.json.
+
+A case may carry the `prompt_version` it was staged for. When a task's prompt changes
+what the agent is given, its new cases get new ids and the old ones stay, so a run of the
+old prompt still resolves; a batch draws only the cases of the task's current version.
 """
 import json
 from pathlib import Path
@@ -33,8 +37,17 @@ def load(manifest, revision=None, force=False):
 
 
 def subjects_of(cases, task_id):
-    """The subjects a task is graded on, in case-id order."""
-    return [c["subject"] for _, c in sorted(cases.items()) if c["task"] == task_id]
+    """The subjects a task is graded on, in case-id order, each once: a subject staged
+    for more than one prompt version has a case for each."""
+    return list(dict.fromkeys(c["subject"] for _, c in sorted(cases.items())
+                              if c["task"] == task_id))
+
+
+def referenced_subjects_of(cases, task_id):
+    """The subjects of a task with a `record` that have a reference: all but its defect
+    cases, which the wrapper grades on the agent's record alone."""
+    return list(dict.fromkeys(c["subject"] for _, c in sorted(cases.items())
+                              if c["task"] == task_id and c.get("role") != "defect"))
 
 
 def resolve(cases, task_id, case_or_subject):
@@ -57,8 +70,10 @@ def role_of(cases, task_id, case_or_subject):
     """
     c = cases.get(case_or_subject)
     if c is None:
-        c = next((v for v in cases.values()
-                  if v["task"] == task_id and v["subject"] == case_or_subject), None)
+        # a subject with cases for more than one prompt version: the one with a role
+        mine = [v for v in cases.values()
+                if v["task"] == task_id and v["subject"] == case_or_subject]
+        c = next((v for v in mine if v.get("role")), mine[0] if mine else None)
     if c is None or c["task"] != task_id:
         return None
     return c.get("role")

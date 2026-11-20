@@ -5,8 +5,11 @@ Fetched here before grading, from the gated dataset
 
     python benchmark/harness/fetch_reference.py --task diffusion-tensor-fit --case <case>
 
-- `truth.json` — what the case's acquisition, as staged, contains
-- `rubric.json` — written by the fetch from this pack's policy
+- `consensus_fa.nii.gz`: the panel's voxelwise median FA
+- `consensus_md.nii.gz`: the panel's voxelwise median MD
+- `roi_mask.nii.gz`: the b0 brain mask eroded by two voxels, where the metrics are read
+- `rubric.json`: written by the fetch from this pack's policy and the subject's gated
+  calibration
 
 The dataset path and the pinned revision live in
 [`benchmark/harness/run_manifest.json`](../../../harness/run_manifest.json), which is what

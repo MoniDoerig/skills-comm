@@ -40,6 +40,24 @@ class Cases(unittest.TestCase):
     def test_another_tasks_case_lends_no_role(self):
         self.assertIsNone(cases.role_of(TABLE, "structural-brain-extraction", "case-022"))
 
+    def test_defect_cases_have_no_reference(self):
+        table = {"case-071": {"task": "t", "subject": "sub-01", "role": "control"},
+                 "case-072": {"task": "t", "subject": "sub-02", "role": "defect"},
+                 "case-073": {"task": "t", "subject": "sub-03"}}
+        self.assertEqual(cases.referenced_subjects_of(table, "t"), ["sub-01", "sub-03"])
+        self.assertEqual(cases.subjects_of(table, "t"), ["sub-01", "sub-02", "sub-03"])
+
+    def test_a_subject_staged_for_two_prompt_versions(self):
+        # the old prompt's case has no role; the new prompt's case of the same subject has
+        table = {"case-081": {"task": "t", "subject": "sub-01", "prompt_version": 2, "role": "control"},
+                 "case-082": {"task": "t", "subject": "sub-02", "prompt_version": 2, "role": "defect"},
+                 "case-083": {"task": "t", "subject": "sub-01", "prompt_version": 1}}
+        self.assertEqual(cases.subjects_of(table, "t"), ["sub-01", "sub-02"])
+        self.assertEqual(cases.referenced_subjects_of(table, "t"), ["sub-01"])
+        self.assertEqual(cases.role_of(table, "t", "sub-01"), "control")
+        self.assertIsNone(cases.role_of(table, "t", "case-083"))
+        self.assertEqual(cases.resolve(table, "t", "case-083"), "sub-01")
+
 
 if __name__ == "__main__":
     unittest.main()

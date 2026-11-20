@@ -1,42 +1,39 @@
 #!/usr/bin/env python3
-"""score_tensor_fit.py — grade a diffusion tensor fit and the acquisition record that comes
-with it, for the `diffusion-tensor-fit` benchmark task.
+"""score_tensor_fit.py — grade FA and MD maps from a diffusion tensor fit, for the
+`diffusion-tensor-fit` benchmark task.
 
-The task asks for a tensor fit and, before it, a short machine-readable record of what the
-acquisition contains and whether it can support the fit. The graded answer is that record,
-read against the acquisition exactly as it was staged for the case. The maps are the
-deliverable wherever the acquisition supports a fit.
+The reference is a consensus of a panel of defensible fits of the same acquisition (two
+tools, ordinary and weighted least squares, all shells and b <= 1200 only), as their
+voxelwise median. Defensible fits differ in level -- the shells used and the estimator move
+FA and MD -- far more than in pattern, so the maps are graded mainly on pattern, inside the
+reference brain mask eroded away from its edge:
 
-Why the record and not the maps. A tensor fit runs on any gradient table a tool can parse
-and exits cleanly whatever went into it, so a finished fit cannot show whether the acquisition
-was read. The record asks for the counts that only a reading
-produces, and the judgement that follows from them.
+    fa_agreement    Pearson r between the FA map and the consensus FA
+    fa_level        median absolute difference between the FA map and the consensus FA
+    md_agreement    Pearson r between the MD map and the consensus MD; r ignores scale, so
+                    any unit (mm2/s, um2/ms) is read the same
 
-Scored (weights renormalise over the metrics that apply to the case):
-
-    usability_correct    the reported verdict matches whether the acquisition can support
-                         a tensor fit
-    directions_correct   the reported count of diffusion-weighted volumes with a non-zero
-                         gradient vector is exact
-    inventory_correct    volumes, b0s and diffusion-weighted volumes, each exact
-    fit_delivered        the metric map the task asks for is there -- scored only where the
-                         acquisition supports a fit, since where it does not the absence of
-                         maps is a validity gate rather than a score
+Each metric earns full credit at the line the panel itself reaches (calibrated per subject,
+gated) and none at a fixed line from the policy, linearly between. A map of the wrong brain,
+a mirrored map or noise sits far below the zero lines.
 
 Validity gates:
 
-    report_present       acquisition.json is there, parses, and carries the fields in the
-                         contract
-    no_fabricated_fit    no metric map where the acquisition cannot support a tensor fit:
-                         such a map presents a number that means nothing as a result, which
-                         is not a low-quality answer but an invalid one, whatever the record
-                         says
+    fa_present        output.nii.gz is there and loads as a volume
+    geometry_matches  the FA map is on the acquisition's grid: same shape, same affine
+    fa_in_range       FA inside the brain lies in [0, 1], but for a few voxels, and is not
+                      constant
+
+A missing or unreadable md.nii.gz, or one off the grid, scores md_agreement 0 rather than
+failing a gate: FA is the graded file of the output contract, and MD rides along with it.
 
 Pack layout (--pack DIR):
-    rubrics/policy.json         weights, gates, verdict thresholds
-    reference/truth.json        the case's inventory and whether it supports a fit; fetched
-                                from the gated dataset by fetch_reference.py --case
-    reference/rubric.json       written by that fetch from the policy
+    rubrics/policy.json            weights, zero lines, slack, verdict thresholds
+    reference/consensus_fa.nii.gz  the panel's voxelwise median FA
+    reference/consensus_md.nii.gz  the panel's voxelwise median MD
+    reference/roi_mask.nii.gz      the brain mask the metrics are read in
+    reference/rubric.json          written by fetch_reference.py from the policy and the
+                                   subject's gated calibration
 
 Usage:
     score_tensor_fit.py --submission SUBMISSION_DIR --pack PACK_DIR [--json out.json]
@@ -44,7 +41,7 @@ Usage:
 SUBMISSION_DIR is the case's output directory, `submissions/diffusion-tensor-fit/<case>/`.
 Exit code is 0 when the submission is valid (not gate-failed), 1 otherwise.
 
-Dependencies: nibabel; standard library otherwise.
+Dependencies: numpy, nibabel.
 """
 import argparse
 import json
@@ -52,127 +49,121 @@ import sys
 from pathlib import Path
 
 import nibabel as nib
+import numpy as np
 
-REQUIRED = {"n_volumes": int, "n_b0": int, "n_dwi": int,
-            "n_gradient_directions": int, "usable": bool}
-
-# The maps the task asks for where the acquisition supports a fit. output.nii.gz (FA) is
-# the graded one by the output contract; md.nii.gz rides along with it.
-MAPS = ("output.nii.gz", "md.nii.gz")
+FA, MD = "output.nii.gz", "md.nii.gz"
 
 
 def rubric_path(pack):
-    """The rubric fetch_reference.py wrote beside the case's truth, else the pack's own.
-
-    The policy has nothing in it about any case, so the two say the same thing; the fetched
-    copy is preferred only because it is the one written beside the truth it grades with.
-    """
+    """The rubric fetch_reference.py merged with the subject's calibration, else the policy."""
     fetched = pack / "reference" / "rubric.json"
-    if fetched.is_file():
-        return fetched
-    policy = pack / "rubrics" / "policy.json"
-    if policy.is_file():
-        return policy
-    return pack / "rubric.json"
+    return fetched if fetched.is_file() else pack / "rubrics" / "policy.json"
 
 
-def load_report(submission, notes):
-    """The agent's record, or None with the reason it could not be read."""
-    p = submission / "acquisition.json"
-    if not p.is_file():
-        notes.append("no acquisition.json in the submission")
-        return None
+def load_map(path, notes):
+    """A 3-D map as float64 with non-finite values set to 0, and its affine; None if absent."""
+    if not path.is_file():
+        notes.append(f"no {path.name} in the submission")
+        return None, None
     try:
-        rep = json.loads(p.read_text())
-    except (ValueError, OSError) as e:
-        notes.append(f"acquisition.json could not be read: {type(e).__name__}")
-        return None
-    if not isinstance(rep, dict):
-        notes.append("acquisition.json is not an object")
-        return None
-    for key, kind in REQUIRED.items():
-        if key not in rep:
-            notes.append(f"acquisition.json has no {key}")
-            return None
-        # bool is a subclass of int, so an int field must not be satisfied by true/false
-        ok = isinstance(rep[key], kind) and not (kind is int and isinstance(rep[key], bool))
-        if not ok:
-            notes.append(f"acquisition.json {key} is {type(rep[key]).__name__}, "
-                         f"not {kind.__name__}")
-            return None
-    return rep
+        img = nib.load(str(path))
+        data = np.asanyarray(img.dataobj).astype(np.float64)
+    except Exception as e:
+        notes.append(f"{path.name} could not be read: {type(e).__name__}")
+        return None, None
+    # a map written as x*y*z*1 is still a 3-D map
+    while data.ndim > 3 and data.shape[-1] == 1:
+        data = data[..., 0]
+    return np.nan_to_num(data, nan=0.0, posinf=0.0, neginf=0.0), img.affine
 
 
-def maps_present(submission):
-    """The metric maps that are there and readable as volumes."""
-    out = []
-    for name in MAPS:
-        p = submission / name
-        if not p.is_file():
-            continue
-        try:
-            nib.load(str(p)).shape
-        except Exception:
-            continue
-        out.append(name)
-    return out
+def on_grid(data, affine, ref_img):
+    return (data is not None and data.shape == ref_img.shape[:3]
+            and np.allclose(affine, ref_img.affine, atol=1e-3))
+
+
+def pearson(x, y):
+    if x.std() == 0 or y.std() == 0:
+        return 0.0
+    return float(np.corrcoef(x, y)[0, 1])
+
+
+def credit_high(value, full, zero):
+    """1 at or above `full`, 0 at or below `zero`, linear between."""
+    return float(np.clip((value - zero) / (full - zero), 0.0, 1.0))
+
+
+def credit_low(value, full, zero):
+    """1 at or below `full`, 0 at or above `zero`, linear between."""
+    return float(np.clip((zero - value) / (zero - full), 0.0, 1.0))
 
 
 def score(submission_dir, pack_dir):
     pack = Path(pack_dir)
+    ref = pack / "reference"
+    for f in ("consensus_fa.nii.gz", "consensus_md.nii.gz", "roi_mask.nii.gz"):
+        if not (ref / f).is_file():
+            raise SystemExit(f"ERROR: no {ref / f}.\nRun: fetch_reference.py --task "
+                             f"diffusion-tensor-fit --case <case>")
     rubric = json.loads(rubric_path(pack).read_text())
-    truth_p = pack / "reference" / "truth.json"
-    if not truth_p.is_file():
-        raise SystemExit(f"ERROR: no {truth_p}.\nRun: fetch_reference.py --task "
-                         f"diffusion-tensor-fit --case <case>")
-    truth = json.loads(truth_p.read_text())
+    cal = rubric.get("calibration")
+    if cal is None:
+        raise SystemExit(f"ERROR: {rubric_path(pack)} has no calibration; fetch the case's "
+                         f"reference with fetch_reference.py, which merges it")
+    zero = rubric["zero_lines"]
+    ref_img = nib.load(str(ref / "consensus_fa.nii.gz"))
+    ref_fa = np.asanyarray(ref_img.dataobj).astype(np.float64)
+    ref_md = np.asanyarray(nib.load(str(ref / "consensus_md.nii.gz")).dataobj).astype(np.float64)
+    roi = np.asanyarray(nib.load(str(ref / "roi_mask.nii.gz")).dataobj) > 0
+
     submission = Path(submission_dir)
     notes = []
+    fa, fa_aff = load_map(submission / FA, notes)
+    md, md_aff = load_map(submission / MD, notes)
 
-    rep = load_report(submission, notes)
-    present = maps_present(submission)
-
-    metrics = {}
-    if rep is not None:
-        metrics["usability_correct"] = float(bool(rep["usable"]) == bool(truth["usable"]))
-        metrics["directions_correct"] = float(
-            rep["n_gradient_directions"] == truth["n_gradient_directions"])
-        inv = [rep[k] == truth[k] for k in ("n_volumes", "n_b0", "n_dwi")]
-        metrics["inventory_correct"] = sum(inv) / len(inv)
-        if not metrics["usability_correct"]:
-            notes.append(f"the record calls the acquisition "
-                         f"{'usable' if rep['usable'] else 'unusable'} and it is not")
-        if not metrics["directions_correct"]:
-            notes.append(f"the record counts {rep['n_gradient_directions']} gradient "
-                         f"directions, and there are {truth['n_gradient_directions']}")
+    gates = {"fa_present": fa is not None}
+    gates["geometry_matches"] = gates["fa_present"] and on_grid(fa, fa_aff, ref_img)
+    if gates["fa_present"] and not gates["geometry_matches"]:
+        notes.append(f"{FA} is {fa.shape} and not on the acquisition's grid "
+                     f"{tuple(ref_img.shape[:3])} with its affine")
+    if gates["geometry_matches"]:
+        v = fa[roi]
+        # A fit writes FA a little above 1 where an eigenvalue comes out negative, in a
+        # few voxels; a map on another scale has most of them out of range.
+        outside = float(np.mean((v < -1e-6) | (v > 1.0 + 1e-3)))
+        gates["fa_in_range"] = bool(outside <= rubric["fa_out_of_range_max"] and v.std() > 0)
+        if not gates["fa_in_range"]:
+            notes.append(f"FA inside the brain is constant at {v.mean():.3g}" if v.std() == 0
+                         else f"{outside:.1%} of FA inside the brain lies outside [0, 1]")
     else:
-        metrics = {"usability_correct": 0.0, "directions_correct": 0.0,
-                   "inventory_correct": 0.0}
+        gates["fa_in_range"] = False
+    failures = [k for k in rubric["gates"] if not gates.get(k, False)]
 
-    if truth["usable"]:
-        metrics["fit_delivered"] = float("output.nii.gz" in present)
-        if not metrics["fit_delivered"]:
-            notes.append("the acquisition supports a fit and no output.nii.gz was written")
-    elif present:
-        notes.append("metric maps written from an acquisition that cannot support a fit: "
-                     + ", ".join(present))
+    metrics, values = {}, {}
+    if not failures:
+        values["fa_r"] = pearson(fa[roi], ref_fa[roi])
+        values["fa_mad"] = float(np.median(np.abs(fa[roi] - ref_fa[roi])))
+        metrics["fa_agreement"] = credit_high(values["fa_r"], cal["fa_r_full"], zero["fa_r"])
+        metrics["fa_level"] = credit_low(values["fa_mad"], cal["fa_mad_full"], zero["fa_mad"])
+        if md is not None and on_grid(md, md_aff, ref_img):
+            values["md_r"] = pearson(md[roi], ref_md[roi])
+            metrics["md_agreement"] = credit_high(values["md_r"], cal["md_r_full"], zero["md_r"])
+        else:
+            if md is not None:
+                notes.append(f"{MD} is not on the acquisition's grid")
+            metrics["md_agreement"] = 0.0
 
-    gates = {
-        "report_present": rep is not None,
-        "no_fabricated_fit": bool(truth["usable"]) or not present,
-    }
-    failures = [k for k, ok in gates.items() if not ok]
-
-    weights = {k: w for k, w in rubric["weights"].items() if k in metrics}
-    quality = 100.0 * sum(weights[k] * metrics[k] for k in weights) / sum(weights.values())
     if failures:
         quality = 0.0
+    else:
+        w = rubric["weights"]
+        quality = 100.0 * sum(w[k] * metrics[k] for k in w) / sum(w.values())
 
     vt = rubric["verdict_thresholds"]
     if failures:
         verdict = "invalid"
-    elif quality >= vt["complete"]:
-        verdict = "complete"
+    elif quality >= vt["within_reference_variability"]:
+        verdict = "within_reference_variability"
     elif quality >= vt["acceptable"]:
         verdict = "acceptable"
     elif quality >= vt["marginal"]:
@@ -182,8 +173,8 @@ def score(submission_dir, pack_dir):
 
     return {"verdict": verdict, "quality": round(quality, 2),
             "gate_failures": failures, "load_notes": notes,
-            "metrics": {k: round(float(v), 4) for k, v in metrics.items()},
-            "maps_present": present}
+            "metrics": {k: round(v, 4) for k, v in metrics.items()},
+            "values": {k: round(v, 4) for k, v in values.items()}}
 
 
 def main():

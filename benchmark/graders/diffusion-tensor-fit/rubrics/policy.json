@@ -1,30 +1,52 @@
 {
-  "min_directions": 6,
-  "b0_max": 50,
-  "weights": {
-    "usability_correct": 0.5,
-    "directions_correct": 0.3,
-    "inventory_correct": 0.1,
-    "fit_delivered": 0.1
+  "_calibration": "gated: fetched from the reference dataset and merged by fetch_reference.py",
+  "_pack": {
+    "reference": {
+      "fetch_into": "reference/ before grading — see reference/README.md",
+      "files": [
+        "consensus_fa.nii.gz (voxelwise median FA of the panel)",
+        "consensus_md.nii.gz (voxelwise median MD of the panel)",
+        "roi_mask.nii.gz (b0 brain mask eroded by two voxels)"
+      ],
+      "host": "Hugging Face neurodeskorg/skills-comm-ground-truth, path diffusion_gt/diffusion-tensor-fit/"
+    }
   },
+  "weights": {
+    "fa_agreement": 0.5,
+    "fa_level": 0.2,
+    "md_agreement": 0.3
+  },
+  "zero_lines": {
+    "fa_r": 0.5,
+    "fa_mad": 0.15,
+    "md_r": 0.3
+  },
+  "slack": {
+    "r": 0.03,
+    "mad_factor": 1.5
+  },
+  "fa_out_of_range_max": 0.01,
   "verdict_thresholds": {
-    "complete": 99.9,
+    "within_reference_variability": 99.9,
     "acceptable": 60,
     "marginal": 30
   },
   "gates": [
-    "report_present",
-    "no_fabricated_fit"
+    "fa_present",
+    "geometry_matches",
+    "fa_in_range"
   ],
   "weight_basis": {
-    "usability_correct": "The judgement is the task: whether the acquisition can support the fit is the thing the agent is asked, and nothing downstream of a fit can recover it, because a fit runs on any table a tool can parse.",
-    "directions_correct": "The count is what shows the gradient table was read rather than assumed. It is exact, not an envelope: the number is in the file, and an agent that opened the file cannot be near it without being on it.",
-    "inventory_correct": "Volumes, b0s and diffusion-weighted volumes are the rest of the inventory. They come from the same two files and separate an agent that read the image header from one that read the whole acquisition, which is why they carry a little weight rather than none.",
-    "fit_delivered": "Where the acquisition supports a fit, the maps are the deliverable, and refusing to fit a usable acquisition is a wrong answer rather than a safe one. Where it does not, the absence of maps is a gate, so the metric does not apply and the weights renormalise."
+    "fa_agreement": "FA is the graded file of the output contract, and its pattern is what every defensible fit shares: choices of shells and estimator move its level, not where the white matter is.",
+    "fa_level": "A little weight on level as well, so a map with the right pattern on the wrong scale does not pass as if it were right; the full-credit line is generous because the shells used move FA by a few hundredths.",
+    "md_agreement": "MD is asked for and graded, by pattern only: its level depends on the shells used (the panel's medians differ by half), and r reads every unit the same."
   },
-  "threshold_basis": "DERIVED, not calibrated. The answers are exact -- counts in a file and the judgement that follows from them -- so there is no reference spread to calibrate against, and `complete` means every field right (99.9 rather than 100 to absorb float drift in the weighted sum). The pass line is the benchmark-wide 60: a record that reads the acquisition correctly and misjudges it scores 40 to 44 and fails, and one that judges it correctly on a wrong count scores 67 to 70 and passes without being complete, which is the ordering we want between the two mistakes.",
+  "zero_line_basis": "FIXED, not calibrated: where a map earns nothing. Measured against these zero lines (analysis_06_fit_panel.sh in the build), the other control's FA reaches r 0.33 and a left-right mirrored FA 0.39, against r 0.91 or more between any two panel fits; the other control's MD reaches r 0.31 against 0.71 or more within the panel; noise sits at 0.",
+  "slack_basis": "The full-credit lines are the panel's own leave-one-out spread -- the lowest r and the largest median difference of a member against the median of the others -- widened by these, since a seventh defensible fit may land a little outside six.",
+  "threshold_basis": "within_reference_variability means every metric at full credit. The pass line is the benchmark-wide 60: FA in agreement and level with no MD scores 70 and passes, an FA map of the wrong brain scores under 10.",
   "gate_basis": {
-    "report_present": "The record is the graded answer, so a submission without a readable one cannot be scored at all.",
-    "no_fabricated_fit": "A scalar map fitted from an acquisition that cannot support a tensor carries no information, whatever it looks like, and the tools that write it exit cleanly. Presenting it as a result is not a low-quality answer but an invalid one, whatever the record says."
+    "fa_present": "FA is the graded file; without it there is nothing to score.",
+    "geometry_matches": "Maps are compared voxel by voxel on the acquisition's grid; a map resampled elsewhere is not the native-space map the task asks for.",
+    "fa_in_range": "FA is bounded by 0 and 1 by definition. Fits write it a little above 1 where an eigenvalue comes out negative: at most 0.34 % of brain voxels in any panel fit, so up to 1 % passes, and a map on another scale, with most voxels out of range, does not. A constant map inside the brain -- all zeros, as a fit on an unusable gradient table writes -- carries no fit."
   }
 }

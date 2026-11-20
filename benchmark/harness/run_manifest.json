@@ -5,9 +5,11 @@
     "submission_output_path": "submissions/{task_id}/output.nii.gz",
     "reference_repo": "neurodeskorg/skills-comm-ground-truth",
     "reference_repo_type": "dataset",
-    "reference_revision": "ad123f2febd6",
+    "reference_revision": "ff4d21e5a9f5",
     "submission_path": "submissions/{task_id}/{subject}/output.nii.gz",
-    "cases_file": "cases.json"
+    "cases_file": "cases.json",
+    "run_report_path": "submissions/{task_id}/{subject}/report.json",
+    "run_report_output_path": "submissions/{task_id}/report.json"
   },
   "tasks": {
     "structural-brain-extraction": {
@@ -18,13 +20,14 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/{subject}/stripped.nii.gz"
       },
+      "record": "submissions/{task_id}/{subject}/report.json",
       "ref_dir": "structural_gt/structural-brain-extraction/{subject}",
       "reference_files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "bb49fb08210d"
+      "reference_revision": "ff4d21e5a9f5"
     },
     "structural-brain-extraction-pediatric": {
       "pack_dir": "graders/structural-brain-extraction-pediatric",
@@ -34,13 +37,14 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/{subject}/stripped.nii.gz"
       },
+      "record": "submissions/{task_id}/{subject}/report.json",
       "ref_dir": "structural_gt/structural-brain-extraction-pediatric/{subject}",
       "reference_files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "bb49fb08210d"
+      "reference_revision": "ff4d21e5a9f5"
     },
     "structural-brain-extraction-motion": {
       "pack_dir": "graders/structural-brain-extraction-motion",
@@ -99,6 +103,7 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/{subject}/stripped.nii.gz"
       },
+      "record": "submissions/{task_id}/{subject}/report.json",
       "ref_dir": "structural_gt/structural-brain-extraction-stroke/{subject}",
       "reference_files": [
         "consensus_mask.nii.gz",
@@ -106,7 +111,7 @@
         "lesion_mask.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "bb49fb08210d"
+      "reference_revision": "ff4d21e5a9f5"
     },
     "structural-tissue-segmentation-7t": {
       "pack_dir": "graders/structural-tissue-segmentation-7t",
@@ -149,13 +154,14 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/{subject}/stripped.nii.gz"
       },
+      "record": "submissions/{task_id}/{subject}/report.json",
       "ref_dir": "diffusion_gt/diffusion-brain-mask/{subject}",
       "reference_files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "bb49fb08210d"
+      "reference_revision": "ff4d21e5a9f5"
     },
     "clinical-stroke-lesion-segmentation": {
       "pack_dir": "graders/clinical-stroke-lesion-segmentation",
@@ -202,26 +208,29 @@
       "pred_flag": "--study",
       "submission_output_path": "submissions/{task_id}/nipoppy_dataset",
       "detail_kind": "dataset_state",
-      "ref_dir": "process_gt/data-handling-nipoppy-fmriprep",
+      "ref_dir": "data_handling_gt/data-handling-nipoppy-fmriprep",
       "reference_files": [
         "expected_pairs.tsv",
         "expected_command.txt"
       ],
       "per_subject": false,
-      "reference_revision": "23082d93030e"
+      "reference_revision": "47d731000344"
     },
     "diffusion-tensor-fit": {
       "pack_dir": "graders/diffusion-tensor-fit",
       "scorer": "graders/diffusion-tensor-fit/score_tensor_fit.py",
       "pred_flag": "--submission",
       "submission_output_path": "submissions/{task_id}/{subject}",
-      "detail_kind": "record",
+      "record": "submissions/{task_id}/{subject}/report.json",
+      "detail_kind": "binary",
       "ref_dir": "diffusion_gt/diffusion-tensor-fit/{subject}",
       "reference_files": [
-        "truth.json"
+        "consensus_fa.nii.gz",
+        "consensus_md.nii.gz",
+        "roi_mask.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "ad123f2febd6"
+      "reference_revision": "ff4d21e5a9f5"
     }
   }
 }
