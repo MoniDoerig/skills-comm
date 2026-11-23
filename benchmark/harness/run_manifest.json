@@ -5,7 +5,7 @@
     "submission_output_path": "submissions/{task_id}/output.nii.gz",
     "reference_repo": "neurodeskorg/skills-comm-ground-truth",
     "reference_repo_type": "dataset",
-    "reference_revision": "ff4d21e5a9f5",
+    "reference_revision": "6adaf9cecacd",
     "submission_path": "submissions/{task_id}/{subject}/output.nii.gz",
     "cases_file": "cases.json",
     "run_report_path": "submissions/{task_id}/{subject}/report.json",
@@ -169,12 +169,13 @@
       "pred_flag": "--pred",
       "detail_kind": "binary",
       "optional_inputs": {},
+      "record": "submissions/{task_id}/{subject}/report.json",
       "ref_dir": "clinical_gt/clinical-stroke-lesion-segmentation/{subject}",
       "reference_files": [
         "lesion_mask.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "bb49fb08210d"
+      "reference_revision": "6adaf9cecacd"
     },
     "clinical-ms-lesion-segmentation": {
       "pack_dir": "graders/clinical-ms-lesion-segmentation",
@@ -182,12 +183,13 @@
       "pred_flag": "--pred",
       "detail_kind": "binary",
       "optional_inputs": {},
+      "record": "submissions/{task_id}/{subject}/report.json",
       "ref_dir": "clinical_gt/clinical-ms-lesion-segmentation/{subject}",
       "reference_files": [
         "lesion_mask.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "bb49fb08210d"
+      "reference_revision": "6adaf9cecacd"
     },
     "clinical-wmh-segmentation": {
       "pack_dir": "graders/clinical-wmh-segmentation",
@@ -195,12 +197,13 @@
       "pred_flag": "--pred",
       "detail_kind": "binary",
       "optional_inputs": {},
+      "record": "submissions/{task_id}/{subject}/report.json",
       "ref_dir": "clinical_gt/clinical-wmh-segmentation/{subject}",
       "reference_files": [
         "lesion_mask.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "bb49fb08210d"
+      "reference_revision": "6adaf9cecacd"
     },
     "data-handling-nipoppy-fmriprep": {
       "pack_dir": "graders/data-handling-nipoppy-fmriprep",

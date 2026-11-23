@@ -1768,25 +1768,24 @@
         "clinical-ms-lesion-segmentation": {
           "title": "MS white-matter lesion segmentation",
           "grading": "automated",
-          "description": "Segment the multiple-sclerosis white-matter lesions of {subject} of the open_ms_data cross-sectional dataset (Ljubljana MS database) on FLAIR, producing a binary lesion mask in the supplied co-registered 1 mm FLAIR space, graded against the expert multi-rater consensus mask.",
-          "prompt_version": 1,
+          "description": "Segment the multiple-sclerosis white-matter lesions of {subject} (open_ms_data cross-sectional, Ljubljana MS database) on the staged FLAIR, producing a binary lesion mask on the supplied co-registered 1 mm FLAIR grid, graded against the expert multi-rater consensus mask.",
+          "prompt_version": 2,
           "prompt": {
-            "goal": "Segment the multiple-sclerosis white-matter lesions of {subject} of the open_ms_data cross-sectional dataset (Ljubljana MS database) on the FLAIR image.\n\nDATA - open, no login (CC-BY). This dataset is NOT on OpenNeuro; do not use datalad. Download the three input files with:\n  mkdir -p ms_input\n  for f in FLAIR T1W brainmask; do curl -sSL --retry 3 https://raw.githubusercontent.com/muschellij2/open_ms_data/65704901f60650824565aa5a4818611aa89716f4/cross_sectional/coregistered_resampled/{subject}/$f.nii.gz -o ms_input/$f.nii.gz; done\nms_input/FLAIR.nii.gz is the segmentation input; ms_input/T1W.nii.gz is the co-registered T1 (optional to use); ms_input/brainmask.nii.gz bounds the brain. All three share one grid.\n\nOUTPUT - a single binary lesion mask (NIfTI, values {0,1}) restricted to the brain mask, on the grid of ms_input/FLAIR.nii.gz: the same shape and affine (154x240x240, 1 mm isotropic). Do not resample to any other space.",
+            "goal": "Segment the multiple-sclerosis white-matter lesions of {subject} on the FLAIR image.\n\nDATA. The images are already in your working directory:\n  input/{subject}/anat/FLAIR.nii.gz, the segmentation input\n  input/{subject}/anat/T1w.nii.gz, the co-registered T1 (optional to use)\n  input/{subject}/anat/brainmask.nii.gz, which bounds the brain\nAll three share one grid.\n\nOUTPUT - a single binary lesion mask (NIfTI, values {0,1}) restricted to the brain mask, on the grid of input/{subject}/anat/FLAIR.nii.gz: the same shape and affine (154x240x240, 1 mm isotropic). Do not resample to any other space.",
             "dataset": {
-              "source": "github",
-              "id": "muschellij2/open_ms_data",
-              "version_pin": "65704901f60650824565aa5a4818611aa89716f4",
-              "subjects_graded": 5
+              "source": "staged",
+              "staged_at": "input/{subject}/anat/",
+              "note": "The harness stages this case's images before the run; there is nothing to download."
             },
             "required_output": "A binary lesion mask (NIfTI, {0,1}) on the grid of the supplied FLAIR - same shape and affine. Do not resample to any other space.\n\nOUTPUT LOCATION (exact, mandatory): write the binary mask to `submissions/clinical-ms-lesion-segmentation/{subject}/output.nii.gz` under your working directory - create the `submissions/clinical-ms-lesion-segmentation/{subject}/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/clinical-ms-lesion-segmentation/{subject}/`. Only `submissions/clinical-ms-lesion-segmentation/{subject}/output.nii.gz` is scored.",
-            "subject_note": "This task runs once per case. Its subjects are listed as cases in cases.json of the gated reference dataset; the harness fetches each one under its case id, and {subject} in the goal and the output paths is replaced with that id."
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's images under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "Expert multi-rater consensus lesion mask shipped with the Ljubljana MS database - three expert raters segmented the patient independently and the released mask is their consensus. A genuine gold standard, NOT a tool consensus. Voxel data as published, on the header of the FLAIR handed to the agent. lesion_mask.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth.",
+            "ground_truth": "Expert multi-rater consensus lesion mask shipped with the Ljubljana MS database - three expert raters segmented the patient independently and the released mask is their consensus. A genuine gold standard, NOT a tool consensus. Voxel data as published, on the header of the FLAIR handed to the agent. lesion_mask.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
             "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth, path clinical_gt/clinical-ms-lesion-segmentation/{subject}/ (lesion_mask.nii.gz)",
             "metric": "expert-mask: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from Dice + lesion-wise detection F1 + volume error (thresholds fixed from published results on this same cohort)",
-            "pass_criterion": "A binary lesion mask {0,1} on the supplied FLAIR grid; nonempty and volume-plausible (0.5-150 cm3); Dice and lesion-wise overlap with the expert consensus above the fixed lines; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the mask passes the expert-mask grader against the expert consensus (verdict >= acceptable). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "expert-mask",
               "description": "Grades a binary lesion mask against the expert multi-rater consensus: Dice (0.4) + lesion-wise detection F1 over connected components (0.4) + absolute volume error (0.2). Thresholds are fixed from the published evaluation of this same cohort (Wiltgen et al. 2024, NeuroImage: Clinical 42:103611, doi:10.1016/j.nicl.2024.103611): full marks at the best published method (Dice 0.7425 / F1 0.6972), zero credit at the weakest (Dice 0.3727 / F1 0.1545). Lesions are counted with the same convention as that paper: >= 10 % overlap counts as detected, components < 3 voxels are not counted. See PROVENANCE.md.",
@@ -1804,8 +1803,8 @@
               "nnunet"
             ],
             "tool_note": "Context: multiple sclerosis, FLAIR-hyperintense white-matter lesions, multifocal. MS-specific lesion tools, general segmenters with a lesion model, or a trained network. Tool names are non-binding suggestions.",
-            "notes": "[note] Companion clinical task to clinical-stroke-lesion-segmentation: same scorer, same expert-mask design, different pathology and a different threshold basis - published per-dataset benchmarks rather than a manual-tracing inter-rater ceiling. [caution] Upstream, the consensus mask sits in the SAME folder as the images, so the prompt fetches the three input files individually rather than cloning the repository, and the grader reports (never scores) a near-exact match as a suspected copy of the reference.",
-            "dataset_fetch_reference": "for f in FLAIR T1W brainmask; do curl -sSL --retry 3 https://raw.githubusercontent.com/muschellij2/open_ms_data/65704901f60650824565aa5a4818611aa89716f4/cross_sectional/coregistered_resampled/<subject>/$f.nii.gz -o ms_input/$f.nii.gz; done",
+            "notes": "[note] Companion clinical task to clinical-stroke-lesion-segmentation: same scorer, same expert-mask design, different pathology and a different threshold basis - published per-dataset benchmarks rather than a manual-tracing inter-rater ceiling. [caution] The grader fails a near-exact match with the reference (Dice >= 0.995, gate not_reference_copy) as a suspected copy. [prompt v2] Cases are staged, and the task holds controls (the five graded subjects) and defect cases (FLAIR images that cannot support a lesion segmentation) under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/clinical-ms-lesion-segmentation/<case>/anat/: FLAIR.nii.gz, T1w.nii.gz, brainmask.nii.gz). Controls are open_ms_data 65704901 cross_sectional/coregistered_resampled FLAIR, T1W and brainmask as published, with the header's free-text fields and slice order code cleared.",
             "expected_files_detail": "A binary lesion mask (NIfTI, any filename; values {0,1}) on the supplied FLAIR grid (154x240x240, 1 mm isotropic)."
           }
         },
@@ -1846,25 +1845,24 @@
         "clinical-stroke-lesion-segmentation": {
           "title": "Stroke lesion segmentation (T1)",
           "grading": "automated",
-          "description": "Segment the chronic stroke lesion in the T1w of {subject} (Aphasia Recovery Cohort, ds004884), producing a binary lesion mask in native T1w space, graded against an expert manual tracing.",
-          "prompt_version": 1,
+          "description": "Segment the chronic stroke lesion in the staged T1w of {subject} (Aphasia Recovery Cohort, ds004884), producing a binary lesion mask in native T1w space, graded against an expert manual tracing.",
+          "prompt_version": 2,
           "prompt": {
-            "goal": "Segment the chronic stroke lesion in the T1-weighted image of {subject} session ses-681, producing a binary lesion mask in native T1w space.",
+            "goal": "Segment the chronic stroke lesion in the T1-weighted image of {subject}, producing a binary lesion mask in native T1w space.\n\nDATA. The image is already in your working directory:\n  input/{subject}/anat/T1w.nii.gz",
             "dataset": {
-              "source": "openneuro",
-              "id": "ds004884",
-              "version_pin": "1.0.2",
-              "subjects_graded": 5
+              "source": "staged",
+              "staged_at": "input/{subject}/anat/",
+              "note": "The harness stages this case's image before the run; there is nothing to download."
             },
             "required_output": "A binary lesion mask (NIfTI, {0,1}) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write the binary mask to `submissions/clinical-stroke-lesion-segmentation/{subject}/output.nii.gz` under your working directory — create the `submissions/clinical-stroke-lesion-segmentation/{subject}/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/clinical-stroke-lesion-segmentation/{subject}/`. Only `submissions/clinical-stroke-lesion-segmentation/{subject}/output.nii.gz` is scored.",
-            "subject_note": "This task runs once per case. Its subjects are listed as cases in cases.json of the gated reference dataset; the harness fetches each one under its case id, and {subject} in the goal and the output paths is replaced with that id."
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's image under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "Expert manual lesion tracing shipped with ARC (drawn in T2w space), rigid-registered into native T1w space. A genuine gold standard - NOT a tool consensus. lesion_mask.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth.",
+            "ground_truth": "Expert manual lesion tracing shipped with ARC (drawn in T2w space), rigid-registered into native T1w space. A genuine gold standard - NOT a tool consensus. lesion_mask.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
             "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth, path clinical_gt/clinical-stroke-lesion-segmentation/{subject}/ (lesion_mask.nii.gz)",
             "metric": "expert-mask: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from Dice + lesion-wise detection F1 + volume error (fixed literature thresholds)",
-            "pass_criterion": "A binary lesion mask {0,1} in native T1w space; nonempty and volume-plausible; Dice and lesion-wise overlap with the expert mask above the fixed pass lines; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the mask passes the expert-mask grader against the expert tracing (verdict >= acceptable). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "expert-mask",
               "description": "Grades a binary lesion mask against the expert tracing: Dice + lesion-wise detection F1 (connected components) + absolute volume error, with fixed literature thresholds (chronic-stroke inter-rater Dice ~0.7 = full marks). See PROVENANCE.md.",
@@ -1882,33 +1880,32 @@
               "nnunet"
             ],
             "tool_note": "Context: chronic stroke lesion on T1. Lesion-segmentation tools or manual delineation. Graded against a single expert tracing with fixed thresholds. Tool names are non-binding suggestions.",
-            "notes": "[note] Step 2 of the stroke pair; step 1 is structural-brain-extraction-stroke on the same subjects. Departs from the consensus tasks: the ground truth is a single EXPERT mask and the thresholds are fixed from literature rather than from a panel. Scorer = Dice + lesion-wise F1 + volume error.",
-            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds004884.git && cd ds004884 && datalad get <subject>/ses-681/anat/",
+            "notes": "[note] Step 2 of the stroke pair; step 1 is structural-brain-extraction-stroke on the same subjects. Departs from the consensus tasks: the ground truth is a single EXPERT mask and the thresholds are fixed from literature rather than from a panel. Scorer = Dice + lesion-wise F1 + volume error. [prompt v2] Cases are staged, and the task holds controls (the five graded subjects) and defect cases (T1w images that cannot support a lesion segmentation) under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/clinical-stroke-lesion-segmentation/<case>/anat/T1w.nii.gz). Controls are ds004884 1.0.2 acq-tfl3p2 T1w images as published, with the header's free-text fields cleared; no sidecar is staged.",
             "expected_files_detail": "A binary lesion mask (NIfTI, any filename; values {0,1}) in native T1w space."
           }
         },
         "clinical-wmh-segmentation": {
           "title": "White-matter hyperintensity (WMH) segmentation",
           "grading": "automated",
-          "description": "Segment white-matter hyperintensities on the FLAIR of subject Amsterdam/GE3T/100 (WMH Segmentation Challenge 2017), producing a binary WMH mask in native FLAIR space; graded against an expert mask with inter-rater-derived thresholds.",
-          "prompt_version": 1,
+          "description": "Segment white-matter hyperintensities on the staged FLAIR of {subject} (WMH Segmentation Challenge 2017), producing a binary WMH mask in native FLAIR space; graded against an expert mask with inter-rater-derived thresholds.",
+          "prompt_version": 2,
           "prompt": {
-            "goal": "Segment the white-matter hyperintensities (WMH) on the FLAIR image of subject {subject} from the WMH Segmentation Challenge 2017.\n\nDATA - open, no login (DataverseNL, DOI 10.34894/AECRSD). This dataset is NOT on OpenNeuro; do not use datalad. File ids per subject:\n\n  Amsterdam_GE3T_100   FLAIR 325669   3DT1 325515\n  Amsterdam_GE3T_114   FLAIR 325596   3DT1 325657\n  Singapore_52         FLAIR 325027   3DT1 325090\n  Utrecht_33           FLAIR 324306   3DT1 324757\n  Utrecht_39           FLAIR 324366   3DT1 324585\n\nDownload the two files for {subject}, substituting its ids:\n  mkdir -p wmh_input\n  curl -sSL --retry 3 https://dataverse.nl/api/access/datafile/<FLAIR id> -o wmh_input/FLAIR.nii.gz\n  curl -sSL --retry 3 https://dataverse.nl/api/access/datafile/<3DT1 id> -o wmh_input/3DT1.nii.gz\n\nwmh_input/FLAIR.nii.gz is the segmentation input; wmh_input/3DT1.nii.gz is the co-registered T1 (optional to use).\n\nOUTPUT - a single binary WMH mask (NIfTI, values {0,1}) in the NATIVE FLAIR space: the same grid and affine as the FLAIR you downloaded. The three scanner sites use different grids, so take the shape from your own FLAIR rather than assuming one. Do not resample to any other space.",
+            "goal": "Segment the white-matter hyperintensities (WMH) on the FLAIR image of {subject}.\n\nDATA. The images are already in your working directory:\n  input/{subject}/anat/FLAIR.nii.gz, the segmentation input\n  input/{subject}/anat/T1w.nii.gz, the subject's T1 (optional to use)\n\nOUTPUT - a single binary WMH mask (NIfTI, values {0,1}) in the NATIVE FLAIR space: the same grid and affine as the FLAIR. Do not resample to any other space.",
             "dataset": {
-              "source": "dataverse",
-              "doi": "10.34894/AECRSD",
-              "note": "file ids per subject are listed in the goal",
-              "subjects_graded": 5
+              "source": "staged",
+              "staged_at": "input/{subject}/anat/",
+              "note": "The harness stages this case's images before the run; there is nothing to download."
             },
             "required_output": "A binary WMH mask (NIfTI, {0,1}) in native FLAIR space.\n\nOUTPUT LOCATION (exact, mandatory): write the binary mask to `submissions/clinical-wmh-segmentation/{subject}/output.nii.gz` under your working directory - create that folder. Use this exact path and filename, and place no other NIfTI inside it. Only that file is scored.",
-            "subject_note": "This task runs once per case. Its subjects are listed as cases in cases.json of the gated reference dataset; the harness fetches each one under its case id, and {subject} in the goal and the output paths is replaced with that id."
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's images under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "Primary expert WMH mask from the WMH Challenge 2017, native FLAIR space. Pass and full-mark thresholds are data-derived from the agreement between independent observers rather than fixed literature values. lesion_mask.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth.",
-            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth, path clinical_gt/clinical-wmh-segmentation/ (lesion_mask.nii.gz)",
+            "ground_truth": "Primary expert WMH mask from the WMH Challenge 2017, native FLAIR space. Pass and full-mark thresholds are data-derived from the agreement between independent observers rather than fixed literature values. lesion_mask.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth, path clinical_gt/clinical-wmh-segmentation/{subject}/ (lesion_mask.nii.gz)",
             "metric": "expert-mask, inter-rater-calibrated: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from Dice + lesion-wise detection F1 + volume error",
-            "pass_criterion": "A binary WMH mask {0,1} in native FLAIR space; nonempty and volume-plausible; Dice / lesion-wise F1 / volume overlap with the expert mask above the inter-rater-derived pass lines; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the mask passes the expert-mask grader against the primary expert mask (verdict >= acceptable). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "expert-mask",
               "description": "Grades a binary WMH mask against the primary expert tracing: Dice + lesion-wise detection F1 (connected components) + volume error, with thresholds data-derived from inter-rater agreement (O3/O4 vs primary). See PROVENANCE.md.",
@@ -1927,8 +1924,8 @@
               "nnunet"
             ],
             "tool_note": "Context: dementia / small-vessel disease. WMH are many small FLAIR-hyperintense foci. Lesion-segmentation tools, or a trained network; BIANCA needs training data. Graded against expert tracings. Tool names are non-binding suggestions.",
-            "notes": "[note] DEMENTIA/WMH axis; companion to clinical-stroke-lesion-segmentation. Multi-focal small lesions, so lesion-wise F1 is weighted equally with Dice. Thresholds are data-derived from the agreement between independent observers rather than fixed from literature. Data on DataverseNL (DOI 10.34894/AECRSD, open Dataverse API, no DUA); the expert masks are grader-side only, in the gated dataset. The mask is in native FLAIR space; label 1 = WMH.",
-            "dataset_fetch_reference": "mkdir -p wmh_input && curl -sSL --retry 3 https://dataverse.nl/api/access/datafile/325669 -o wmh_input/FLAIR.nii.gz && curl -sSL --retry 3 https://dataverse.nl/api/access/datafile/325515 -o wmh_input/3DT1.nii.gz",
+            "notes": "[note] DEMENTIA/WMH axis; companion to clinical-stroke-lesion-segmentation. Multi-focal small lesions, so lesion-wise F1 is weighted equally with Dice. Thresholds are data-derived from the agreement between independent observers rather than fixed from literature. Data on DataverseNL (DOI 10.34894/AECRSD, open Dataverse API, no DUA); the expert masks are grader-side only, in the gated dataset. The mask is in native FLAIR space; label 1 = WMH. [prompt v2] Cases are staged, and the task holds controls (the five graded subjects) and defect cases (FLAIR images that cannot support a WMH segmentation) under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/clinical-wmh-segmentation/<case>/anat/: FLAIR.nii.gz, T1w.nii.gz). Controls are the WMH Challenge 2017 original FLAIR and 3D T1 as published on DataverseNL, with the header's free-text fields and slice order code cleared.",
             "expected_files_detail": "A binary WMH mask (NIfTI, any filename; values {0,1}) in native FLAIR space."
           }
         }
