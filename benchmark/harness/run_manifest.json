@@ -5,7 +5,7 @@
     "submission_output_path": "submissions/{task_id}/output.nii.gz",
     "reference_repo": "neurodeskorg/skills-comm-ground-truth",
     "reference_repo_type": "dataset",
-    "reference_revision": "6adaf9cecacd",
+    "reference_revision": "7b39308747a4",
     "submission_path": "submissions/{task_id}/{subject}/output.nii.gz",
     "cases_file": "cases.json",
     "run_report_path": "submissions/{task_id}/{subject}/report.json",
@@ -70,13 +70,14 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/{subject}/stripped.nii.gz"
       },
+      "record": "submissions/{task_id}/{subject}/report.json",
       "ref_dir": "structural_gt/structural-brain-extraction-7t/{subject}",
       "reference_files": [
         "consensus_mask.nii.gz",
         "consensus_zones.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "bb49fb08210d"
+      "reference_revision": "7b39308747a4"
     },
     "structural-brain-extraction-7t-nodura": {
       "pack_dir": "graders/structural-brain-extraction-7t-nodura",
@@ -86,6 +87,7 @@
       "optional_inputs": {
         "--stripped": "submissions/{task_id}/{subject}/stripped.nii.gz"
       },
+      "record": "submissions/{task_id}/{subject}/report.json",
       "ref_dir": "structural_gt/structural-brain-extraction-7t-nodura/{subject}",
       "reference_files": [
         "consensus_mask.nii.gz",
@@ -93,7 +95,7 @@
         "dura_envelope.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "bb49fb08210d"
+      "reference_revision": "7b39308747a4"
     },
     "structural-brain-extraction-stroke": {
       "pack_dir": "graders/structural-brain-extraction-stroke",
@@ -119,13 +121,14 @@
       "pred_flag": "--seg",
       "detail_kind": "multiclass",
       "optional_inputs": {},
+      "record": "submissions/{task_id}/{subject}/report.json",
       "ref_dir": "structural_gt/structural-tissue-segmentation-7t/{subject}",
       "reference_files": [
         "consensus_seg.nii.gz",
         "consensus_agreement.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "bb49fb08210d"
+      "reference_revision": "7b39308747a4"
     },
     "structural-mni-registration": {
       "pack_dir": "graders/structural-mni-registration",

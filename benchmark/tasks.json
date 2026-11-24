@@ -741,25 +741,24 @@
         "structural-brain-extraction-7t": {
           "title": "Brain extraction at 7 Tesla (MP2RAGE skull stripping)",
           "grading": "automated",
-          "description": "Skull-strip the 7T MP2RAGE UNI image of {subject} of CEREBRUM-7T (OpenNeuro ds003642), producing a brain-extracted image and a binary brain mask in native T1w space.",
-          "prompt_version": 1,
+          "description": "Skull-strip the staged 7T MP2RAGE UNI image of {subject} (CEREBRUM-7T, OpenNeuro ds003642), producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "prompt_version": 2,
           "prompt": {
-            "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of {subject}, producing a brain-extracted image and a binary brain mask in the native T1w space.\n\nDATA. The images are already in your working directory:\n  input/{subject}/anat/T1w.nii.gz, the MP2RAGE UNI image, the skull-stripping input\n  input/{subject}/anat/INV1.nii.gz, the first inversion image (optional to use)\n  input/{subject}/anat/INV2.nii.gz, the second inversion image (optional to use)\nAll three share one grid.",
             "dataset": {
-              "source": "openneuro",
-              "id": "ds003642",
-              "version_pin": "1.1.0",
-              "subjects_graded": 3
+              "source": "staged",
+              "staged_at": "input/{subject}/anat/",
+              "note": "The harness stages this case's images before the run; there is nothing to download."
             },
             "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-7t/{subject}/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-7t/{subject}/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-7t/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-7t/{subject}/`. Only `submissions/structural-brain-extraction-7t/{subject}/output.nii.gz` is scored.",
-            "subject_note": "This task runs once per case. Its subjects are listed as cases in cases.json of the gated reference dataset; the harness fetches each one under its case id, and {subject} in the goal and the output paths is replaced with that id."
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's images under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "STAPLE consensus of a panel curated for 7T, run on the MP2RAGE UNI, split into core/margin/background zones and calibrated per subject; native T1w space. A tool that fails at high field is excluded from the panel and kept as a scored candidate. consensus_mask.nii.gz + consensus_zones.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time.",
+            "ground_truth": "STAPLE consensus of a panel curated for 7T, run on the MP2RAGE UNI, split into core/margin/background zones and calibrated per subject; native T1w space. A tool that fails at high field is excluded from the panel and kept as a scored candidate. consensus_mask.nii.gz + consensus_zones.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
             "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth, path structural_gt/structural-brain-extraction-7t/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz)",
             "metric": "consensus-calibrated: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
-            "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry (dimensions, voxel size, affine) matches the input; Brain mask is binary (0 and 1 only); Brain (incl. cerebellum and brainstem) retained and skull/dura/neck removed; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the mask passes the consensus grader (verdict >= acceptable). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores the mask against a STAPLE consensus of a tool panel run on the 7T MP2RAGE UNI, split into core (must keep) / margin (free, not scored) / background (must exclude); thresholds calibrated by leave-one-tool-out. See PROVENANCE.md.",
@@ -776,33 +775,32 @@
               "hdbet"
             ],
             "tool_note": "Context: 7T MP2RAGE. The UNI has a salt-and-pepper background and a high-field contrast and bias that defeat intensity-based extraction - FSL BET under-extracts catastrophically, about half a brain, whether or not the background is cleaned. Contrast-robust deep-learning tools handle the raw UNI; denoising the UNI via the INV2 image also works. Tool names are non-binding suggestions.",
-            "notes": "[note] FIELD-STRENGTH / SEQUENCE axis. Discriminates on tool choice for a high-field sequence: the common `bet` default is the wrong call. The surface tolerance is wide at 7T, so most of the discriminating power is in the validity gates rather than the quality envelope.",
-            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds003642.git && cd ds003642 && datalad get <subject>/ses-003/anat/",
+            "notes": "[note] FIELD-STRENGTH / SEQUENCE axis. Discriminates on tool choice for a high-field sequence: the common `bet` default is the wrong call. The surface tolerance is wide at 7T, so most of the discriminating power is in the validity gates rather than the quality envelope. [prompt v2] Cases are staged, and the task holds controls (the three graded subjects) and defect cases (images that cannot support a brain extraction) under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/structural-brain-extraction-7t/<case>/anat/: T1w.nii.gz, INV1.nii.gz, INV2.nii.gz). Controls are ds003642 1.1.0 MP2RAGE UNI (T1w), INV1 and INV2 of each subject's graded session as published, with the header's free-text fields and slice order code cleared; no sidecar is staged.",
             "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename — tool-determined); A binary brain mask (NIfTI, any filename — tool-determined)."
           }
         },
         "structural-brain-extraction-7t-nodura": {
           "title": "Brain extraction at 7T with explicit dura removal (skull stripping)",
           "grading": "automated",
-          "description": "Skull-strip the 7T MP2RAGE UNI image of {subject} of CEREBRUM-7T (OpenNeuro ds003642) AND remove the dura, producing a brain-extracted image and a binary brain mask in native T1w space.",
-          "prompt_version": 1,
+          "description": "Skull-strip the staged 7T MP2RAGE UNI image of {subject} (CEREBRUM-7T, OpenNeuro ds003642) AND remove the dura, producing a brain-extracted image and a binary brain mask in native T1w space.",
+          "prompt_version": 2,
           "prompt": {
-            "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of {subject} AND remove the dura, producing a brain-extracted image and a binary brain mask in the native T1w space.",
+            "goal": "Skull-strip the 7T MP2RAGE T1-weighted (UNI) image of {subject} AND remove the dura, producing a brain-extracted image and a binary brain mask in the native T1w space.\n\nDATA. The images are already in your working directory:\n  input/{subject}/anat/T1w.nii.gz, the MP2RAGE UNI image, the skull-stripping input\n  input/{subject}/anat/INV1.nii.gz, the first inversion image (optional to use)\n  input/{subject}/anat/INV2.nii.gz, the second inversion image (optional to use)\nAll three share one grid.",
             "dataset": {
-              "source": "openneuro",
-              "id": "ds003642",
-              "version_pin": "1.1.0",
-              "subjects_graded": 3
+              "source": "staged",
+              "staged_at": "input/{subject}/anat/",
+              "note": "The harness stages this case's images before the run; there is nothing to download."
             },
             "required_output": "A skull-stripped brain image (NIfTI) and a binary brain mask (NIfTI) in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-brain-extraction-7t-nodura/{subject}/` under your working directory — create that folder. Put the binary brain mask at `submissions/structural-brain-extraction-7t-nodura/{subject}/output.nii.gz` (THIS is the graded file) and the skull-stripped image at `submissions/structural-brain-extraction-7t-nodura/{subject}/stripped.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-brain-extraction-7t-nodura/{subject}/`. Only `submissions/structural-brain-extraction-7t-nodura/{subject}/output.nii.gz` is scored.",
-            "subject_note": "This task runs once per case. Its subjects are listed as cases in cases.json of the gated reference dataset; the harness fetches each one under its case id, and {subject} in the goal and the output paths is replaced with that id."
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's images under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "Same subjects and consensus as structural-brain-extraction-7t, plus a dura-out pial envelope built from the tissue segmentations shipped with the dataset. The grader adds a one-sided over-inclusion gate: a mask extending past the envelope into the dura fails. consensus_mask.nii.gz + consensus_zones.nii.gz + dura_envelope.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth.",
+            "ground_truth": "Same subjects and consensus as structural-brain-extraction-7t, plus a dura-out pial envelope built from the tissue segmentations shipped with the dataset. The grader adds a one-sided over-inclusion gate: a mask extending past the envelope into the dura fails. consensus_mask.nii.gz + consensus_zones.nii.gz + dura_envelope.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
             "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth, path structural_gt/structural-brain-extraction-7t-nodura/{subject}/ (consensus_mask.nii.gz, consensus_zones.nii.gz, dura_envelope.nii.gz)",
             "metric": "consensus-calibrated + no_dura_inclusion gate: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (see grader)",
-            "pass_criterion": "A skull-stripped brain image and a binary brain mask are produced; Mask geometry matches the input; Brain mask is binary; Brain (incl. cerebellum and brainstem) retained; the DURA is removed (mask does not extend past the pial envelope, over-inclusion <= 30 cm3); No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass. A dura-retaining mask fails the no_dura_inclusion gate.",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the mask passes the consensus grader with the no_dura_inclusion gate (verdict >= acceptable; over-inclusion past the pial envelope <= 30 cm3). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass. A dura-retaining mask fails the no_dura_inclusion gate.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Scores the mask against the structural-brain-extraction-7t consensus AND a no_dura_inclusion gate: over-inclusion beyond a dura-out pial envelope, past the cap in the rubric, is invalid. See PROVENANCE.md.",
@@ -820,33 +818,32 @@
               "afni"
             ],
             "tool_note": "Context: 7T MP2RAGE with an EXPLICIT no-dura requirement. This tests instruction-following: a tissue-tight tool that strips the dura passes, while a CSF-inclusive one produces a mask that would pass the standard task and fails here. Check what your tool leaves at the brain surface rather than assuming. Tool names are non-binding suggestions.",
-            "notes": "[note] Variant of structural-brain-extraction-7t on the same subjects: the prompt adds 'remove the dura'. Making dura a STATED requirement is what makes it fair to fail a dura-retaining mask, since otherwise the CSF/dura rim is an unstated convention. Dura is a thin whole-surface shell rather than a focal blob, so it needs a dedicated over-inclusion gate against a dura-out envelope.",
-            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds003642.git && cd ds003642 && datalad get <subject>/ses-003/anat/",
+            "notes": "[note] Variant of structural-brain-extraction-7t on the same subjects: the prompt adds 'remove the dura'. Making dura a STATED requirement is what makes it fair to fail a dura-retaining mask, since otherwise the CSF/dura rim is an unstated convention. Dura is a thin whole-surface shell rather than a focal blob, so it needs a dedicated over-inclusion gate against a dura-out envelope. [prompt v2] Cases are staged, and the task holds controls (the three graded subjects) and defect cases (images that cannot support a brain extraction) under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/structural-brain-extraction-7t-nodura/<case>/anat/: T1w.nii.gz, INV1.nii.gz, INV2.nii.gz). Controls are ds003642 1.1.0 MP2RAGE UNI (T1w), INV1 and INV2 of each subject's graded session as published, with the header's free-text fields and slice order code cleared; no sidecar is staged.",
             "expected_files_detail": "A skull-stripped brain image (NIfTI, any filename — tool-determined); A binary brain mask (NIfTI, any filename — tool-determined)."
           }
         },
         "structural-tissue-segmentation-7t": {
           "title": "Tissue parcellation at 7 Tesla (six structures)",
           "grading": "automated",
-          "description": "Parcellate the 7T MP2RAGE image of {subject} (CEREBRUM-7T, OpenNeuro ds003642) into six brain structures (GM, basal ganglia, WM, ventricles/CSF, cerebellum, brainstem) in native T1w space.",
-          "prompt_version": 1,
+          "description": "Parcellate the staged 7T MP2RAGE image of {subject} (CEREBRUM-7T, OpenNeuro ds003642) into six brain structures (GM, basal ganglia, WM, ventricles/CSF, cerebellum, brainstem) in native T1w space.",
+          "prompt_version": 2,
           "prompt": {
-            "goal": "Parcellate the 7T MP2RAGE image of {subject} into an integer label map of six brain structures in native T1w space: 1=grey matter (cortical grey matter), 2=basal ganglia (deep grey nuclei: caudate, putamen, pallidum, thalamus, ventral diencephalon, accumbens; hippocampus and amygdala are grey matter), 3=white matter (cerebral white matter), 4=ventricles (ventricular CSF only — lateral/3rd/4th ventricles, NOT sulcal CSF), 5=cerebellum (entire cerebellum, grey+white), 6=brainstem (midbrain, pons, medulla).",
+            "goal": "Parcellate the 7T MP2RAGE image of {subject} into an integer label map of six brain structures in native T1w space: 1=grey matter (cortical grey matter), 2=basal ganglia (deep grey nuclei: caudate, putamen, pallidum, thalamus, ventral diencephalon, accumbens; hippocampus and amygdala are grey matter), 3=white matter (cerebral white matter), 4=ventricles (ventricular CSF only — lateral/3rd/4th ventricles, NOT sulcal CSF), 5=cerebellum (entire cerebellum, grey+white), 6=brainstem (midbrain, pons, medulla).\n\nDATA. The images are already in your working directory:\n  input/{subject}/anat/T1w.nii.gz, the MP2RAGE UNI image, the parcellation input\n  input/{subject}/anat/INV1.nii.gz, the first inversion image (optional to use)\n  input/{subject}/anat/INV2.nii.gz, the second inversion image (optional to use)\nAll three share one grid.",
             "dataset": {
-              "source": "openneuro",
-              "id": "ds003642",
-              "version_pin": "1.1.0",
-              "subjects_graded": 3
+              "source": "staged",
+              "staged_at": "input/{subject}/anat/",
+              "note": "The harness stages this case's images before the run; there is nothing to download."
             },
             "required_output": "An integer label map (NIfTI) with labels 1..6 as specified, in native T1w space.\n\nOUTPUT LOCATION (exact, mandatory): write the integer label map to `submissions/structural-tissue-segmentation-7t/{subject}/output.nii.gz` under your working directory — create the `submissions/structural-tissue-segmentation-7t/{subject}/` folder. Use this exact path and filename, and place no other NIfTI inside `submissions/structural-tissue-segmentation-7t/{subject}/`. Only `submissions/structural-tissue-segmentation-7t/{subject}/output.nii.gz` is scored.",
-            "subject_note": "This task runs once per case. Its subjects are listed as cases in cases.json of the gated reference dataset; the harness fetches each one under its case id, and {subject} in the goal and the output paths is replaced with that id."
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's images under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "Majority-vote consensus of the whole-brain segmentations shipped with CEREBRUM-7T, fused into a 6-class label map with a per-voxel agreement map (unanimous-core / majority-boundary zones) and calibrated per subject by leave-one-tool-out. consensus_seg.nii.gz + consensus_agreement.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time.",
+            "ground_truth": "Majority-vote consensus of the whole-brain segmentations shipped with CEREBRUM-7T, fused into a 6-class label map with a per-voxel agreement map (unanimous-core / majority-boundary zones) and calibrated per subject by leave-one-tool-out. consensus_seg.nii.gz + consensus_agreement.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
             "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth, path structural_gt/structural-tissue-segmentation-7t/{subject}/ (consensus_seg.nii.gz, consensus_agreement.nii.gz)",
             "metric": "consensus-calibrated per-class: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 (mean of six per-class Dice/NSD/core-recall envelopes)",
-            "pass_criterion": "An integer label map with the six specified classes present; Geometry (dimensions, voxel size, affine) matches the input; Each class recovers the majority of its unanimous consensus core (no class collapse/confusion); No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the label map passes the per-class consensus grader (verdict >= acceptable). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "consensus-calibrated",
               "description": "Multi-class scorer: per-class Dice/NSD/core-recall against a majority-vote consensus of the panel's segmentations split into unanimous-core / majority-boundary zones; thresholds calibrated by leave-one-tool-out. See PROVENANCE.md.",
@@ -864,8 +861,8 @@
               "cat12"
             ],
             "tool_note": "Context: 7T MP2RAGE, six-structure parcellation, not classic 3-class GM/WM/CSF. Whole-brain segmenters that produce these structures fit; a plain 3-class tissue tool such as FAST or Atropos does not cover basal ganglia, cerebellum and brainstem as separate labels. The output must use the exact label legend. Tool names are non-binding suggestions.",
-            "notes": "[note] Companion to the 7T brain-extraction tasks on the same subjects; the multi-class analogue of the consensus-calibrated brain-extraction grader. The reference is built from the dataset's own shipped segmentations, so no tool is run to make it. Label legend: 1=GM 2=basal ganglia 3=WM 4=ventricles 5=cerebellum 6=brainstem, pinned by intensity.",
-            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds003642.git && cd ds003642 && datalad get <subject>/ses-003/anat/",
+            "notes": "[note] Companion to the 7T brain-extraction tasks on the same subjects; the multi-class analogue of the consensus-calibrated brain-extraction grader. The reference is built from the dataset's own shipped segmentations, so no tool is run to make it. Label legend: 1=GM 2=basal ganglia 3=WM 4=ventricles 5=cerebellum 6=brainstem, pinned by intensity. [prompt v2] Cases are staged, and the task holds controls (the three graded subjects) and defect cases (images that cannot support a parcellation) under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/structural-tissue-segmentation-7t/<case>/anat/: T1w.nii.gz, INV1.nii.gz, INV2.nii.gz). Controls are ds003642 1.1.0 MP2RAGE UNI (T1w), INV1 and INV2 of each subject's graded session as published, with the header's free-text fields and slice order code cleared; no sidecar is staged.",
             "expected_files_detail": "An integer label map (NIfTI, any filename) with labels 1..6 per the legend."
           }
         },
