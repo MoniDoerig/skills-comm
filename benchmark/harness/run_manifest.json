@@ -5,7 +5,7 @@
     "submission_output_path": "submissions/{task_id}/output.nii.gz",
     "reference_repo": "neurodeskorg/skills-comm-ground-truth",
     "reference_repo_type": "dataset",
-    "reference_revision": "7b39308747a4",
+    "reference_revision": "9adb8d8a636d",
     "submission_path": "submissions/{task_id}/{subject}/output.nii.gz",
     "cases_file": "cases.json",
     "run_report_path": "submissions/{task_id}/{subject}/report.json",
@@ -138,6 +138,7 @@
       "required_inputs": {
         "--dseg": "submissions/{task_id}/{subject}/dseg.nii.gz"
       },
+      "record": "submissions/{task_id}/{subject}/report.json",
       "ref_dir": "structural_gt/structural-mni-registration",
       "reference_files": [
         "template_T1w.nii.gz",
@@ -147,7 +148,7 @@
         "template_probseg_CSF.nii.gz"
       ],
       "per_subject": true,
-      "reference_revision": "bb49fb08210d"
+      "reference_revision": "9adb8d8a636d"
     },
     "diffusion-brain-mask": {
       "pack_dir": "graders/diffusion-brain-mask",

@@ -504,25 +504,24 @@
         "structural-mni-registration": {
           "title": "MNI registration (T1w to MNI152NLin2009cAsym)",
           "grading": "automated",
-          "description": "Register the T1w of {subject} of OpenNeuro ds002790 to MNI152NLin2009cAsym and carry the supplied tissue segmentation through the same transform, graded by propagated-label overlap against the template's own tissue priors.",
-          "prompt_version": 1,
+          "description": "Register the staged T1w of {subject} to MNI152NLin2009cAsym and carry the supplied tissue segmentation through the same transform, graded by propagated-label overlap against the template's own tissue priors.",
+          "prompt_version": 2,
           "prompt": {
             "goal": "Register the T1-weighted image of {subject} to the MNI152NLin2009cAsym template and resample it into that space. Apply the SAME transform to the supplied tissue segmentation, using nearest-neighbour interpolation so its labels are preserved.\n\nDATA. The images are already in your working directory:\n  input/{subject}/anat/T1w.nii.gz        the T1-weighted image to register\n  input/{subject}/anat/dseg.nii.gz       a tissue segmentation of that same T1w\n  input/{subject}/template/T1w.nii.gz    MNI152NLin2009cAsym at 1 mm, 193x229x193\n\ninput/{subject}/anat/dseg.nii.gz has labels 1 = grey matter, 2 = white matter, 3 = CSF. Warp it with the transform you compute for the T1w; do not re-segment, and do not relabel it.\n\nBoth outputs must be on the template grid: the same shape and affine as input/{subject}/template/T1w.nii.gz. Do not resample to any other space.",
             "dataset": {
-              "source": "openneuro",
-              "id": "ds002790",
-              "version_pin": "2.0.0",
-              "subjects_graded": 5
+              "source": "staged",
+              "staged_at": "input/{subject}/",
+              "note": "The harness stages this case's images and the template before the run; there is nothing to download."
             },
             "required_output": "The T1w resampled into MNI152NLin2009cAsym, and the tissue segmentation carried through the same transform with nearest-neighbour interpolation.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/structural-mni-registration/{subject}/` under your working directory - create that folder. Put the warped T1w at `submissions/structural-mni-registration/{subject}/output.nii.gz` and the warped segmentation at `submissions/structural-mni-registration/{subject}/dseg.nii.gz`. Use these exact paths and filenames, and place no other NIfTI inside `submissions/structural-mni-registration/{subject}/`. Both files are scored.",
-            "subject_note": "This task runs once per case. Its subjects are listed as cases in cases.json of the gated reference dataset; the harness fetches each one under its case id, and {subject} in the goal and the output paths is replaced with that id."
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's images under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "The template's own tissue priors (TemplateFlow MNI152NLin2009cAsym res-01 label-{GM,WM,CSF}_probseg), which state where each tissue belongs in MNI space independently of any registration software - not another tool's warp. A population prior is not a per-subject truth, so the thresholds are relative: the envelope is the spread achieved on that subject by several independent nonlinear registrations. Affine-only registration is the scored failure candidate and anchors zero credit.",
+            "ground_truth": "Controls: the template's own tissue priors (TemplateFlow MNI152NLin2009cAsym res-01 label-{GM,WM,CSF}_probseg), which state where each tissue belongs in MNI space independently of any registration software - not another tool's warp. A population prior is not a per-subject truth, so the thresholds are relative: the envelope is the spread achieved on that subject by several independent nonlinear registrations. Affine-only registration is the scored failure candidate and anchors zero credit. Defect cases: none; the gated cases.json gives each case its role, and a defect case is graded on the agent's run report alone.",
             "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth, path structural_gt/structural-mni-registration/ (template_T1w.nii.gz, template_brain_mask.nii.gz, template_probseg_GM.nii.gz, template_probseg_WM.nii.gz, template_probseg_CSF.nii.gz)",
             "metric": "prior-calibrated: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from propagated-label Dice (WM, GM, CSF), brain overlap and in-brain image correlation (see grader)",
-            "pass_criterion": "A warped T1w and a warped tissue segmentation, both on the MNI152NLin2009cAsym grid; segmentation labels preserved (1/2/3, nearest-neighbour); brain lands where MNI expects it; propagated tissue overlap at least as good as the weakest independent nonlinear registration; No processing errors; logs captured",
-            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
+            "pass_criterion": "Control: the run report does not call the input unusable, and the warped T1w and segmentation pass the prior-calibrated grader (both on the MNI152NLin2009cAsym grid, labels preserved, verdict >= acceptable). Defect: the run report says input_usable: false; whether the run also wrote an output is recorded (stopped), not graded. Control pass rate and defect detection rate are reported apart, never pooled.",
+            "output_validation": "grade_wrapper.py reads the run report (benchmark/harness/run_report.md; run_manifest.json `record`) and the case's role: a defect case is graded on the report, a control by the grader block below. A submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
             "grader": {
               "kind": "prior-calibrated",
               "description": "Scores propagated-label overlap, not image similarity: the subject's own tissue segmentation is carried through the agent's transform and compared with the template's tissue priors. Weighted quality over WM Dice (0.30), GM Dice (0.25), brain Dice (0.20), in-brain correlation (0.15) and CSF Dice (0.10), each mapped by the envelope of four independent independent nonlinear registrations. Image correlation alone is nearly saturated after any affine and would not separate affine from nonlinear; WM Dice does. See PROVENANCE.md.",
@@ -540,9 +539,9 @@
               "niftyreg",
               "elastix"
             ],
-            "tool_note": "Context: healthy adult T1w at 1 mm, whole head, to MNI152NLin2009cAsym. The task turns on using a NONLINEAR registration and then reusing the same transform on the segmentation; a 12-DOF affine alone is not enough. Every major registration package can do this. Tool names are non-binding suggestions.",
-            "notes": "[note] First non-mask output type in the benchmark: the graded object is a spatial transform, observed through the image and segmentation it produces. [note] Runtime is not a barrier; the slowest package in the calibration build finished well inside a 45-minute agent budget. [caution] The segmentation is an agent INPUT, not a reference; it is supplied so the transform can be measured by label propagation. Its labels are 1 = GM, 2 = WM, 3 = CSF, verified from mean T1w intensity per label rather than assumed.",
-            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDatasets/ds002790.git && cd ds002790 && datalad get {subject}/anat/",
+            "tool_note": "Context: healthy adult T1w at 1 mm, to MNI152NLin2009cAsym. The task turns on using a NONLINEAR registration and then reusing the same transform on the segmentation; a 12-DOF affine alone is not enough. Every major registration package can do this. Tool names are non-binding suggestions.",
+            "notes": "[note] First non-mask output type in the benchmark: the graded object is a spatial transform, observed through the image and segmentation it produces. [note] Runtime is not a barrier; the slowest package in the calibration build finished well inside a 45-minute agent budget. [caution] The segmentation is an agent INPUT, not a reference; it is supplied so the transform can be measured by label propagation. Its labels are 1 = GM, 2 = WM, 3 = CSF, verified from mean T1w intensity per label rather than assumed. [prompt v2] Cases are staged, and the task holds controls (the five graded subjects) and defect cases (images that cannot support a registration to the template) under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/structural-mni-registration/<case>/: anat/T1w.nii.gz, anat/dseg.nii.gz, template/T1w.nii.gz). Controls are ds002790 2.0.0 T1w images and their fMRIPrep tissue segmentations as published, with the header's free-text fields cleared; the template is TemplateFlow MNI152NLin2009cAsym res-01 T1w.",
             "expected_files_detail": "A T1w resampled into MNI152NLin2009cAsym (NIfTI, 193x229x193 at 1 mm) and a tissue segmentation on the same grid with labels {1,2,3} preserved."
           }
         },
@@ -1468,7 +1467,7 @@
           "description": "Fit a diffusion tensor to the staged diffusion acquisition of {subject} and produce FA and MD maps in its native space.",
           "prompt_version": 1,
           "prompt": {
-            "goal": "Fit a diffusion tensor for {subject} and produce FA and MD maps.\n\nThe acquisition is staged for you at `input/{subject}/dwi/` as `dwi.nii.gz`, `dwi.bval`, `dwi.bvec` and `dwi.json`.",
+            "goal": "Fit a diffusion tensor for {subject} and produce FA and MD maps.\n\nDATA. The acquisition is already in your working directory:\n  input/{subject}/dwi/dwi.nii.gz\n  input/{subject}/dwi/dwi.bval\n  input/{subject}/dwi/dwi.bvec\n  input/{subject}/dwi/dwi.json",
             "dataset": {
               "source": "staged",
               "staged_at": "input/{subject}/dwi/",
@@ -1500,6 +1499,7 @@
             ],
             "tool_note": "Any diffusion toolkit; the choice of shells and estimator is the analyst's. Tool names are non-binding suggestions.",
             "notes": "[note] Native-space task. FA and MD are graded on their pattern against a consensus of defensible fits, and FA a little on its level, because the shells used and the estimator move the level of both maps. The task holds controls and defect cases under one prompt; which is which is in the gated cases.json only.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/diffusion-tensor-fit/<case>/dwi/). Controls are ds001226 5.0.1 ses-preop diffusion acquisitions as published, with the header's description set to one fixed text, the slice code set to unknown and the sidecar reduced to a fixed list of acquisition parameters.",
             "expected_files_detail": "output.nii.gz (FA) and md.nii.gz (MD) on the acquisition's grid"
           }
         },
