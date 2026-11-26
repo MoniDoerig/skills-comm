@@ -5,7 +5,7 @@
     "submission_output_path": "submissions/{task_id}/output.nii.gz",
     "reference_repo": "neurodeskorg/skills-comm-ground-truth",
     "reference_repo_type": "dataset",
-    "reference_revision": "9adb8d8a636d",
+    "reference_revision": "c6cd8751da26",
     "submission_path": "submissions/{task_id}/{subject}/output.nii.gz",
     "cases_file": "cases.json",
     "run_report_path": "submissions/{task_id}/{subject}/report.json",
@@ -238,6 +238,26 @@
       ],
       "per_subject": true,
       "reference_revision": "ff4d21e5a9f5"
+    },
+    "functional-task-glm": {
+      "pack_dir": "graders/functional-task-glm",
+      "scorer": "graders/functional-task-glm/score_task_glm.py",
+      "pred_flag": "--submission",
+      "submission_output_path": "submissions/{task_id}/{subject}",
+      "record": "submissions/{task_id}/{subject}/report.json",
+      "detail_kind": "binary",
+      "ref_dir": "functional_gt/functional-task-glm/{subject}",
+      "reference_files": [
+        "consensus_z_finger_vs_others.nii.gz",
+        "consensus_z_foot_vs_others.nii.gz",
+        "consensus_z_lips_vs_others.nii.gz",
+        "consensus_z_finger.nii.gz",
+        "consensus_z_foot.nii.gz",
+        "consensus_z_lips.nii.gz",
+        "roi_mask.nii.gz"
+      ],
+      "per_subject": true,
+      "reference_revision": "c6cd8751da26"
     }
   }
 }

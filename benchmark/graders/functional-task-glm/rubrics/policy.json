@@ -1,0 +1,52 @@
+{
+  "_calibration": "gated: fetched from the reference dataset and merged by fetch_reference.py",
+  "_pack": {
+    "reference": {
+      "fetch_into": "reference/ before grading — see reference/README.md",
+      "files": [
+        "consensus_z_<contrast>.nii.gz (voxelwise median z map of the panel, one per contrast)",
+        "roi_mask.nii.gz (the BOLD brain mask)"
+      ],
+      "host": "Hugging Face neurodeskorg/skills-comm-ground-truth, path functional_gt/functional-task-glm/"
+    }
+  },
+  "weights": {
+    "finger_vs_others": 0.18,
+    "foot_vs_others": 0.18,
+    "lips_vs_others": 0.18,
+    "finger": 0.1533,
+    "foot": 0.1533,
+    "lips": 0.1534
+  },
+  "zero_lines": {
+    "vs_others": 0.35,
+    "vs_rest": 0.5
+  },
+  "slack": {
+    "r": 0.05
+  },
+  "verdict_thresholds": {
+    "within_reference_variability": 99.9,
+    "acceptable": 60,
+    "marginal": 30
+  },
+  "gates": [
+    "maps_present",
+    "geometry_matches",
+    "maps_vary",
+    "contrast_identity"
+  ],
+  "weight_basis": {
+    "vs_others": "The three movement-vs-others maps hold the somatotopy -- where finger, foot and lips each sit on motor cortex -- once what all three movements share is removed. They are what tells one movement from another, so they carry the larger share, 54 % of the weight.",
+    "vs_rest": "The three movement-vs-rest maps are asked for too, since they are what a first-level analysis reports first, but they share most of their pattern (supplementary motor area, cueing), so they carry 46 % between them: enough that a submission without them (54) does not reach the pass line."
+  },
+  "zero_line_basis": "FIXED, not calibrated: where a map earns nothing. Measured in the build against each subject's consensus, another subject's movement-vs-others map reaches r 0.32 at most and its movement-vs-rest map 0.47 (the task's activation is similar across brains in template space, the rest map more so), a model with the wrong repetition time comes out negative, noise sits at 0; each panel package agrees with the median of the other three at r 0.75 or more.",
+  "slack_basis": "The full-credit lines are the panel's own leave-one-out spread -- the lowest r of a package against the median of the other three -- lowered by this, since a fifth defensible analysis may land a little outside four. Measured in the build on the five graded subjects: an unsmoothed model and t maps in place of z score 100, a model with 24 motion regressors and aCompCor in place of eight confounds 81 to 100, one with no confounds at all 53 to 96. A map thresholded at z 3.1, positive side only or both sides, scores 6 to 53 and does not pass: the goal asks for maps to go into a group analysis, which takes them unthresholded.",
+  "threshold_basis": "within_reference_variability means every contrast at full credit. The pass line is the benchmark-wide 60.",
+  "gate_basis": {
+    "maps_present": "The three movement-vs-others maps are the graded core of the output contract; without them there is nothing that tells the movements apart.",
+    "geometry_matches": "Maps are compared voxel by voxel on the grid of the BOLD the task supplies; a map resampled elsewhere is not the map asked for.",
+    "maps_vary": "A map constant inside the brain carries no model.",
+    "contrast_identity": "Each movement-vs-others map has to agree best with its own consensus rather than another movement's. Swapped condition labels, or maps written under each other's names, can still correlate well with the wrong consensus, since the three maps share structure; this is what catches them. Every panel package and every probe model built with the right repetition time passes it on every subject; the model with the wrong repetition time fails it on nine of ten."
+  }
+}

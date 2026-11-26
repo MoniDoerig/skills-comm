@@ -1274,29 +1274,35 @@
           }
         },
         "functional-task-glm": {
-          "title": "First-level task GLM (motor activation)",
-          "description": "First-level task GLM on the motor (finger-foot-lips) fMRIPrep derivatives of sub-01 ses-test of OpenNeuro dataset ds000114: events design + confounds -> movement-vs-baseline contrast map",
+          "title": "First-level task GLM (finger-foot-lips motor task)",
+          "grading": "automated",
+          "description": "First-level GLM of the staged, fMRIPrep-preprocessed BOLD of {subject}'s finger-foot-lips task: a z map for each movement against rest and against the other two, graded against a consensus of independent GLM packages.",
           "prompt_version": 1,
           "prompt": {
-            "goal": "Run a first-level task GLM on the fMRIPrep-preprocessed BOLD of sub-01, session ses-test, task fingerfootlips. The finger-foot-lips paradigm alternates finger, foot, and lip movements; build the design from the task events, include standard nuisance confounds, and produce a movement-vs-baseline activation contrast map. the task events.tsv come from the raw OpenNeuro dataset.",
+            "goal": "Run the first-level GLM on the preprocessed BOLD of {subject}'s finger-foot-lips task and output the z maps that would go into a group analysis in a next step: each movement against rest, and each movement against the other two. The task alternates blocks of finger tapping, foot movement and lip movement with rest.\n\nDATA. The data are already in your working directory:\n  input/{subject}/func/bold.nii.gz         the preprocessed BOLD (fMRIPrep, MNI152NLin2009cAsym at 2 mm)\n  input/{subject}/func/brain_mask.nii.gz   its brain mask\n  input/{subject}/func/bold.json           its sidecar\n  input/{subject}/func/confounds.tsv       fMRIPrep's confound regressors\n  input/{subject}/func/events.tsv          the task events",
             "dataset": {
-              "source": "openneuro-derivatives",
-              "id": "ds000114-fmriprep",
-              "version_pin": "latest",
-              "subjects": [
-                "sub-01"
-              ],
-              "session": "ses-test",
-              "task": "fingerfootlips"
+              "source": "staged",
+              "staged_at": "input/{subject}/func/",
+              "note": "The harness stages this case's files before the run; there is nothing to download."
             },
-            "required_output": "A design matrix (any format:.mat,.tsv, or equivalent); Contrast/statistic maps (NIfTI)"
+            "required_output": "Six z maps (NIfTI) on the grid of input/{subject}/func/bold.nii.gz.\n\nOUTPUT LOCATION (exact, mandatory): write your results into `submissions/functional-task-glm/{subject}/` under your working directory - create that folder. Name the maps `z_finger.nii.gz`, `z_foot.nii.gz` and `z_lips.nii.gz` (each movement against rest), and `z_finger_vs_others.nii.gz`, `z_foot_vs_others.nii.gz` and `z_lips_vs_others.nii.gz` (each movement against the mean of the other two). Use these exact names; all six are scored.",
+            "subject_note": "This task runs once per case. Its cases are listed in cases.json of the gated reference dataset; the harness stages each one's files under its case id, and {subject} in the goal and the output paths is replaced with that id."
           },
           "solution": {
-            "ground_truth": "No ready-made contrast (fMRIPrep produces no GLM). GT is ANATOMICAL: movement-vs-baseline contrast must peak in precentral/postcentral gyrus - check peak falls in a motor-cortex atlas ROI (e.g. Harvard-Oxford). Optionally generate a reference nilearn GLM for map correlation.",
-            "ground_truth_location": "(to be added)",
-            "metric": "spatial_correlation",
-            "pass_criterion": "fMRIPrep preproc_bold (MNI152NLin2009cAsym), confounds_timeseries.tsv, and task events loaded; First-level design built from events (HRF-convolved) with nuisance confounds (6 motion params + WM + CSF; optionally aCompCor/FD) as regressors; Movement-vs-baseline contrast map produced as a statistical NIfTI; Activation in the expected motor regions (pre/postcentral gyrus) for the movement contrast; No processing errors; logs captured",
-            "output_validation": "Contrast map exists, MNI dims; peak activation in motor cortex (atlas ROI).",
+            "ground_truth": "The voxelwise median z map, per contrast, of a panel of four independent first-level GLMs of the same staged BOLD (nilearn, FSL FEAT, SPM12, AFNI 3dDeconvolve/3dREMLfit), each package at its own conventions for smoothing, HRF, drift and noise model, with the same events and eight nuisance regressors. Full-credit lines are calibrated per subject from the panel's leave-one-out spread. consensus_z_<contrast>.nii.gz and roi_mask.nii.gz in the Hugging Face dataset neurodeskorg/skills-comm-ground-truth, fetched into the grader pack reference/ at grade time.",
+            "ground_truth_location": "Hugging Face neurodeskorg/skills-comm-ground-truth, path functional_gt/functional-task-glm/{subject}/ (consensus_z_<contrast>.nii.gz, roi_mask.nii.gz) and calibration/functional-task-glm/{subject}.json",
+            "metric": "consensus-calibrated: verdict {within_reference_variability|acceptable|marginal|unacceptable|invalid} + weighted quality 0-100 from the Pearson r of each z map with the consensus inside the brain mask (see grader)",
+            "pass_criterion": "The six z maps on the BOLD grid; each movement-vs-others map agrees best with its own consensus (condition labels not swapped); verdict >= acceptable (quality >= 60)",
+            "output_validation": "Run the grader (see the grader block); a submission passes when verdict >= acceptable (quality >= 60), which is how the reporting layer scores it. The script's exit code signals validity (no gate failure), not pass.",
+            "grader": {
+              "kind": "consensus-calibrated",
+              "description": "Compares each z map with the panel consensus inside the BOLD brain mask by Pearson r, which reads a t map or an effect-size map as it reads a z map. Weighted quality over the three movement-vs-others maps (0.18 each) and the three movement-vs-rest maps (0.1533 each); each earns full credit at the panel's own leave-one-out spread and none at a fixed line. Validity gates refuse missing, off-grid or constant movement-vs-others maps, and maps that agree best with another movement's consensus.",
+              "pack": "benchmark/graders/functional-task-glm/",
+              "scorer": "benchmark/graders/functional-task-glm/score_task_glm.py",
+              "reference_fetch": "python benchmark/harness/fetch_reference.py --task functional-task-glm --case <case>",
+              "invoke": "python3 benchmark/graders/functional-task-glm/score_task_glm.py --submission <AGENT_DIR>/submissions/functional-task-glm/{subject} --pack benchmark/graders/functional-task-glm/",
+              "pass_criterion": "verdict >= acceptable (quality >= 60); the scorer's exit code signals validity (no gate failure), not pass"
+            },
             "tool_mode": "agnostic",
             "tool_suggestions": [
               "python:nilearn",
@@ -1304,10 +1310,10 @@
               "spm12",
               "afni"
             ],
-            "tool_note": "Context: healthy. First-level GLM: nilearn FirstLevelModel, FSL FEAT, SPM, or AFNI 3dDeconvolve. Events define the design; include confounds as nuisance regressors",
-            "notes": "[input_files] Derivatives repo: https://github.com/OpenNeuroDerivatives/ds000114-fmriprep.git (datalad). preproc_bold (MNI152NLin2009cAsym) + confounds_timeseries.tsv under sub-01/ses-test/func/; events.tsv from raw ///openneuro/ds000114. Confounds: 6 motion + WM + CSF (optional aCompCor/FD). Contrast: movement vs baseline",
-            "dataset_fetch_reference": "datalad install https://github.com/OpenNeuroDerivatives/ds000114-fmriprep.git && cd ds000114-fmriprep && datalad get sub-01/ses-test/; datalad install ///openneuro/ds000114 && cd ds000114 && datalad get sub-01/ses-test/func/*events.tsv",
-            "expected_files_detail": "A design matrix (any format:.mat,.tsv, or equivalent); Contrast/statistic maps (NIfTI, any filename; e.g. z-stat, t-stat, or effect-size maps)"
+            "tool_note": "Context: healthy adult, block-design motor task, fMRIPrep-preprocessed BOLD in template space. Any first-level GLM package is a reasonable choice. Tool names are non-binding suggestions.",
+            "notes": "[note] Template-space task: the maps stay on the grid of the supplied BOLD. Maps are graded on their pattern against a consensus of independent GLM packages, because smoothing, HRF and noise model move the scale and smoothness of a z map far more than where the activation lies. [calibration] Each subject takes about 17 minutes for all four packages of the panel on 4 CPUs; a single GLM takes a few minutes.",
+            "dataset_fetch_reference": "Staged by the harness from the gated dataset (input/functional-task-glm/<case>/func/). Cases are ds000114 1.0.2 ses-test fingerfootlips runs as preprocessed by fMRIPrep 21.0.2 (OpenNeuroDerivatives), the BOLD and brain mask in MNI152NLin2009cAsym res-2 with the header's free-text fields cleared, its sidecar and confounds as published, and the dataset's events file.",
+            "expected_files_detail": "z_finger.nii.gz, z_foot.nii.gz, z_lips.nii.gz, z_finger_vs_others.nii.gz, z_foot_vs_others.nii.gz and z_lips_vs_others.nii.gz on the grid of the supplied BOLD"
           }
         }
       }
